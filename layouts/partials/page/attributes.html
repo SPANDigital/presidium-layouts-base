@@ -1,0 +1,5 @@
+{{ $attrs := ""}}
+{{ range $key, $value := .Site.Params.attributes}}
+    {{ $attrs = (printf "data-%s=\"%s\" %s" $key $value $attrs) | safeHTMLAttr}}
+{{ end }}
+{{ return $attrs }}

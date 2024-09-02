@@ -1,0 +1,49 @@
+{{ $title := .Get 0}}
+{{ $ref := .Get 1}}
+{{ $page := "" }}
+
+
+{{ if $ref }}
+    {{ $page = .Site.GetPage $ref }}
+{{ end }}
+
+
+{{ if not $page }}
+    {{ range where .Site.Pages "Section" "glossary" }}
+        {{ if eq (lower .Title) (lower $title) }}
+            {{ $page = . }}
+        {{ end }}
+    {{ end }}
+{{ end }}
+
+{{/* Glossary page doesnt exist, so fall back to title */}}
+{{ if eq $page "" }}
+    {{ $title }}
+{{ else }}
+    {{/* Use title if no slug */}}
+    {{ $slug := humanize $page.Params.Title }} {{/* Handles any dashes in the title */}}
+    {{ $slug = anchorize $slug }}
+    {{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
+    
+    {{ if $page.Params.Slug }}
+        {{ $slug = $page.Params.Slug}}
+    {{ end }}
+
+    {{ $isChild := not $page.Data.Pages}}
+    {{ $articleLink := $page.RelPermalink }}
+    {{if $isChild }}
+        {{ $articleLink = (printf "%v#%v" $page.Parent.RelPermalink $slug ) }}
+    {{end}}
+
+    {{ if $page }}
+        <a class="tooltips-term" href="{{ $articleLink }}" >
+            {{ $title }}<span class="tooltips-text">{{ $page.Content | plainify }}</span>
+        </a>
+    {{ else }}
+        {{ if $ref }}
+            {{ errorf "Error rending tooltip at href [%s] in file [%s]" $ref .Page.File }}
+        {{else}}
+            {{ errorf "Error rending tooltip with title [%s] in file [%s]" $title .Page.File }}
+        {{ end }}
+    {{ end }}
+{{ end }}

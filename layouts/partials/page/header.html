@@ -1,0 +1,18 @@
+{{ if eq (.Scratch.Get "scope") "single" }}
+    <h1 class="page-title offendingHeading">
+        {{ .Parent.Title }}
+    </h1>
+{{ else }}
+    {{ $roles := .Params.roles | default "All Roles" }}
+    {{ $pageLink :=  .Page.RelPermalink }}
+    {{ $slug := (partial "common/slug" .) }}
+
+    <div class="page title" data-roles="{{ $roles }}" data-link="{{ $pageLink }}" permalink="{{ .Page.RelPermalink }}" title="{{ .Title }}" >
+        <div class="article-title article-actions" data-align="center-left">
+            <h1 class="page-title offendingHeading">
+                {{ .Title }}
+            </h1>
+        </div>
+    </div>
+{{ end }}
+<hr class="offendingHr" />

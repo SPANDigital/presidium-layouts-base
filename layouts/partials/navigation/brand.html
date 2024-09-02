@@ -1,0 +1,13 @@
+{{ $url := urls.Parse .Site.BaseURL }}
+{{ $rootUrl := path.Clean $url.Path }}
+
+<a href="{{ $rootUrl }}" class="brand">
+	{{ $navImg := "images/logo.png" | relURL }}
+	{{ if .Site.Params.logo }}
+	{{ $navImg = path.Join $rootUrl .Site.Params.logo }}
+	{{ end }}
+	<img src={{ $navImg }} alt="Logo image">
+</a>
+<div class="brand-name-grid">
+    <h4 class="brand-name">{{ .Site.Title }}</h4>
+</div>

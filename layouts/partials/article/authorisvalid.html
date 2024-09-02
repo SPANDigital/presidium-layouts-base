@@ -1,0 +1,8 @@
+{{ $value := . }}
+{{ $valid := true }}
+
+{{ if and $value (not (findRE `^[^\s@]+@[^\s@]+\.[^\s@]+$` $value)) }}
+    {{ $valid = false  }}
+{{ end }}
+
+{{ return $valid  }}

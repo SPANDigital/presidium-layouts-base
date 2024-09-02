@@ -1,0 +1,1 @@
+window.navigation = `{{ partial "navigation/root" . }}`;

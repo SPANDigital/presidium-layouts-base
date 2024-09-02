@@ -1,0 +1,12 @@
+{{ $pages := where $.Site.AllPages ".IsPage" true }}
+{{ if and $.Site.Params.archive (ne $.Site.Params.archive.age 0)}}
+    {{ $age := mul 86400 $.Site.Params.archive.age }}
+    {{ $before := sub now.Unix $age }}
+    {{ $pages = where $pages "Date.Unix" "gt" 0 }}
+    {{ $pages = where $pages "Date.Unix" "lt" $before }}
+
+    <div class="archive">
+        <h1>Archive</h1>
+        {{ partial "archive/table" (dict "NavPage" . "Pages" $pages) }}
+    </div>
+{{ end }}

@@ -1,0 +1,16 @@
+{{ if .Site.Params.show.status }}
+    {{ if .Params.status }}
+        <div class="article-status">
+            {{ $status := lower .Params.status}}
+            {{ if eq $status "draft" }}
+                <span title="Article Status" class="label label-default status-draft">Draft</span>
+            {{ else if eq $status "review" }}
+                <span title="Article Status" class="label label-primary status-review">Review</span>
+            {{ else if eq $status "published" }}
+                <span title="Article Status" class="label label-success status-published">Published</span>
+            {{ else if eq $status "retired" }}
+                <span title="Article Status" class="label label-warning status-retired">Retired</span>
+            {{ end }}
+        </div>
+    {{ end }}
+{{ end }}

@@ -1,0 +1,153 @@
+{{ $basePath := $.Site.Params.basePath  | default "/" }}
+<script defer src="{{ path.Join $basePath "/presidium.js" }}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{{ if $.Site.Params.enterprise_enabled }}
+<script defer src="{{ path.Join $basePath $.Site.Params.enterprise_script  }}"></script>
+<script type="module">
+  const toolbarElement = document.querySelector('.presidium-enterprise');
+  const navigationElement = document.querySelector('#presidium-navigation');
+  if (toolbarElement) {
+      const toolbarHeight = toolbarElement.offsetHeight;
+      if (toolbarHeight) {
+          navigationElement.style.height = `calc(100vh - ${toolbarHeight}px)`;
+          navigationElement.style.top = `${toolbarHeight}px`;
+      }
+  }
+</script>
+{{ end }}
+
+<script defer src="{{ "assets/scripts/jquery.js" | absURL }}"></script>
+<script defer src="{{ "assets/scripts/bootstrap.js" | absURL }}"></script>
+<script defer src="{{ "assets/scripts/mermaid.js" | absURL }}"></script>
+
+<script type="module">
+  $('.toolbar-wrapper > button.toggle').on('click', (event) => {
+    event.stopPropagation();
+    const $menu = $('.content-wrapper > #presidium-navigation');
+    const isOpen = $menu.hasClass('expanded');
+    $menu.toggleClass('expanded', !isOpen).toggleClass('', isOpen);
+  });
+
+  const toggleMenu = ($menu, isOpen) => {
+    $menu.toggleClass('open', isOpen).toggleClass('closed', !isOpen);
+    const $trigger = $menu.find('div.menu-expander > .glyphicon').first();
+    $trigger.toggleClass('glyphicon-chevron-down', isOpen).toggleClass('glyphicon-chevron-right', !isOpen);
+    $menu.find('ul').first().toggleClass('in active', isOpen);
+  };
+
+  $('li.menu-row').on('show.bs.collapse', (event) => {
+    event.stopPropagation();
+    const $menu = $(event.currentTarget);
+    toggleMenu($menu, true);
+  });
+
+  $('li.menu-row').on('hide.bs.collapse', (event) => {
+    event.stopPropagation();
+    const $menu = $(event.currentTarget);
+    toggleMenu($menu, false);
+  });
+
+  $('.menu-expander').on('click', function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const $menuRow = $(event.currentTarget).closest('.menu-row');
+    const $ul = $menuRow.find('ul').first();
+    $ul.collapse('toggle');
+  });
+
+  $('.menu-title').on('click', function(event) {
+    const $menuRow = $(event.currentTarget).closest('.menu-row');
+    if (!$menuRow.hasClass('open')) return;
+
+    const $ul = $menuRow.find('ul').first();
+    $ul.collapse('toggle');
+  });
+
+  // Recursively open the current page's menu nav
+  let navItem = $(`a[href="${window.location.pathname}"]`).parent().closest('.menu-row');
+  while (navItem.length) {
+      toggleMenu(navItem, true);
+      navItem = navItem.parent().closest('.menu-row');
+  }
+
+  function copyPermalink(link) {
+      // Copy the article link to the clipboard
+      navigator.clipboard.writeText(RegExp('^/*(.*)').exec(link)[1]);
+  }
+
+  window.presidium?.tooltips?.load();
+  window.presidium?.modal?.init();
+
+  mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+          'primaryColor': '#00827E',
+          'primaryBorderColor': '#2C6764',
+          'secondaryColor': '#FFFFFF',
+          'lineColor': '#666',
+      },
+  });
+</script>
+
+{{ if $.Site.Params.resizeMenu | default true }}
+<script type="module">
+    const desktopSize = window.matchMedia("(min-width: 992px)")
+    const resizer = document.querySelector("#resizer");
+    const sidebar = document.querySelector("#presidium-navigation");
+    const cachedSize = window.localStorage.getItem('sidenav');
+
+    if(desktopSize.matches) {
+      resizer.style.display = 'block';
+
+      if (cachedSize) {
+        sidebar.style.flexBasis = cachedSize;
+      }
+    }
+
+    resizer.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+      document.addEventListener("mousemove", resize, false);
+      document.addEventListener("mouseup", () => {
+        event.preventDefault();
+        document.removeEventListener("mousemove", resize, false);
+      }, false);
+    });
+
+    function resize(e) {
+      const size = `${e.x}px`;
+      window.localStorage.setItem('sidenav', size);
+      sidebar.style.flexBasis = size;
+    }
+</script>
+{{ end }}
+
+{{ if $.Site.Params.enableSublinks }}
+<script type="module">
+  (function addHeadingLinks(){
+    var articles = document.querySelectorAll('.article.child');
+
+    articles.forEach( function(article){
+      var headings = article.querySelectorAll('h1, h2');
+      headings.forEach(function(heading){
+        if(heading.id){
+          var container = document.createElement('div');
+          var linkContainer = document.createElement('div')
+          var link = document.createElement('a');
+
+          container.className = 'article-title';
+          linkContainer.className = "permalink";
+          link.className = "link-icon";
+          link.href = '#'+heading.id;
+          link.title = "Permalink to this article";
+
+          linkContainer.appendChild(link);
+          heading.insertAdjacentElement("beforebegin", container);
+          container.appendChild(heading);
+          container.appendChild(linkContainer)
+        }
+      })
+    });
+  })();
+</script>
+{{ end }}

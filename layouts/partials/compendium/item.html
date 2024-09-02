@@ -1,0 +1,54 @@
+{{ $childLevel := add .Level 1 }}
+{{ $items := slice }}
+{{ $link := "" }}
+{{ $section := .Section }}
+{{ $category := .Category }}
+{{ if eq .Level 1 }}
+    {{ $section = .Page.Title }}
+{{ end }}
+{{ if eq .Level 2 }}
+    {{ $category = .Page.Title }}
+{{ end }}
+
+{{ with .Page}}
+{{ $slug := humanize .Params.Title }}
+{{ $slug = anchorize $slug }}
+{{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
+{{ if .Params.Slug }}
+    {{ $slug = .Params.Slug}}
+{{ end }}
+{{ if .Data.Pages }}
+        {{ $link = .RelPermalink }}
+    {{ end }}
+    {{if not .Data.Pages }}
+        {{ $link = (printf "%v#%v" .Parent.RelPermalink $slug ) }}
+    {{end}}
+    {{ $scope := slice }}
+    {{ if .Params.Scope }}
+        {{ $scope = $scope | append .Params.Scope }}
+    {{ end }}
+    {{ if not (eq .Plain "") }}
+        {{ $creator := (.Params.Author | default "") }}
+        {{ $content := .Content }}
+        {{ $accessRights := (slice (.Params.Roles | default "All Roles")) }}
+        {{ $description := "" }}
+        {{ $format := "text/html" }}
+        {{ $identifier := .File.Path }}
+        {{ $isPartOf := .Site.BaseURL  }}
+        {{ $language := "en-US" }}
+        {{ $title := .Title }}
+        {{ $sourceSystem := "Presidium" }}
+        {{ $type := "Article" }}
+        {{ $date := .Lastmod.Format "2006-01-02" }}
+        {{ $compendiumMeta := (dict "source-system" $sourceSystem "deep-link" $link "layer" 1) }}
+        {{ $dublinCore := (dict "creator" $creator "description" $description "format" $format "identifier" $identifier "language" $language "isPartOf" $isPartOf "source" $link "title" $title "type" $type "date" $date )}}
+        {{ $metadata := (dict "compendium" $compendiumMeta "dublin-core" $dublinCore)}}
+        {{ $items = $items | append (dict "metadata" $metadata "content" $content) }}
+    {{ end }}
+    {{ range .Data.Pages }}
+        {{ range (partial "compendium/item" (dict "Page" . "Level" $childLevel "Section" $section "Category" $category ) ) }}
+          {{ $items = $items | append . }}
+        {{ end }}
+    {{ end }}
+{{ end }}
+{{ return $items }}

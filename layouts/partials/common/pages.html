@@ -1,0 +1,18 @@
+{{/*  Returns the pages after filtering out the archived articles  */}}
+{{ $pages := .Pages }}
+{{ if and $.Site.Params.archive (ne $.Site.Params.archive.age 0)}}
+    {{ $age := mul 86400 $.Site.Params.archive.age }}
+    {{ $before := sub now.Unix $age }}
+    {{ $pages = (where .Pages "Date.Unix" "gt" $before)}}
+
+    {{/* expose a limited number of exposed archive items if there are too few active articles */}}
+    {{ $expose := $.Site.Params.archive.expose | default 0}}
+    {{ $isExposing := and (ne $expose 0) (not (ge (len $pages) $expose))}}
+    {{ if $isExposing }}
+        {{ $archives := first (sub $expose (len $pages)) (complement $pages .RegularPages) }}
+        {{ $pages = $pages | append $archives }}
+    {{end}}
+    {{/* retain subsections */}}
+    {{ $pages = $pages | append .Sections }}
+{{ end }}
+{{ return $pages }}

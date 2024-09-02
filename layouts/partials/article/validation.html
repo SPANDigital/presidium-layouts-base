@@ -1,0 +1,20 @@
+{{ $context := . }}
+
+{{ range $index, $schema := .Site.Params.frontmatter }}
+    {{ $value := $context.Param $schema.key }}
+    {{ $strict := $schema.strict | default false }}
+
+    {{ if and (eq $schema.key "author") (ne (len $context.Content) 0) }}
+        {{ if not $value }}
+            {{ partial "common/formatmessage" (dict "strict" $strict "message" (printf "%s field is empty, path: ./%s" $schema.key $context.Path)) }}
+        {{ else if not (partialCached "article/authorisvalid" $value $value) }}
+            {{ partial "common/formatmessage" (dict "strict" $strict "message" (printf "%s: %s is not a valid email address, path: ./%s" $schema.key $value $context.Path)) }}
+        {{ end }}
+    {{ end }}
+
+    {{ if eq $schema.key "title" }}
+        {{ if not $value }}
+            {{ partial "common/formatmessage" (dict "strict" $strict "message" (printf "%s field is empty, path: ./%s" $schema.key $context.Path)) }}
+        {{ end }}
+    {{ end }}
+{{ end }}

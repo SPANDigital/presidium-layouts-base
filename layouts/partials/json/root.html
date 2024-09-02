@@ -1,0 +1,18 @@
+{{ $currentPage := . }}
+{{ $items := slice }}
+{{ $roles := .Site.Params.roles.options | default slice }}
+{{ $urilzeIdentifier := slice }}
+{{ range $menu := .Site.Menus.main.ByWeight }}
+    {{/* the menu Identifier has spaces such as "key concepts", need to add the dashes back using urilize
+     https://gohugo.io/functions/urlize/
+     */}}
+    {{ $urilzeIdentifier = $menu.Identifier | urlize  }}
+    {{ with $.Site.GetPage "section" $urilzeIdentifier }}
+        {{ $items = $items | append (partial "json/item" (dict "CurrentPage" $currentPage "NavPage" . "Level" 1  "Roles" $roles )) }}
+    {{ end }}
+{{ end }}
+{{ $logo := "" }}
+{{ with $.Site.Params.logo }}
+    {{ $logo =  $.Site.Params.logo | relURL }}
+{{ end }}
+{{ return ( dict "logo" $logo "brandName" $.Site.Title "brandUrl" "" "baseUrl" (relURL "/") "roles" (dict "label" "Display documentation for" "all" "All Roles" "options" $roles ) "children" $items) }}

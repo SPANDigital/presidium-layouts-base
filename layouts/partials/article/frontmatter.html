@@ -1,0 +1,29 @@
+{{ $isRoles := false }}
+{{ $isAuthor := false }}
+{{ $isStatus := false }}
+
+{{ if .Site.Params.show.role }}
+    {{ if and .Site.Params.roles .Params.roles  }}
+        {{ $isRoles = true }}
+    {{  end }}
+{{ end }}
+
+{{ if .Site.Params.show.author }}
+    {{ if or .Params.author .Site.Params.author }}
+        {{ $isAuthor = true }}
+    {{  end }}
+{{ end }}
+
+{{ if .Site.Params.show.status }}
+    {{ if .Params.status  }}
+        {{ $isStatus = true }}
+    {{  end }}
+{{ end }}
+
+{{ if or $isRoles $isAuthor $isStatus }}
+    <div class="article-header">
+        {{ partial "article/author" . }}
+        {{ partial "article/status" . }}
+        {{ partial "article/roles" . }}
+    </div>
+{{ end }}

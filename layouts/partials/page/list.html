@@ -1,0 +1,63 @@
+{{ $roles := .Params.roles | default "All Roles" }}
+{{ $uid := "" }}
+{{ $articleId := .Params.id }}
+{{ with .File }}
+    {{ $uid = .UniqueID }}
+    {{ if not $articleId }}
+        {{ $articleId = .Path }}
+    {{ end }}
+{{ end }}
+{{ $pageLink := .Page.RelPermalink }}
+{{ $slug := (partial "common/slug" .) }}
+{{ $noContent := (eq (len .Content) 0) }}
+{{ $type := cond $noContent "page" "article" }}
+
+<div class="{{ $type }} index" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $pageLink }}" permalink="{{ .Page.RelPermalink }}" data-no-content="{{ $noContent }}" >
+    <div class="presidium-article-wrapper">
+        <span class="anchor" id="{{ $slug }}" data-id="{{ $articleId }}"></span>
+        {{ if (ne (len .Content) 0) }}
+            <article class="article-actions" data-align="center-top">{{ .Content }}</article>
+            <hr />
+        {{ end }}
+    </div>
+</div>
+
+
+{{ $pages := (partial "common/pages" .) }}
+{{ $siteScopes := .Site.Params.scopes }}
+{{ $siteScopesEnabled := .Site.Params.scopesEnabled }}
+
+{{/* Sort by filename if specified in config */}}
+{{ if .Site.Params.sortByFilePath }}
+    {{/* Sort by file prefix */}}
+    {{ range sort $pages "File.Path" }}
+        {{ $isRendering := true }}
+
+        {{ if $siteScopesEnabled }}
+            {{ if isset .Params "scope" }}
+                {{ $pageScopes := .Params.scope }}
+                {{ $isRendering = gt (len (intersect $pageScopes $siteScopes)) 0 }}
+            {{ end }}
+        {{ end }}
+
+        {{ if $isRendering }}
+            {{ partial "article/root" . }}
+        {{ end }}
+    {{ end }}
+{{ else }}
+    {{/* Sort by weight otherwise the hugo default */}}
+    {{ range $pages.ByWeight }}
+        {{ $isRendering := true }}
+
+        {{ if $siteScopesEnabled }}
+            {{ if isset .Params "scope" }}
+                {{ $pageScopes := .Params.scope }}
+                {{ $isRendering = gt (len (intersect $pageScopes $siteScopes)) 0 }}
+            {{ end }}
+        {{ end }}
+
+        {{ if $isRendering }}
+            {{ partial "article/root" . }}
+        {{ end }}
+    {{ end }}
+{{ end }}

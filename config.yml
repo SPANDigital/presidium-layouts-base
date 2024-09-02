@@ -1,0 +1,33 @@
+module:
+  mounts:
+    - source: content
+      target: content
+    - source: static
+      target: static
+    - source: layouts
+      target: layouts
+    - source: data
+      target: data
+    - source: assets
+      target: assets
+    - source: i18n
+      target: i18n
+    - source: archetypes
+      target: archetypes
+    - source: node_modules
+      target: static/node_modules
+outputformats:
+  navigation:
+    basename: navigation
+    mediatype: text/javascript
+  Compendium:
+    baseName: compendium
+    mediaType: application/json
+outputs:
+  home:
+    - Navigation
+    - Compendium
+params:
+  favicon: images/favicon.ico
+  attributes:
+    website: 2.12.0

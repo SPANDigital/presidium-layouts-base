@@ -1,0 +1,6 @@
+{{/* This partial formats the error/warning message based on the strict parameter */}}
+{{ if .strict }}
+    {{ errorf "%s" .message }}
+{{ else }}
+    {{ warnf "%s" .message }}
+{{ end }}

@@ -1,0 +1,16 @@
+{{ $attrs := ""}}
+{{ range $key, $value :=  .Params}}
+        {{ $attrs = (printf "%s=\"%s\" %s" $key $value $attrs) | safeHTMLAttr}}
+{{ end }}
+
+<iframe
+        {{ $attrs }}
+        class="article-iframe"
+        loading="lazy"
+        scrolling="no"
+        framespacing="0"
+        frameborder="0"
+        webkitallowfullscreen
+        mozallowfullscreen
+        allowfullscreen
+></iframe>

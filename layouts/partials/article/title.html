@@ -1,0 +1,18 @@
+{{ $slug := (partial "common/slug" .) }}
+{{ $articleLink := ($.Scratch.Get "articleLink") }}
+
+{{ if (eq .Parent.Title .Title) }}
+{{/*  No title - For when the main title is the same as the first article  */}}
+{{ else }}
+    <div class="article-title article-actions" data-align="center-left">
+        {{ if .Data.Pages }}
+            <h1> {{ .Title }}</h1>
+        {{ else }}
+            <h2> {{ .Title }}</h2>
+        {{ end }}
+
+        <div class="permalink">
+            <a id="{{.Page.RelPermalink}}" data-slug="#{{ $slug }}"></a>
+        </div>
+    </div>
+{{ end }}

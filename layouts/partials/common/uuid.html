@@ -1,0 +1,7 @@
+{{ $uuid := "" }}
+{{ with .File }}
+  {{ $uuid = .UniqueID }}
+{{ else }}
+  {{ $uuid = md5 .Path }}
+{{ end }}
+{{ return $uuid }}

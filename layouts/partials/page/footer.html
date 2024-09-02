@@ -1,0 +1,8 @@
+<footer>
+  <div>
+    <p>&copy; Copyright {{ now.Format "2006"}} {{ .Site.Copyright }}</p>
+    {{ if .Page.Lastmod }}
+    <p class="text-muted">Generated on {{ .Page.Lastmod.Format "Jan 2, 2006" }}</p>
+    {{ end }}
+  </div>
+</footer>

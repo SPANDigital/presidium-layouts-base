@@ -1,0 +1,16 @@
+{{ if .Site.Params.show.author }}
+    {{ if .Params.author }}
+        {{ $authorLabel := .Site.Params.author.label | default "Author" }}
+        {{ if .Params.author }}
+            {{ $authorLink := .Params.github }}
+            {{ $newTab := .Site.Params.author.external.newTab }}
+            <div class="article-author">
+                {{ $authorLabel }}: <a href="https://github.com/{{ $authorLink }}" target="{{ if $newTab }} _blank {{ end }}">{{ .Params.author }}</a>
+            </div>
+        {{ else }}
+            <div class="article-author">
+                {{ $authorLabel }}: {{ .Params.author }}
+            </div>
+        {{ end }}
+    {{ end }}
+{{ end }}

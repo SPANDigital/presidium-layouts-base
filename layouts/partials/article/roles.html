@@ -1,0 +1,12 @@
+{{ if and .Site.Params.show.role .Site.Params.roles }}
+    {{ $roles := slice .Site.Params.roles.all }}
+    {{ if .Params.roles }}
+        {{ $roles = slice .Params.roles }}
+        {{ $roles = intersect .Site.Params.roles.options $roles}}
+    {{ end }}
+    {{ range $roles}}
+        <div class="article-role">
+            <span title="Role" class="label">{{ . }}</span>
+        </div>
+    {{ end }}
+{{ end }}

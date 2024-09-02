@@ -1,0 +1,75 @@
+{{ $childLevel := add .Level 1 }}
+{{ $slugifyUrl := and .SlugifyUrl }}
+{{ $roles := .NavPage.Params.roles | default "All Roles" }}
+{{/* rootUrl is the baseUrl but it defaults to "/" if no baseUrl is set */}}
+{{ $rootUrl := .RootUrl }}
+
+{{/* Use title if no slug */}}
+{{ $slug := humanize .NavPage.Params.Title }} {{/* Handles any dashes in the title */}}
+{{ $slug = anchorize $slug }}
+{{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
+{{ if .NavPage.Params.Slug }}
+    {{ $slug = .NavPage.Params.Slug}}
+{{ end }}
+
+{{/* Parent slug */}}
+{{ $parentSlug := ((humanize .NavPage.Parent.Params.Title) | default "root") }}
+{{ $parentSlug = anchorize $parentSlug }}
+{{ $parentSlug = replaceRE `(-{2,})` "-" $parentSlug }}
+{{ if .NavPage.Parent.Params.Slug }}
+    {{ $parentSlug = .NavPage.Parent.Params.Slug}}
+{{ end }}
+
+{{/* adds the slug to the link if the article has no children */}}
+{{ $articleLink := .NavPage.RelPermalink }}
+{{if and .NavPage.IsPage $slugifyUrl }}
+    {{ $articleLink = (printf "%v#%v" .NavPage.Parent.RelPermalink $slug ) }}
+{{end}}
+
+{{/* combines the parent slug with the current slug to ensure it's globally unique */}}
+{{ $pageSlug := (printf "%v-%v" ($parentSlug) $slug )}}
+
+{{/*  Hide the first item if the title is the same as the parent  */}}
+{{ $offset := 0 }}
+{{ if eq (index .NavPage.Data.Pages 0).Title .NavPage.Title }}
+    {{ $offset = 1 }}
+{{ end }}
+{{ $hasChildren := lt $offset (len .NavPage.Data.Pages)}}
+
+{{/* Unique id for this article */}}
+{{ $articleId :=  .NavPage.Params.id | default  .NavPage.File.Path }}
+
+{{/* Unique id for file, used by scroll-spy and menu toggle  */}}
+{{ $uid := .NavPage.File.UniqueID }}
+
+<li class="menu-row collapse {{ if .NavPage.IsPage }}child{{end}}" style="overflow: hidden;" data-roles="{{ $roles }}">
+    <div class="link level-{{ .Level }}">
+        <a class="level-{{ .Level }} {{ if eq .Index 0 }}first-child{{end}}" data-slug="{{ $slug }}" data-target="#{{$uid}}" data-id="{{ $articleId }}" href="{{ $articleLink }}">
+            {{ if $hasChildren }}
+                <div class="menu-expander" data-toggle="collapse" aria-controls="{{$uid}}" data-target="#{{$uid}}">
+                    <span class="glyphicon glyphicon-chevron-right glyphicon-toggle"></span>
+                </div>
+            {{ end }}
+            <div class="menu-title">
+                {{ partial "navigation/menu-title" . }}
+            </div>
+        </a>
+        <div class="article-navbar-options" data-target="#{{$pageSlug}}" data-id="{{ $articleId }}">
+        </div>
+    </div>
+
+    {{ if $hasChildren }}
+        <ul id="{{$uid}}" class="collapse">
+            {{ $pages := (partial "common/pages" .NavPage )}}
+            {{ if .NavPage.Site.Params.sortByFilePath }}
+                {{ range $index, $subMenu := (sort (after $offset $pages) "File.Path") }}
+                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
+                {{ end }}
+            {{ else }}
+                {{ range $index, $subMenu := after $offset $pages }}
+                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
+                {{ end }}
+            {{ end }}
+        </ul>
+    {{ end }}
+</li>
