@@ -1,0 +1,474 @@
+@mixin callout($color, $text) {
+  background-color: rgba($color, 0.1);
+  border-color: $color;
+
+  &::before {
+    content: $text;
+  }
+
+  &::before,
+  a:hover {
+    color: $color;
+  }
+}
+
+@mixin headings {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @content;
+  }
+}
+
+#presidium {
+  display: flex;
+  flex-flow: row;
+  flex-direction: column;
+
+  .toolbar-wrapper {
+    min-height: 50px;
+    background-color: $color-dark-grey;
+    z-index: $zindex-navbar;
+    position: sticky;
+    top: 0;
+    padding: 0;
+    display: flex;
+    flex-grow: 1;
+
+    .toggle {
+      @media (min-width: $grid-float-breakpoint) {
+        display: none;
+      }
+
+      width: 30px;
+      top: 16px;
+      left: 20px;
+      z-index: 1;
+      background-color: white;
+      border-width: 0px;
+      border-bottom: 1px solid #3d3d3d;
+      background-image: none; // Reset unusual Firefox-on-Android default style; see https://github.com/necolas/normalize.css/issues/214
+
+      .icon-bar {
+        background-color: #777;
+        display: block;
+        width: 22px;
+        height: 2px;
+        border-radius: 1px;
+      }
+
+      .icon-bar + .icon-bar {
+        margin-top: 4px;
+      }
+    }
+
+    .presidium-enterprise {
+      width: 100%;
+      height: 50px;
+      background-color: white;
+    }
+  }
+
+  .content-wrapper {
+    display: flex;
+    position: relative;
+  }
+}
+
+#presidium-container {
+  flex-basis: 0;
+  flex-grow: 999;
+  color: $gray-darker;
+
+  .row {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    color: $gray-darker;
+  }
+
+  p {
+    margin-bottom: 10px;
+  }
+
+  a {
+    color: $link-color;
+  }
+
+  #presidium-content {
+    margin: 40px auto 0 auto;
+    height: 100%;
+    width: calc(100% - (144px * 0.25));
+
+    @media (min-width: $screen-md) {
+      width: calc(100% - (144px * 0.5));
+    }
+    @media (min-width: $screen-lg) {
+      width: calc(100% - (144px * 1));
+    }
+    @media (min-width: $screen-xlg) {
+      width: calc(100% - (144px * 2));
+    }
+    @media (min-width: $screen-xxlg) {
+      width: calc(100% - (144px * 3));
+    }
+
+    section {
+      #no-content-warning {
+        display: none;
+      }
+
+      span.anchor {
+        display: block;
+        position: relative;
+        visibility: hidden;
+        scroll-margin-top: 50px;
+      }
+
+      .article-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-top: 12px;
+
+        @media (max-width: $grid-float-breakpoint) {
+          max-width: calc(100vw - 120px);
+        }
+
+        @include headings {
+          margin: 0;
+          padding: 0;
+          scroll-margin-top: 50px;
+
+          &:hover {
+            cursor: pointer;
+
+            .article-edit-menu {
+              pointer-events: all;
+              opacity: 1;
+            }
+          }
+        }
+      }
+
+      .article-status {
+        .status-draft,
+        .status-review,
+        .status-published,
+        .status-retired {
+          background-repeat: no-repeat;
+          background-position: left;
+          background-size: 24px 19px;
+          padding: 2px 2px 2px 31px;
+          background-color: unset;
+        }
+
+        .status-draft {
+          background-image: url('images/status-draft.png');
+          color: $color-yellow-green;
+        }
+
+        .status-review {
+          background-image: url('images/status-review.png');
+          color: $color-yellow-green;
+        }
+
+        .status-published {
+          background-image: url('images/status-published.png');
+          color: $color-green;
+        }
+
+        .status-retired {
+          background-image: url('images/status-retired.png');
+          color: $color-grey;
+        }
+      }
+
+      .category {
+        a > span {
+          padding-left: 10px;
+          color: $link-color;
+        }
+      }
+
+      .article-header {
+        width: 100%;
+        padding: 10px 0;
+
+        > div {
+          display: inline-block;
+          vertical-align: middle;
+          margin-left: 10px;
+
+          &:first-child {
+            margin-left: 0;
+          }
+
+          .label {
+            line-height: 15px;
+          }
+        }
+
+        .article-role {
+          float: right;
+
+          .label {
+            background-image: url('images/role-icon.svg');
+            background-repeat: no-repeat;
+            background-size: 25px 15px;
+            background-color: unset;
+            background-position: left center;
+            color: $color-grey;
+            line-height: 18px;
+            padding: 2px 2px 2px 33px;
+          }
+        }
+      }
+
+      .article-author {
+        a {
+          text-decoration: underline;
+          color: $color-grey;
+
+          &:hover {
+            color: $navbar-default-link-hover-color;
+          }
+        }
+      }
+
+      .article-iframe {
+        height: auto;
+        width: 100%;
+        aspect-ratio: 16/9;
+      }
+
+      .article {
+        .presidium-article-wrapper {
+          > article + .article.child {
+            margin-top: 20px;
+          }
+        }
+
+        .article-edit-menu {
+          display: flex;
+          flex-direction: column;
+          margin-left: 15px;
+          opacity: 0;
+          transition: opacity 0.3s;
+          pointer-events: none;
+          position: relative;
+          background: #f9f8f8;
+          padding: 1px 13px;
+          border-radius: 10px;
+
+          &::after {
+            right: 100%;
+            top: 50%;
+            border: solid transparent;
+            content: ' ';
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+            border-color: rgba(212, 212, 212, 0%);
+            border-right-color: #f9f8f8;
+            border-width: 15px;
+            margin-top: -15px;
+          }
+        }
+
+        .dropdown-item {
+          display: flex;
+          align-items: center;
+          flex: 1;
+          padding: 1px;
+
+          &:hover {
+            text-decoration: none;
+          }
+        }
+
+        .edit-icon {
+          background-image: url('assets/svg/edit-icon.svg');
+          fill: #9a9a99;
+          width: 16px;
+          height: 16px;
+        }
+
+        .link-icon {
+          background-image: url('assets/svg/link-icon.svg');
+          fill: #9a9a99;
+          width: 16px;
+          height: 16px;
+          display: block;
+        }
+      }
+
+      figure {
+        margin-bottom: 24px;
+      }
+
+      article {
+        > div {
+          overflow-x: auto;
+        }
+
+        @include headings {
+          text-transform: none;
+          margin-top: 20px;
+          margin-bottom: 10px;
+          scroll-margin-top: 50px;
+        }
+
+        .presidium-pro-tip,
+        .presidium-prerequisite,
+        .presidium-for-example,
+        .presidium-suggested-reading,
+        .presidium-suggested-courses,
+        .presidium-best-practice,
+        .presidium-warning,
+        .presidium-chris-says {
+          padding: 9px 10px 10px;
+          margin-bottom: 10px;
+          border: 2px solid;
+          border-radius: 4px;
+          font-style: normal;
+
+          em {
+            font-weight: bold;
+            font-style: normal;
+          }
+
+          a {
+            text-decoration: underline;
+            color: $color-grey;
+          }
+
+          span {
+            line-height: 21px;
+            font-weight: 500;
+            letter-spacing: 0;
+            margin-bottom: 4px;
+            display: flex;
+          }
+
+          &::before {
+            display: flex;
+            font-weight: 500;
+            letter-spacing: 0;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+          }
+        }
+
+        .presidium-pro-tip {
+          @include callout($color-orange, 'span pro tip');
+        }
+
+        .presidium-for-example {
+          @include callout($color-green, 'for example...');
+        }
+
+        .presidium-suggested-reading {
+          @include callout($color-blue, 'suggested reading');
+        }
+
+        .presidium-suggested-courses {
+          @include callout($color-blue, 'suggested courses');
+        }
+
+        .presidium-best-practice {
+          @include callout($color-orange, 'best practice');
+        }
+
+        .presidium-warning {
+          @include callout($color-red, 'warning');
+        }
+
+        .presidium-prerequisite {
+          @include callout($color-yellow-green, 'prerequisite');
+        }
+
+        .presidium-chris-says {
+          background-color: #000;
+          border-color: #000;
+          background-image: url('images/pentagram-symbol.svg');
+          color: $color-grey-2;
+          background-repeat: no-repeat;
+          background-position: top right;
+          background-size: 31px;
+          background-origin: content-box;
+
+          @include callout($color-grey-2, 'chris says...');
+        }
+      }
+    }
+
+    .side-by-side {
+      width: 100%;
+      position: relative;
+      height: auto;
+      overflow: auto;
+      word-break: break-word;
+    }
+  }
+
+  footer {
+    text-align: center;
+    width: 100%;
+  }
+
+  table {
+    @extend .table;
+    @extend.table-striped;
+    @extend.table-bordered;
+
+    white-space: normal !important;
+
+    th {
+      vertical-align: top !important;
+    }
+  }
+
+  blockquote {
+    @extend .well;
+
+    font-size: inherit;
+  }
+
+  ul,
+  ol {
+    margin-bottom: ($line-height-computed / 2);
+
+    ul,
+    ol {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.archive {
+  h1 {
+    padding: 16px 0 22px;
+  }
+
+  p.archive-item {
+    padding: 2px 0;
+    display: grid;
+    grid-template-columns: 1fr 9fr;
+    grid-gap: 32px;
+  }
+}

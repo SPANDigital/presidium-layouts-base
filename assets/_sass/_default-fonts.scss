@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+@import url('https://use.typekit.net/cpr8cmy.css'); // TODO This can be removed to the span theme when it's created
+
+html,
+body {
+  font-family: $primary-font-family !important;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: monospace !important;
+  position: relative;
+
+  span {
+    font-family: monospace !important;
+  }
+}

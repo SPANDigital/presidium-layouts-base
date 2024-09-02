@@ -1,0 +1,46 @@
+// Bootsrap & Bootswatch color overrides
+$brand-primary: #e49134 !default;
+$brand-info: #eb9110;
+$brand-tint: rgba(254, 178, 70, 1);
+$navbar-default-link-hover-color: $brand-info;
+$navbar-default-link-hover-bg: white;
+$link-color: #e49134;
+
+// Custom colors
+$color-grey: #555;
+$color-grey-2: #777;
+$color-grey-3: #bbb;
+$color-grey-4: #f3f3f3;
+$color-orange: #eb9110;
+$color-yellow-green: #beb239;
+$color-green: #84a93f;
+$color-blue: #4586cd;
+$color-red: #e52213;
+$color-dark-grey: #3d3d3d;
+
+// Fonts
+$primary-font-family: proxima-nova !default; // TODO This should be 'Open Sans', but until we have a span theme, this is proxima nova
+
+// Extracted from spacelab theme:
+// Colors
+$gray-base: #000 !default;
+$gray-darker: #555 !default; // #222
+$gray-dark: lighten($gray-base, 20%) !default; // #333
+$gray: #666 !default; // #555
+$gray-light: lighten($gray-base, 60%) !default; // #999
+$gray-lighter: lighten($gray-base, 93.5%) !default; // #eee
+$navbar-default-bg: #eee !default;
+$border: #dadada;
+
+// fonts
+$font-size-base: 14px !default;
+$line-height-base: 1.428571429 !default; // 20/14
+$padding-base-vertical: 8px !default;
+$padding-base-horizontal: 12px !default;
+$line-height-computed: floor(($font-size-base * $line-height-base)) !default; // ~20px
+
+$input-height-base: ($line-height-computed + ($padding-base-vertical * 2) + 2) !default;
+
+// Include glyphicons (remove this when bootstrap dependency is removed)
+// The icons font path needs to be loaded before bootstrap in order to work
+$icon-font-path: 'assets/fonts/bootstrap/' !default;

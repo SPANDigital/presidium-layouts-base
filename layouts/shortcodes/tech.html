@@ -1,0 +1,49 @@
+<div class="tech-item">
+    <div>
+        {{ $title := .Get "title" }}
+        {{ $logo := .Get "logo" }}
+        {{ with (index $.Site.Data.techstack.technologies (replace (replace (lower $title ) "." "-" ) " " "-") ) }}
+        <h3><a href="{{ .website }}">{{ $title }}</a></h3>
+        {{ with $logo }}
+            {{ with $.Page.Parent.Resources.GetMatch . }}
+            <img src="data:{{ .MediaType }};base64,{{ .Content | base64Encode }}" class="tech-logo" width="100px"/>
+            {{ end }}
+        {{ end }}
+        <p class="tech-annotations">
+            {{ with .lifecycle }}
+                <b>Lifecycle:</b>
+                {{ index (index $.Site.Data.techstack.lifecycle .) "label" }}
+                <br/>
+            {{ end }}
+            {{ with .status }}
+            <b>Status:</b>
+                {{ index (index $.Site.Data.techstack.status .) "label" }}
+                <br/>
+            {{ end }}
+            {{ with .binomial }}
+                <b>Binomial:</b>
+                {{ . }}
+                <br/>
+            {{ end }}
+            {{ with (index . "host-with") }}
+                <b>Host with:</b>
+                {{ range . }}
+                    {{ with (index $.Site.Data.techstack.hosts . ) }}
+                        <a href="{{ .url }}" target="_blank" rel="noopener noreferrer">{{ .label }}</a>
+                    {{ end }}
+                {{ end }}
+            {{ end }}
+            <b>Resources:</b>
+            {{ with .website}}
+                <a href="{{ . }}">Website</a>
+            {{end}}
+            {{ with .repo}}
+                | <a href="{{ . }}">Repo</a>
+            {{end}}
+        </p>
+        {{ end }}
+    </div>
+    <div>
+        {{ .Inner|markdownify }}
+    </div>
+</div>

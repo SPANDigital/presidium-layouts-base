@@ -1,0 +1,4 @@
+{{ with .Get "url" }}
+{{ $content := resources.GetRemote . }}
+{{ $content }}
+{{ end }}

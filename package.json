@@ -1,0 +1,58 @@
+{
+  "name": "presidium-layouts-base",
+  "version": "1.0.0",
+  "description": "presidium-layouts-base",
+  "homepage": "https://github.com/SPANDigital/presidium-layouts-base#readme",
+  "bugs": {
+    "url": "https://github.com/SPANDigital/presidium-layouts-base/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SPANDigital/presidium-layouts-base.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "scripts": {
+    "lint": "yarn stylelint '**/*.scss'",
+    "lint:fix": "prettier --write '**/*.scss' && yarn stylelint '**/*.scss' --fix",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.scss": [
+      "prettier --write",
+      "yarn stylelint --fix"
+    ]
+  },
+  "dependencies": {
+    "axios": "^0.20.0",
+    "classnames": "^2.2.6",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-redux": "^7.2.1",
+    "redux": "^4.0.5",
+    "redux-promise": "^0.6.0",
+    "rxjs": "^6.6.3",
+    "rxjs-compat": "^6.6.3"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.4.4",
+    "@commitlint/config-conventional": "^17.4.4",
+    "@commitlint/cz-commitlint": "^17.4.4",
+    "@commitlint/travis-cli": "^17.4.4",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog-for-jira-smart-commits": "^1.0.5",
+    "husky": "^8.0.0",
+    "inquirer": "^8.2.5",
+    "lint-staged": "^13.2.2",
+    "prettier": "^2.8.8",
+    "stylelint": "^15.6.1",
+    "stylelint-config-prettier": "^9.0.5",
+    "stylelint-config-prettier-scss": "^1.0.0",
+    "stylelint-config-sass-guidelines": "^10.0.0",
+    "stylelint-config-standard": "^33.0.0",
+    "stylelint-config-standard-scss": "^9.0.0",
+    "stylelint-prettier": "^3.0.0"
+  },
+  "packageManager": "yarn@3.5.1"
+}

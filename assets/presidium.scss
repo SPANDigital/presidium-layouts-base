@@ -1,0 +1,21 @@
+// Optional variable overrides
+@import '_sass/default-variables';
+@import '_sass/variables';
+
+//Core CSS
+@import '_sass/bootstrap/';
+@import '_sass/navbar';
+@import '_sass/structure';
+@import '_sass/editor';
+@import '_sass/image';
+@import '_sass/syntax';
+@import '_sass/tooltips';
+@import '_sass/print';
+
+// Optional custom CSS loaded last
+@import '_sass/variables';
+@import '_sass/default-fonts';
+@import '_sass/fonts';
+@import '_sass/custom';
+@import '_sass/pdf';
+@import '_sass/mermaid';
