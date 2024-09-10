@@ -1,23 +1,10 @@
-{{ $appliedScopes := .Site.Params.scopes }}
-{{ $scopingEnabled := .Site.Params.scopesEnabled }}
-{{ $url := urls.Parse .Site.BaseURL }}
-{{ $rootUrl := path.Clean $url.Path }}
-{{ $slugifyUrl := .Site.Params.slugifyUrl | default true }}
+{{ $appliedScopes := .Site.Params.scopes }} {{ $scopingEnabled := .Site.Params.scopesEnabled }} {{ $url := urls.Parse
+.Site.BaseURL }} {{ $rootUrl := path.Clean $url.Path }} {{ $slugifyUrl := .Site.Params.slugifyUrl | default true }}
 
 <nav class="navbar scrollable-container">
   <div class="navbar-header">{{ partial "navigation/brand.html" . }}</div>
   <div class="navbar-items">
-    {{ $roles := .Site.Params.roles.options | default slice }} {{ if and (gt (len $roles) 0) .Site.Params.show.role }}
-    <div class="filter form-group">
-      <label class="control-label" for="roles-select">{{ .Site.Params.roles.label }}:</label>
-      <select id="roles-select" class="form-control">
-        <option value="All Roles">{{ .Site.Params.roles.all }}</option>
-        {{ range sort $roles }}
-        <option value="{{ . }}">{{ . }}</option>
-        {{ end }}
-      </select>
-    </div>
-    {{ end }} {{ $currentPage := . }}
+    {{ $currentPage := . }}
     <ul class="nav navbar-nav">
       {{ range $menu := .Site.Menus.main.ByWeight }} {{ $isRendering := true }} {{ if (isset $menu.Params "scope" ) }}
       {{ if $scopingEnabled }} {{ $menuScope := $menu.Params.scope }} {{ $isRendering = gt (len (intersect $menuScope
