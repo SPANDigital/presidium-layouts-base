@@ -1,0 +1,32 @@
+{{/* index-toc: shortcode for the table of contents of the pages for the current _index. Syntax: index-toc [depth=y
+default 1] [fullSite=true|false default false] depth is the number of how many levels of subsections will be shown
+fullSite is a boolean specifying if the ToC should be for the sections of the entire site or only the sections for the
+current page Generates a ToC for pages in the current section or all sections. When generating for all sections the
+names of the sections index must match the names in the config.yml otherwise it won't appear. Example: {{< index-toc >}}
+or {{< index-toc depth="2" >}} or {{< index-toc fullSite=true >}} or {{< index-toc fullSite=true depth="2" >}} */}} {{
+$depth := .Get "depth" | default 1 }} {{ $fullSite := .Get "fullSite" | default false }}
+
+<ul>
+  {{/* Show page ToC for entire site */}} {{if $fullSite}} {{/* site.Sections ignores the weights specified in the
+  config, to get the sections in the correct order we have to loop through the site menu object and add the section
+  pages in that order */}} {{ $list := slice }} {{ range site.Menus.main }} {{ $item := . }} {{ range site.Sections }}
+  {{/* If the section name matches the menu name we assume that it's a match This does mean that the name in the config
+  should match the name of the sections .md file otherwise it won't show */}} {{ if eq .Title $item.Name }} {{ $list =
+  $list | append . }} {{ end }} {{ end }} {{ end }} {{ .Scratch.Set "pages" $list}} {{/* Show page ToC current section
+  only */}} {{else}} {{ .Scratch.Set "pages" .Page.Pages.ByWeight }} {{end}} {{ $pages := (.Scratch.Get "pages") }} {{/*
+  Start the recursion to list the pages */}} {{template "childs" dict "items" $pages "count" 1 "depth" $depth "pages"
+  $pages }}
+</ul>
+
+{{ define "childs" }} {{ range .items }}
+<li>
+  <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+</li>
+{{ if lt $.count $.depth}} {{/* Get the subsections or pages for current page*/}} {{ if .Sections}} {{ .Scratch.Set
+"pages" (.Pages | union .Sections) }} {{else}} {{ .Scratch.Set "pages" .Pages }} {{end}} {{ $pages := (.Scratch.Get
+"pages") }} {{ if $pages }}
+<ul>
+  {{/* Continue with the recursion to list the pages */}} {{template "childs" dict "items" $pages.ByWeight "count" (add
+  $.count 1) "depth" $.depth "pages" $.pages }}
+</ul>
+{{end}} {{end}} {{end}} {{end}}
