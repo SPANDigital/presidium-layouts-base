@@ -28,6 +28,7 @@ node_modules
 .idea/
 resources/
 themes/
+public/
 
 # Yarn Berry
 yarn-error.log
