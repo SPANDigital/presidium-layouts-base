@@ -27,5 +27,6 @@ outputs:
     - Compendium
 params:
   favicon: images/favicon.ico
+  enableGitInfo: true # TODO: add automatic git lastmod date for base archetype templates https://gohugo.io/getting-started/configuration/#configure-dates
   attributes:
     website: 2.12.0
