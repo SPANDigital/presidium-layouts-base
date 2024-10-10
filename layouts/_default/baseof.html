@@ -49,6 +49,7 @@
     {{ end }}
 
     <div class="content-wrapper">
+      {{ block "left-sidebar" . }}
       <div id="presidium-navigation">
         {{ if $.Site.Params.lazyLoad }}
           <script>
@@ -58,8 +59,9 @@
           {{ partialCached "navigation/root" . 0 }}
         {{ end }}
       </div>
-
       <div id="resizer"></div>
+      {{ end }}
+
       <div id="presidium-container" class="container-fluid">
           <div class="row">
               <div id="presidium-content">
@@ -68,9 +70,16 @@
                     {{ block "content" . }}{{ end }}
                   </section>
               </div>
-              {{ block "footer" . }}{{ end }}
+              {{ block "footer" . }}
+                {{ partial "page/footer" . }}
+              {{ end }}
           </div>
       </div>
+    </div>
+    <div class="container-fluid">
+      {{ block "globalfooter" . }}
+        {{ partial "page/globalfooter" . }}
+      {{ end }}
     </div>
 
     {{ partialCached "page/modal" 0 }}
