@@ -1,4 +1,5 @@
 module:
+  _merge: shallow
   mounts:
     - source: static
       target: static
@@ -15,6 +16,7 @@ module:
     - source: node_modules
       target: static/node_modules
 outputformats:
+  _merge: shallow
   navigation:
     basename: navigation
     mediatype: text/javascript
@@ -26,7 +28,14 @@ outputs:
     - Navigation
     - Compendium
 params:
+  _merge: deep
   favicon: images/favicon.ico
-  enableGitInfo: true # TODO: add automatic git lastmod date for base archetype templates https://gohugo.io/getting-started/configuration/#configure-dates
   attributes:
     website: 2.12.0
+  frontmatter:
+  - key: author
+    type: email
+    strict: true
+  - key: title
+    type: text
+    strict: true
