@@ -97,6 +97,11 @@
     const sidebar = document.querySelector("#presidium-navigation");
     const cachedSize = window.localStorage.getItem('sidenav');
 
+    if (cachedSize === null) {
+      window.localStorage.setItem('sidenav', '300px');
+      location.reload();
+    }
+
     if(desktopSize.matches) {
       resizer.style.display = 'block';
 
