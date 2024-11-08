@@ -30,6 +30,9 @@ resources/
 themes/
 public/
 
+# build artifacts
+.hugo_build.lock
+
 # Yarn Berry
 yarn-error.log
 .pnp.*
