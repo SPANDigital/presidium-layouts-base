@@ -13,8 +13,6 @@ module:
       target: i18n
     - source: archetypes
       target: archetypes
-    - source: node_modules
-      target: static/node_modules
 outputformats:
   _merge: shallow
   navigation:
