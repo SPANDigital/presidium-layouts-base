@@ -27,7 +27,7 @@ outputs:
     - Compendium
 params:
   _merge: deep
-  repo-hugo-type: layouts
+  moduleType: layouts
   favicon: images/favicon.ico
   docset-logo: images/logo.png # recommend minimum size of 250px x 250px. Is used on the landing page. 
   left-nav-logo: images/logo.png # if the left nav logo is different from the main logo, specify it here.
