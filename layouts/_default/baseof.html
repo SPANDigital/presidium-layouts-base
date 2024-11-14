@@ -17,8 +17,11 @@
     {{ end }}
 
     {{ if $.Site.Params.enterprise_enabled }}
-      <link data-test="{{$basePath}}" rel="stylesheet" href="{{ path.Join $basePath "/presidium-enterprise.css" }}">
-      <link data-test="{{$basePath}}" rel="preload" src="{{ path.Join $basePath "/presidium-enterprise.js" }}" as="script">
+      {{ $enterpriseScript := $.Site.Params.enterprise_script | default "/presidium-enterprise.js" }}
+      {{ $enterpriseStyling := $.Site.Params.enterprise_script | default "/presidium-enterprise.css" }}
+      
+      <link data-test="{{$basePath}}" rel="stylesheet" href="{{ path.Join $basePath $enterpriseStyling }}">
+      <link data-test="{{$basePath}}" rel="preload" href="{{ path.Join $basePath $enterpriseScript }}" as="script">
       <script data-test="{{$basePath}}"> window.baseURL = '{{$basePath}}'; </script>
     {{ end }}
 
