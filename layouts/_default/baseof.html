@@ -18,7 +18,7 @@
 
     {{ if $.Site.Params.enterprise_enabled }}
       {{ $enterpriseScript := $.Site.Params.enterprise_script | default "/presidium-enterprise.js" }}
-      {{ $enterpriseStyling := $.Site.Params.enterprise_script | default "/presidium-enterprise.css" }}
+      {{ $enterpriseStyling := $.Site.Params.enterprise_styling | default "/presidium-enterprise.css" }}
       
       <link data-test="{{$basePath}}" rel="stylesheet" href="{{ path.Join $basePath $enterpriseStyling }}">
       <link data-test="{{$basePath}}" rel="preload" href="{{ path.Join $basePath $enterpriseScript }}" as="script">
