@@ -2,14 +2,33 @@
 {{ $articleLink := ($.Scratch.Get "articleLink") }}
 
 {{ if (eq .Parent.Title .Title) }}
-{{/*  No title - For when the main title is the same as the first article  */}}
+{{/* No title - For when the main title is the same as the first article */}}
 {{ else }}
     <div class="article-title article-actions" data-align="center-left">
-        {{ if .Data.Pages }}
-            <h1> {{ .Title }}</h1>
-        {{ else }}
-            <h2> {{ .Title }}</h2>
+
+        {{/* Inline depth calculation using range to iterate up to max depth */}}
+        {{ $depth := 0 }}
+        {{ $parent := .Parent }}
+        {{ $maxDepth := 10 }} <!-- Set a maximum depth to prevent excessive iteration -->
+
+        {{/* Use a range to simulate a loop up to maxDepth */}}
+        {{ range seq 1 $maxDepth }}
+            {{ if and $parent (ne $parent.Title $.Site.Title) }}
+                {{ $depth = add $depth 1 }}
+                {{ $parent = $parent.Parent }}
+            {{ else }}
+                {{ break }}
+            {{ end }}
         {{ end }}
+
+        {{/* Set heading level based on depth, capping at 6 */}}
+        {{ $headingLevel := add $depth 1 }}
+        {{ if gt $headingLevel 6 }}
+            {{ $headingLevel = 6 }}
+        {{ end }}
+
+        {{/* Output the heading tag based on calculated level */}}
+        <h{{ $headingLevel }}>{{ .Title }}</h{{ $headingLevel }}>
 
         {{ partial "common/permalink" (dict "copyTitle" "article" "Page" . "slug" $slug "permalink" $articleLink) }}
     </div>
