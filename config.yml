@@ -26,7 +26,7 @@ outputs:
     - Navigation
     - Compendium
 params:
-  _merge: deep
+  _merge: shallow
   moduleType: layouts
   favicon: images/favicon.ico
   docset-logo: images/logo.png # recommend minimum size of 250px x 250px. Is used on the landing page. 
