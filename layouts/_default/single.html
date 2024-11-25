@@ -1,16 +1,20 @@
 {{ define "header" }}
-{{ .Scratch.Set "scope" "single" }}
-{{ partial "page/header" . }}
+    {{ .Scratch.Set "scope" "single" }}
+    {{ partial "page/header" . }}
 {{ end }}
 
 {{ define "content" }}
-{{ if eq $.Site.Params.archive.path .File.Path }}
-    {{ partial "common/archive" . }}
-{{ else }}
-    {{ partial "article/root" . }}
-{{ end }}
+    {{ if eq $.Site.Params.archive.path .File.Path }}
+        {{ partial "common/archive" . }}
+    {{ else }}
+        {{ partial "article/root" . }}
+    {{ end }}
 {{ end }}
 
 {{ define "footer" }}
-{{ partial "page/footer" . }}
+    {{ partial "page/footer" . }}
+{{ end }}
+
+{{ block "globalfooter" . }}
+    {{/*  {{ partial "page/globalfooter" . }}  remove this comment to enable global footer */}}
 {{ end }}
