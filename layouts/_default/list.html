@@ -1,6 +1,6 @@
 {{ define "header" }}
-{{ .Scratch.Set "scope" "list" }}
-{{ partial "page/header" . }}
+    {{ .Scratch.Set "scope" "list" }}
+    {{ partial "page/header" . }}
 {{ end }}
 
 {{ define "content" }}
@@ -8,5 +8,9 @@
 {{ end }}
 
 {{ define "footer" }}
-{{ partial "page/footer" . }}
+    {{ partial "page/footer" . }}
+{{ end }}
+
+{{ block "globalfooter" . }}
+    {{/*  {{ partial "page/globalfooter" . }}  remove this comment to enable global footer */}}
 {{ end }}

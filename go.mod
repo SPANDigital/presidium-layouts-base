@@ -1,3 +1,3 @@
-module github.com/spandigital/presidium-layouts-base
+module presidium-layouts-base
 
-go 1.23
+go 1.18
