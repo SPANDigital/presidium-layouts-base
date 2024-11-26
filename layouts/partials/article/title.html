@@ -29,9 +29,5 @@
 
         {{/* Output the heading tag based on calculated level */}}
         <h{{ $headingLevel }}>{{ .Title }}</h{{ $headingLevel }}>
-
-        <div class="permalink">
-            <a style="cursor:pointer;" onclick="copyPermalink('{{ $articleLink }}')" id="{{.Page.RelPermalink}}" data-slug="#{{ $slug }}" class="link-icon" title="Permalink to this article"></a>
-        </div>
     </div>
 {{ end }}
