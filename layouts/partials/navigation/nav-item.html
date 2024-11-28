@@ -61,8 +61,12 @@
     {{ if $hasChildren }}
         <ul id="{{$uid}}" class="collapse">
             {{ $pages := (partial "common/pages" .NavPage )}}
-            {{ if .NavPage.Site.Params.sortByFilePath }}
-                {{ range $index, $subMenu := (sort (after $offset $pages) "File.Path") }}
+            {{/* Sort by filename if specified in config */}}
+            {{ $sortByFilePath := .NavPage.Params.sortByFilePath | default .NavPage.Site.Params.sortByFilePath }}
+            {{ if $sortByFilePath }}
+                {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
+                {{/* Sort by file prefix */}}
+                {{ range $index, $subMenu := (sort (after $offset $pages) "File.Path" $sortOrder) }}
                     {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
                 {{ end }}
             {{ else }}

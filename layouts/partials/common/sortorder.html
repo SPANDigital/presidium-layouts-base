@@ -1,0 +1,6 @@
+{{/* Default sort order is ascending when empty */}}
+{{ $sortOrder := "" }}
+{{ if eq .SortByFilePath "desc" }}
+    {{ $sortOrder = "desc" }}
+{{ end }}
+{{ return $sortOrder }}

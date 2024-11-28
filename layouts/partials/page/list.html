@@ -28,9 +28,11 @@
 {{ $siteScopesEnabled := .Site.Params.scopesEnabled }}
 
 {{/* Sort by filename if specified in config */}}
-{{ if .Site.Params.sortByFilePath }}
+{{ $sortByFilePath := .Params.sortByFilePath | default .Site.Params.sortByFilePath }}
+{{ if $sortByFilePath }}
+    {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
     {{/* Sort by file prefix */}}
-    {{ range sort $pages "File.Path" }}
+    {{ range sort $pages "File.Path" $sortOrder }}
         {{ $isRendering := true }}
 
         {{ if $siteScopesEnabled }}
