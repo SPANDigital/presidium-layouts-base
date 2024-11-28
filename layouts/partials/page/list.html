@@ -30,10 +30,7 @@
 {{/* Sort by filename if specified in config */}}
 {{ $sortByFilePath := .Params.sortByFilePath | default .Site.Params.sortByFilePath }}
 {{ if $sortByFilePath }}
-    {{ $sortOrder := "" }}
-    {{ if eq $sortByFilePath "desc" }}
-        {{ $sortOrder = "desc" }}
-    {{ end }}
+    {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
     {{/* Sort by file prefix */}}
     {{ range sort $pages "File.Path" $sortOrder }}
         {{ $isRendering := true }}
