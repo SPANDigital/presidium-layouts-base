@@ -11,4 +11,4 @@ currently being supported with security updates.
 
 ## Reporting a Vulnerability
 
-Create a new [issue](https://github.com/SPANDigital/presidium-styling-base/issues) to report a vulnerability
+Create a new [issue](https://github.com/SPANDigital/presidium-layouts-base/issues) to report a vulnerability
