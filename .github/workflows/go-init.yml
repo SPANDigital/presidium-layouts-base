@@ -1,0 +1,57 @@
+name: go-init
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Default to bash
+defaults:
+  run:
+    shell: bash
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    env:
+      GO_VERSION: 1.18
+      HUGO_VERSION: 0.133.1
+      MODULE_NAME: "${{ github.server_url }}/${{ github.repository }}"
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Setup Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Install Hugo CLI
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${{env.HUGO_VERSION}}/hugo_extended_${{env.HUGO_VERSION}}_linux-amd64.deb \
+          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Display Go version
+        run: go version
+      - name: Display Hugo version
+        run: hugo version
+      - name: Remove existing go mod file
+        run: rm -f go.mod
+      - name: Initialize go mod file
+        run: |
+          url="${{ env.MODULE_NAME }}" 
+          stripped_url=${url#http://}
+          stripped_url=${stripped_url#https://}
+          go mod init ${stripped_url,,}
+      - name: Update hugo dependencies
+        run: hugo mod get -u
+      - name: show go.mod file
+        run: cat go.mod

@@ -34,9 +34,11 @@
 
     {{ if $nestedArticles }}
         {{/* Sort by filename if specified in config */}}
-        {{ if .Site.Params.sortByFilePath }}
+        {{ $sortByFilePath := .Parent.Params.sortByFilePath | default .Site.Params.sortByFilePath }}
+        {{ if $sortByFilePath }}
+            {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
             {{/* Sort by file prefix */}}
-            {{ range sort .Data.Pages "File.Path" }}
+            {{ range sort .Data.Pages "File.Path" $sortOrder }}
                 {{ partial "article/root" . }}
             {{ end }}
         {{ else }}
