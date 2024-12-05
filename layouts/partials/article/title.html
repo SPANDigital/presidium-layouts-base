@@ -12,7 +12,16 @@
         {{ end }}
 
         <div class="permalink">
-            <a id="{{.Page.RelPermalink}}" data-slug="#{{ $slug }}"></a>
+            <a style="cursor:pointer;" id="{{.Page.RelPermalink}}" data-slug="#{{ $slug }}" class="link-icon"
+               title="Permalink to this article" onclick="copyPermalink(this, '{{ $articleLink }}')"></a>
+        </div>
+        <div class="toaster-wrapper">
+            <div class="toaster">
+                <div class="editor-popup-panel-copy">
+                    <div class="popup-tick"></div>
+                    <span class="popup-text mb-0">Copied to clipboard</span>
+                </div>
+            </div>
         </div>
     </div>
 {{ end }}
