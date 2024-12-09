@@ -71,6 +71,10 @@
   }
 
   function copyPermalink(link, articleLink) {
+      // Remove the leading slash from articleLink if present
+      if (articleLink.startsWith('/')) {
+          articleLink = articleLink.substring(1); // Remove the leading slash
+      }
       // Copy the article link to the clipboard
       const fullURL = window.location.origin + '/' + articleLink;
       navigator.clipboard.writeText(fullURL);
