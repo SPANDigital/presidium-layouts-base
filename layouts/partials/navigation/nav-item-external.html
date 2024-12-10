@@ -2,7 +2,7 @@
     <div class="link level-1">
         {{ $newTab := .Params.externalUrl.newTab | default true }}
         <a class="level-1" href="{{ .Params.externalUrl.href }}" target="{{ if $newTab }}_blank{{ end}}">
-            <div class="menu-expander" data-toggle="collapse">
+            <div class="menu-expander">
                 <span class="glyphicon glyphicon-new-window"></span>
             </div>
             <div class="menu-title">
