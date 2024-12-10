@@ -9,9 +9,9 @@
 
     <div class="page title" data-roles="{{ $roles }}" data-link="{{ $pageLink }}" permalink="{{ .Page.RelPermalink }}" title="{{ .Title }}" >
         <div class="article-title article-actions" data-align="center-left">
-            <h1 class="page-title offendingHeading">
-                {{ .Title }}
-            </h1>
+            <h1 class="page-title offendingHeading"> {{ .Title }}</h1>
+
+            {{ partial "common/permalink" (dict "copyTitle" "section" "Page" . "slug" $slug "permalink" $pageLink) }}
         </div>
     </div>
 {{ end }}
