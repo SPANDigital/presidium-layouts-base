@@ -120,6 +120,25 @@
           'lineColor': '#666',
       },
   });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const navbarHeader = document.querySelector(".navbar-header");
+    const navbarItems = document.querySelector(".navbar-items");
+
+    if (navbarHeader && navbarItems) {
+      // Calculate the dynamic height and apply it
+      const headerHeight = navbarHeader.offsetHeight;
+      navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
+    }
+
+    // Optional: Adjust height dynamically during window resize
+    window.addEventListener("resize", function () {
+      if (navbarHeader && navbarItems) {
+        const headerHeight = navbarHeader.offsetHeight;
+        navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
+      }
+    });
+  });
 </script>
 
 {{ if $.Site.Params.resizeMenu | default true }}
