@@ -4,35 +4,33 @@
 {{ $rootUrl := path.Clean $url.Path }} 
 {{ $slugifyUrl := .Site.Params.slugifyUrl | default true }}
 
-<nav class="navbar scrollable-container">
-  <div class="container"> <!-- navbars need a container within in Bootstrap v5.3.3 -->
-    <div class="navbar-header">
-      {{ partial "navigation/brand.html" . }}
-    </div>
-    <div class="navbar-items">
-      {{ $currentPage := . }}
-      <ul class="nav navbar-nav">
-        {{ range $menu := .Site.Menus.main.ByWeight }} 
-          {{ $isRendering := true }} 
-          {{ if (isset $menu.Params "scope" ) }}
-            {{ if $scopingEnabled }} 
-              {{ $menuScope := $menu.Params.scope }} 
-              {{ $isRendering = gt (len (intersect $menuScope $appliedScopes)) 0 }} 
+<nav>
+  <div class="navbar-header">
+    {{ partial "navigation/brand.html" . }}
+  </div>
+  <div class="navbar-items">
+    {{ $currentPage := . }}
+    <ul class="navbar-nav">
+      {{ range $menu := .Site.Menus.main.ByWeight }} 
+        {{ $isRendering := true }} 
+        {{ if (isset $menu.Params "scope" ) }}
+          {{ if $scopingEnabled }} 
+            {{ $menuScope := $menu.Params.scope }} 
+            {{ $isRendering = gt (len (intersect $menuScope $appliedScopes)) 0 }} 
+          {{ end }} 
+        {{ end }} 
+        {{ if $isRendering }} 
+          {{ if $menu.Params.externalUrl}} 
+            {{ partial "navigation/nav-item-external" $menu }} 
+          {{ else }} 
+            {{ $identifier := anchorize $menu.Identifier }} 
+            {{ with $.Site.GetPage $identifier }} 
+              {{ partial "navigation/nav-item" (dict "NavPage" . "MenuName" $menu.Name "Level" 1 "Expanded" true "Collapsed" $menu.Params.Collapsed "RootUrl" $rootUrl "Show" false "SlugifyUrl" $slugifyUrl ) }}
             {{ end }} 
           {{ end }} 
-          {{ if $isRendering }} 
-            {{ if $menu.Params.externalUrl}} 
-              {{ partial "navigation/nav-item-external" $menu }} 
-            {{ else }} 
-              {{ $identifier := anchorize $menu.Identifier }} 
-              {{ with $.Site.GetPage $identifier }} 
-                {{ partial "navigation/nav-item" (dict "NavPage" . "MenuName" $menu.Name "Level" 1 "Expanded" true "Collapsed" $menu.Params.Collapsed "RootUrl" $rootUrl "Show" false "SlugifyUrl" $slugifyUrl ) }}
-              {{ end }} 
-            {{ end }} 
-          {{ end }} 
-        {{ end }}
-      </ul>
-    </div>
+        {{ end }} 
+      {{ end }}
+    </ul>
   </div>
   {{ partial "navigation/footer.html" . }}
 </nav>

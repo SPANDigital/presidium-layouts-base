@@ -7,7 +7,6 @@
     {{ hugo.Generator }}
     <link rel="icon" href="{{ .Site.Params.favicon | absURL }}" type="image/x-icon">
     {{ $basePath := $.Site.Params.basePath  | default "/" }}
-    <link data-test="{{$basePath}}" rel="stylesheet" href="{{ "assets/css/bootstrap.min.css" | absURL }}">
     {{ $style := resources.Get "presidium.scss" | resources.ToCSS | resources.Minify | resources.Fingerprint }}
     <link rel="stylesheet" href="{{ $style.RelPermalink }}">
     {{ if resources.Get "index.scss" }}
@@ -65,8 +64,8 @@
       <div id="resizer"></div>
       {{ end }}
 
-      <div id="presidium-container" class="container-fluid">
-          <div class="row">
+      <div id="presidium-container">
+          <div>
               <div id="presidium-content">
                   {{ block "header" . }}{{ end }}
                   <section data-section="{{ strings.TrimPrefix "/" .Path }}">
