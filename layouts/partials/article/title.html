@@ -11,8 +11,6 @@
             <h2> {{ .Title }}</h2>
         {{ end }}
 
-        <div class="permalink">
-            <a id="{{.Page.RelPermalink}}" data-slug="#{{ $slug }}"></a>
-        </div>
+        {{ partial "common/permalink" (dict "copyTitle" "article" "Page" . "slug" $slug "permalink" $articleLink) }}
     </div>
 {{ end }}

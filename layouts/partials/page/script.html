@@ -70,10 +70,33 @@
       navItem = navItem.parent().closest('.menu-row');
   }
 
-  function copyPermalink(link) {
+  function copyPermalink(link, articleLink, copyTitle) {
+      // Remove the leading slash from articleLink if present
+      if (articleLink.startsWith('/')) {
+          articleLink = articleLink.substring(1); // Remove the leading slash
+      }
       // Copy the article link to the clipboard
-      navigator.clipboard.writeText(RegExp('^/*(.*)').exec(link)[1]);
+      const fullURL = window.location.origin + '/' + articleLink;
+      navigator.clipboard.writeText(fullURL);
+
+      // Show toast message
+      const toast = document.querySelector('#copy-toast');
+      if (toast) {
+          // set popup-copy-text
+          const popupCopyText = toast.querySelector('.popup-copy-text')
+          popupCopyText.innerHTML = `Copied link to ${copyTitle}`;
+          // show toast
+          toast.style.opacity = '1';
+          toast.classList.add("show");
+          setTimeout(function () {
+              toast.style.opacity = '0';
+              toast.classList.remove("show");
+          }, 3000);
+          console.log(`Copied link to ${copyTitle}`);
+      }
   }
+  // Assign the function to the global scope
+  window.copyPermalink = copyPermalink;
 
   window.presidium?.tooltips?.load();
   window.presidium?.modal?.init();

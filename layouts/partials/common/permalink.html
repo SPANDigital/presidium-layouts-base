@@ -1,0 +1,6 @@
+{{ $slug := .Page.Slug }}
+
+<div class="permalink">
+    <a id="{{ .Page.RelPermalink }}" data-slug="#{{ $slug }}" class="link-icon"
+       title="Copy link to {{ .copyTitle }}" onclick="copyPermalink(this, '{{ .permalink }}', '{{ .copyTitle }}')"></a>
+</div>

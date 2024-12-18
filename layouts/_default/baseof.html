@@ -84,6 +84,14 @@
           {{/*  {{ partial "page/globalfooter" . }}  remove this comment to enable global footer */}}
       {{ end }}
     </div>
+    <div class="toast-wrapper">
+        <div id="copy-toast" class="toast">
+            <div class="editor-popup-panel-copy">
+                <div class="popup-copy-tick"></div>
+                <span class="popup-copy-text mb-0"></span>
+            </div>
+        </div>
+    </div>
 
     {{ partialCached "page/modal" 0 }}
     {{ partialCached "page/script" . }}
