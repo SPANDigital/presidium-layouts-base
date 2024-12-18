@@ -33,13 +33,3 @@ public/
 
 # build artifacts
 .hugo_build.lock
-
-# Yarn Berry
-yarn-error.log
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
