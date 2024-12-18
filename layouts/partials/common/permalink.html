@@ -2,13 +2,5 @@
 
 <div class="permalink">
     <a id="{{ .Page.RelPermalink }}" data-slug="#{{ $slug }}" class="link-icon"
-       title="Copy link to {{ .copyTitle }}" onclick="copyPermalink(this, '{{ .permalink }}')"></a>
-</div>
-<div class="toaster-wrapper">
-    <div class="toaster">
-        <div class="editor-popup-panel-copy">
-            <div class="popup-copy-tick"></div>
-            <span class="popup-copy-text text-white mb-0">Link copied to clipboard</span>
-        </div>
-    </div>
+       title="Copy link to {{ .copyTitle }}" onclick="copyPermalink(this, '{{ .permalink }}', '{{ .copyTitle }}')"></a>
 </div>
