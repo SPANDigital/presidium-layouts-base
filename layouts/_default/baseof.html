@@ -8,10 +8,10 @@
     <link rel="icon" href="{{ .Site.Params.favicon | absURL }}" type="image/x-icon">
     {{ $basePath := $.Site.Params.basePath  | default "/" }}
     <link data-test="{{$basePath}}" rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-    {{ $style := resources.Get "presidium.scss" | resources.ToCSS | resources.Minify | resources.Fingerprint }}
+    {{ $style := resources.Get "presidium.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
     <link rel="stylesheet" href="{{ $style.RelPermalink }}">
     {{ if resources.Get "index.scss" }}
-      {{ with resources.Get "index.scss" | resources.ToCSS | resources.Minify | resources.Fingerprint }}
+      {{ with resources.Get "index.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
         <link rel="stylesheet" href="{{ .RelPermalink }}">
       {{ end }}
     {{ end }}
