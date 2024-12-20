@@ -26,7 +26,7 @@
     $menu.toggleClass('expanded', !isOpen).toggleClass('', isOpen);
   });
 
-  //Handle open and closing of nav-items
+  // Handle collapsing of nav-items
   const toggleMenu = ($menu, isOpen) => {
     const $ul = $menu.find('ul').first();
 
@@ -43,6 +43,7 @@
             .toggleClass('glyphicon-chevron-right', !isOpen);
   };
 
+  // Bootstrap collapse events
   $('li.menu-row').on('show.bs.collapse', (event) => {
     event.stopPropagation();
     const $menu = $(event.currentTarget);
@@ -120,6 +121,7 @@
       },
   });
 
+  // Ensure nav-items fit within the viewport without overlapping the header
   document.addEventListener("DOMContentLoaded", function () {
     const navbarHeader = document.querySelector(".navbar-header");
     const navbarItems = document.querySelector(".navbar-items");
@@ -130,7 +132,7 @@
       navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
     }
 
-    // Optional: Adjust height dynamically during window resize
+    // Adjust height dynamically during window resize
     window.addEventListener("resize", function () {
       if (navbarHeader && navbarItems) {
         const headerHeight = navbarHeader.offsetHeight;
