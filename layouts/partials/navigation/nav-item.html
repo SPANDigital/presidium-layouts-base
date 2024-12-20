@@ -44,6 +44,7 @@
 
 <li class="menu-row {{ if .NavPage.IsPage }}child{{end}}" style="overflow: hidden;" data-roles="{{ $roles }}">
     <div class="link level-{{ .Level }}">
+        <!-- data-target is used by the scrollspy on presidium-js to determine which section of the page the <a> corresponds to -->
         <a class="level-{{ .Level }} {{ if eq .Index 0 }}first-child{{end}}" data-slug="{{ $slug }}" data-target="#{{$uid}}" data-id="{{ $articleId }}" href="{{ $articleLink }}">
             {{ if $hasChildren }}
                 <div class="menu-expander" aria-controls="{{$uid}}">
