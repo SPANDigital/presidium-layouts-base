@@ -19,6 +19,11 @@ outputformats:
   Compendium:
     baseName: compendium
     mediaType: application/json
+  Snippet:
+    basename: snippet
+    mediaType: text/html
+    isHtml: true
+    permalinkable: true
 outputs:
   home:
     - Navigation
