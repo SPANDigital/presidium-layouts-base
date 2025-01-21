@@ -1,0 +1,25 @@
+{{ define "scripts" }}
+    {{ partial "common/dummy" . }}
+{{ end }}
+
+{{ define "toolbar" }}
+    {{ partial "common/dummy" . }}
+{{ end }}
+
+{{ define "left-sidebar" }}
+    {{ partial "common/dummy" . }}
+{{ end }}
+
+{{ define "breadcrumbs" }}
+    {{ .Scratch.Set "output-format" "snippet" }}
+    {{ partial "page/breadcrumbs" . }}
+{{ end }}
+
+{{ define "header" }}
+    {{ .Scratch.Set "scope" "single" }}
+    {{ partial "page/header" . }}
+{{ end }}
+
+{{ define "content" }}
+    {{ partial "article/root" . }}
+{{ end }}

@@ -26,15 +26,18 @@
     {{ end }}
 
     {{ if $.Site.Params.lazyLoad }}
+    {{ block "scripts" . }}
       {{ $url := urls.Parse .Site.BaseURL }}
       {{ $url = path.Clean $url.Path }}
       {{ $navUrl := path.Join $url "/navigation.js"  }}
       <script src="{{$navUrl}}"></script>
     {{ end }}
+    {{ end }}
 </head>
 
 <body id="presidium" {{ partial "page/attributes" . }}>
     {{ if $.Site.Params.enterprise_enabled }}
+    {{ block "toolbar" . }}
       <div class="toolbar-wrapper">
         <button class="toggle">
           <span class="sr-only">Toggle navigation</span>
@@ -49,6 +52,7 @@
           class="presidium-enterprise"
         ></div>
       </div>
+    {{ end }}
     {{ end }}
 
     <div class="content-wrapper">
@@ -67,6 +71,7 @@
 
       <div id="presidium-container" class="container-fluid">
           <div class="row">
+            {{ block "breadcrumbs" .}}{{ end }}
               <div id="presidium-content">
                   {{ block "header" . }}{{ end }}
                   <section data-section="{{ strings.TrimPrefix "/" .Path }}">
