@@ -68,18 +68,18 @@
       <div id="resizer"></div>
       {{ end }}
 
-      <div id="presidium-container">
-        <div>
+      <div id="presidium-container" class="container-fluid">
+        <div class="row">
           {{ block "breadcrumbs" .}}{{ end }}
-          <div id="presidium-content">
-            {{ block "header" . }}{{ end }}
-            <section data-section="{{ strings.TrimPrefix "/" .Path }}">
-              {{ block "content" . }}{{ end }}
-            </section>
-          </div>
-          {{ block "footer" . }}
-            {{ partial "page/footer" . }}
-          {{ end }}
+            <div id="presidium-content">
+                {{ block "header" . }}{{ end }}
+                <section data-section="{{ strings.TrimPrefix "/" .Path }}">
+                  {{ block "content" . }}{{ end }}
+                </section>
+            </div>
+            {{ block "footer" . }}
+              {{ partial "page/footer" . }}
+            {{ end }}
         </div>
       </div>
     </div>
