@@ -1,7 +1,5 @@
 # presidium-layouts-base
-Base Hugo layouts for Presidium
-
-This is part of default Hugo theme for Presidium sites.  
+This repo makes up the `layouts` portion of the Presidium System Level Theme, and contains the officially support theme features.
 For more info on Hugo Themes see the official Hugo documentation [here](https://gohugo.io/hugo-modules/theme-components/) 
 
 # Getting Started
