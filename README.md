@@ -9,7 +9,7 @@ Update the `config.yml`:
 ```
 module:
   imports:
-  - path: github.com/SPANDigital/presidium-styling-base
+  - path: github.com/spandigital/presidium-styling-base
   - path: github.com/spandigital/presidium-layouts-base
 ```
 
@@ -19,7 +19,7 @@ module:
 1. Open the `go.mod` file in your `presidium-test-validation` clone.
 1. Add the following to the bottom of your `go.mod` file, and update the path after the arrow to the correct path where you cloned the theme layout:
 ```
-replace github.pie.apple.com/ase-docs/presidium-layouts-base => /{path-on-your-machine}/presidium-layouts-base
+replace github.com/spandigital/presidium-layouts-base => /{path-on-your-machine}/presidium-layouts-base
 ```
 
 4. Run a refresh and then build the docset with Hugo:
