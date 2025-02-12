@@ -1,10 +1,10 @@
 {{ $roles := .Params.roles | default "All Roles" }}
 {{ $uid := "" }}
-{{ $articleId := .Params.id }}
+{{ $articleId := lower .Params.id }}
 {{ with .File }}
     {{ $uid = .UniqueID }}
     {{ if not $articleId }}
-        {{ $articleId = .Path }}
+        {{ $articleId = lower .Path }}
     {{ end }}
 {{ end }}
 {{ $pageLink := .Page.RelPermalink }}
