@@ -42,11 +42,12 @@
 {{/* Unique id for file, used by scroll-spy and menu toggle  */}}
 {{ $uid := .NavPage.File.UniqueID }}
 
-<li class="menu-row collapse {{ if .NavPage.IsPage }}child{{end}}" style="overflow: hidden;" data-roles="{{ $roles }}">
+<li class="menu-row {{ if .NavPage.IsPage }}child{{end}}" style="overflow: hidden;" data-roles="{{ $roles }}">
     <div class="link level-{{ .Level }}">
+        <!-- data-target is used by the scrollspy on presidium-js to determine which section of the page the <a> corresponds to -->
         <a class="level-{{ .Level }} {{ if eq .Index 0 }}first-child{{end}}" data-slug="{{ $slug }}" data-target="#{{$uid}}" data-id="{{ $articleId }}" href="{{ $articleLink }}">
             {{ if $hasChildren }}
-                <div class="menu-expander" data-toggle="collapse" aria-controls="{{$uid}}" data-target="#{{$uid}}">
+                <div class="menu-expander" aria-controls="{{$uid}}">
                     <span class="glyphicon glyphicon-chevron-right glyphicon-toggle"></span>
                 </div>
             {{ end }}
@@ -54,7 +55,7 @@
                 {{ partial "navigation/menu-title" . }}
             </div>
         </a>
-        <div class="article-navbar-options" data-target="#{{$pageSlug}}" data-id="{{ $articleId }}">
+        <div class="article-navbar-options" data-id="{{ $articleId }}">
         </div>
     </div>
 
