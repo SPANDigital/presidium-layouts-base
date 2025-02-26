@@ -1,0 +1,14 @@
+{{/* This file is for the PAGE header, which sits outside the section */}}
+{{ $roles := .Params.roles | default "All Roles" }}
+{{ $pageLink :=  .Page.Parent.RelPermalink }}
+{{ $slug := (partial "common/slug" .Parent) }}
+
+<div class="page title" data-roles="{{ $roles }}" data-link="{{ $pageLink }}" permalink="{{ $pageLink }}" title="{{ .Parent.Title }}" >
+    <div class="article-title article-actions" data-align="center-left">
+        <h1 class="page-title offendingHeading"> {{ .Parent.Title }}</h1>
+
+        {{ partial "common/permalink" (dict "copyTitle" "section" "Page" .Parent "slug" $slug "permalink" $pageLink) }}
+    </div>
+</div>
+
+

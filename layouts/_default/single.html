@@ -1,14 +1,10 @@
 {{ define "header" }}
-    {{ .Scratch.Set "scope" "single" }}
-    {{ partial "page/header" . }}
+    {{ partial "page/parentheader" . }}
+    <hr class="offendingHr" />
 {{ end }}
 
 {{ define "content" }}
-    {{ if eq $.Site.Params.archive.path .File.Path }}
-        {{ partial "common/archive" . }}
-    {{ else }}
-        {{ partial "article/root" . }}
-    {{ end }}
+    {{ partial "page/single" . }}
 {{ end }}
 
 {{ define "footer" }}

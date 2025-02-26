@@ -1,8 +1,7 @@
-{{ if eq (.Scratch.Get "scope") "single" }}
-    <h1 class="page-title offendingHeading">
-        {{ .Parent.Title }}
-    </h1>
-{{ else }}
+{{/* This file is for the PAGE header, which sits outside the section */}}
+{{- if eq (.Scratch.Get "scope") "single" -}}
+    {{ partial "common/dummy" . }}
+{{- else -}}
     {{ $roles := .Params.roles | default "All Roles" }}
     {{ $pageLink :=  .Page.RelPermalink }}
     {{ $slug := (partial "common/slug" .) }}
@@ -14,5 +13,6 @@
             {{ partial "common/permalink" (dict "copyTitle" "section" "Page" . "slug" $slug "permalink" $pageLink) }}
         </div>
     </div>
-{{ end }}
-<hr class="offendingHr" />
+    <hr class="offendingHr" />
+{{- end -}}
+
