@@ -11,7 +11,7 @@
 {{- $slug := (partial "common/slug" .Parent) -}}
 {{- $noContent := (eq (len .Content) 0) -}}
 
-<div class="page index" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $pageLink }}" permalink="{{ .Page.Parent.RelPermalink }}" data-no-content="{{ $noContent }}" >
+<div class="page index" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $pageLink }}" permalink="{{ .Page.Parent.RelPermalink }}" data-no-content="true" >
     <div class="presidium-article-wrapper">
         <span class="anchor" id="{{ $slug }}" data-id="{{ $articleId }}"></span>
     </div>
