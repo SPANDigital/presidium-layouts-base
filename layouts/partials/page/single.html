@@ -1,0 +1,20 @@
+{{- $roles := .Params.roles | default "All Roles" -}}
+{{- $uid := "" -}}
+{{- $articleId := .Params.Parent.id -}}
+{{- with .File -}}
+    {{- $uid = .UniqueID -}}
+    {{- if not $articleId -}}
+        {{- $articleId = .Path -}}
+    {{- end -}}
+{{- end -}}
+{{- $pageLink := .Page.Parent.RelPermalink -}}
+{{- $slug := (partial "common/slug" .Parent) -}}
+{{- $noContent := (eq (len .Content) 0) -}}
+
+<div class="page index" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $pageLink }}" permalink="{{ .Page.Parent.RelPermalink }}" data-no-content="true" >
+    <div class="presidium-article-wrapper">
+        <span class="anchor" id="{{ $slug }}" data-id="{{ $articleId }}"></span>
+    </div>
+</div>
+
+{{ partial "article/root" . }}
