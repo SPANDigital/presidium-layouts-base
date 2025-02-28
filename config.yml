@@ -24,10 +24,15 @@ outputformats:
     mediaType: text/html
     isHtml: true
     permalinkable: true
+  Pdf:
+    basename: pdf
+    mediaType: text/html
+    isHtml: true
 outputs:
   home:
     - Navigation
     - Compendium
+    - Pdf
 params:
   favicon: images/favicon.ico
   logo: images/logo.png
