@@ -74,9 +74,11 @@
             {{ block "breadcrumbs" .}}{{ end }}
               <div id="presidium-content">
                   {{ block "header" . }}{{ end }}
+                  {{ block "section" . }}
                   <section data-section="{{ strings.TrimPrefix "/" .Path }}">
                     {{ block "content" . }}{{ end }}
                   </section>
+                  {{ end }}
               </div>
               {{ block "footer" . }}
                 {{ partial "page/footer" . }}
