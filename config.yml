@@ -29,8 +29,7 @@ outputs:
     - Navigation
     - Compendium
 params:
-  favicon: images/favicon.ico
-  logo: images/logo.png
+  _merge: shallow
   attributes:
     website: 2.15.0
   frontmatter:
