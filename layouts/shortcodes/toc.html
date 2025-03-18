@@ -1,0 +1,13 @@
+{{- $format := default "html" (.Get "format") }}
+{{- $tocLevels := default (default 6 .Site.Params.ToCLevel) .Page.Params.ToCLevel }}
+
+{{- if and $tocLevels .Page.TableOfContents -}}
+  {{- if not (eq ($format | lower) "raw") -}}
+    <div class="toc toc__level--{{ $tocLevels }}">
+      {{ .Page.TableOfContents }}
+      <hr />
+    </div>
+  {{- else -}}
+    {{ .Page.TableOfContents }}
+  {{- end -}}
+{{- end -}}
