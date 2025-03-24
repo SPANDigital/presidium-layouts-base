@@ -7,7 +7,6 @@
     {{ hugo.Generator }}
     <link rel="icon" href="{{ .Site.Params.favicon | absURL }}" type="image/x-icon">
     {{ $basePath := $.Site.Params.basePath  | default "/" }}
-    <link data-test="{{$basePath}}" rel="stylesheet" href="{{ "assets/css/bootstrap.min.css" | absURL }}">
     {{ $style := resources.Get "presidium.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
     <link rel="stylesheet" href="{{ $style.RelPermalink }}">
     {{ if resources.Get "index.scss" }}
@@ -70,20 +69,20 @@
       {{ end }}
 
       <div id="presidium-container" class="container-fluid">
-          <div class="row">
-            {{ block "breadcrumbs" .}}{{ end }}
-              <div id="presidium-content">
-                  {{ block "header" . }}{{ end }}
-                  {{ block "section" . }}
-                  <section data-section="{{ strings.TrimPrefix "/" .Path }}">
-                    {{ block "content" . }}{{ end }}
-                  </section>
-                  {{ end }}
-              </div>
-              {{ block "footer" . }}
-                {{ partial "page/footer" . }}
-              {{ end }}
-          </div>
+        <div class="row">
+          {{ block "breadcrumbs" .}}{{ end }}
+            <div id="presidium-content">
+                {{ block "header" . }}{{ end }}
+                {{ block "section" . }}
+                <section data-section="{{ strings.TrimPrefix "/" .Path }}">
+                  {{ block "content" . }}{{ end }}
+                </section>
+                {{ end }}
+            </div>
+            {{ block "footer" . }}
+              {{ partial "page/footer" . }}
+            {{ end }}
+        </div>
       </div>
     </div>
     <div class="container-fluid">

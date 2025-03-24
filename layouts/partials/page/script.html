@@ -15,8 +15,8 @@
 </script>
 {{ end }}
 
-<script defer src="{{ "assets/scripts/jquery.js" | absURL }}"></script>
-<script defer src="{{ "assets/scripts/bootstrap.js" | absURL }}"></script>
+<script defer src="{{ "assets/scripts/jquery.min.js" | absURL }}"></script>
+<script defer src="{{ "assets/scripts/bootstrap.min.js" | absURL }}"></script>
 <script defer src="{{ "assets/scripts/mermaid.js" | absURL }}"></script>
 
 <script type="module">
@@ -27,13 +27,24 @@
     $menu.toggleClass('expanded', !isOpen).toggleClass('', isOpen);
   });
 
+  // Handle collapsing of nav-items
   const toggleMenu = ($menu, isOpen) => {
-    $menu.toggleClass('open', isOpen).toggleClass('closed', !isOpen);
+    const $ul = $menu.find('ul').first();
+
+    if (isOpen) {
+        $menu.addClass('open').removeClass('closed');
+        $ul.addClass('in active show');
+    } else {
+        $menu.removeClass('open').addClass('closed');
+        $ul.removeClass('in active');
+    }
+
     const $trigger = $menu.find('div.menu-expander > .glyphicon').first();
-    $trigger.toggleClass('glyphicon-chevron-down', isOpen).toggleClass('glyphicon-chevron-right', !isOpen);
-    $menu.find('ul').first().toggleClass('in active', isOpen);
+    $trigger.toggleClass('glyphicon-chevron-down', isOpen)
+            .toggleClass('glyphicon-chevron-right', !isOpen);
   };
 
+  // Bootstrap collapse events
   $('li.menu-row').on('show.bs.collapse', (event) => {
     event.stopPropagation();
     const $menu = $(event.currentTarget);
@@ -109,6 +120,26 @@
           'secondaryColor': '#FFFFFF',
           'lineColor': '#666',
       },
+  });
+
+  // Ensure nav-items fit within the viewport without overlapping the header
+  document.addEventListener("DOMContentLoaded", function () {
+    const navbarHeader = document.querySelector(".navbar-header");
+    const navbarItems = document.querySelector(".navbar-items");
+
+    if (navbarHeader && navbarItems) {
+      // Calculate the dynamic height and apply it
+      const headerHeight = navbarHeader.offsetHeight;
+      navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
+    }
+
+    // Adjust height dynamically during window resize
+    window.addEventListener("resize", function () {
+      if (navbarHeader && navbarItems) {
+        const headerHeight = navbarHeader.offsetHeight;
+        navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
+      }
+    });
   });
 </script>
 
