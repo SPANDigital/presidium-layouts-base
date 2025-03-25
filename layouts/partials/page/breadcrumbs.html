@@ -1,14 +1,12 @@
 {{- $outputFormat := $.Scratch.Get "output-format" -}}
 <div aria-label="breadcrumb" class="breadcrumb">
-    <li><a href="{{.Site.BaseURL}}"{{if $outputFormat}} target="_blank" rel="noopener"{{end}}>{{ .Site.Title }}</a></li>
+    <li class="breadcrumb-item"><span class="site-title">{{ .Site.Title }}</span></li>
     {{- range $index, $ancestor := .Ancestors.Reverse -}}
     {{ if $outputFormat -}}
     {{ with $ancestor.OutputFormats.Get $outputFormat -}}
-    <li><a href="{{ $ancestor.RelPermalink }}">{{ $ancestor.LinkTitle }}</a></li>
+    <li class="breadcrumb-item"><span class="ancestor-title">{{ $ancestor.LinkTitle }}</span></li>
     {{- end }}
     {{- end }}
-    {{ else }}
-    <li><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></li>
     {{ end -}}
-    <li class="active">{{ .LinkTitle }}</li>
+    <li class="breadcrumb-item active"><span class="page-title">{{ .LinkTitle }}</li>
 </div>
