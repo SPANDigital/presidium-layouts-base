@@ -4,7 +4,7 @@
 {{ $rootUrl := path.Clean $url.Path }} 
 {{ $slugifyUrl := .Site.Params.slugifyUrl | default true }}
 
-<nav>
+<nav class="navbar">
   <div class="navbar-header">
     {{ partial "navigation/brand.html" . }}
   </div>
