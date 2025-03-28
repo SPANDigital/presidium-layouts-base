@@ -19,8 +19,8 @@ outputformats:
   Compendium:
     baseName: compendium
     mediaType: application/json
-  Snippet:
-    basename: snippet
+  Embed:
+    basename: embed
     mediaType: text/html
     isHtml: true
     permalinkable: true
@@ -28,6 +28,8 @@ outputs:
   home:
     - Navigation
     - Compendium
+cascade:
+ type: 
 params:
   _merge: shallow
   attributes:

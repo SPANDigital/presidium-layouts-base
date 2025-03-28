@@ -1,12 +1,6 @@
-{{- $outputFormat := $.Scratch.Get "output-format" -}}
 <div aria-label="breadcrumb" class="breadcrumb">
-    <li class="breadcrumb-item"><span class="site-title">{{ .Site.Title }}</span></li>
     {{- range $index, $ancestor := .Ancestors.Reverse -}}
-    {{ if $outputFormat -}}
-    {{ with $ancestor.OutputFormats.Get $outputFormat -}}
     <li class="breadcrumb-item"><span class="ancestor-title">{{ $ancestor.LinkTitle }}</span></li>
     {{- end }}
-    {{- end }}
-    {{ end -}}
     <li class="breadcrumb-item active"><span class="page-title">{{ .LinkTitle }}</li>
 </div>
