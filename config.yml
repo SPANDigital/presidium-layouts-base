@@ -28,8 +28,6 @@ outputs:
   home:
     - Navigation
     - Compendium
-cascade:
- type: 
 params:
   _merge: shallow
   attributes:
