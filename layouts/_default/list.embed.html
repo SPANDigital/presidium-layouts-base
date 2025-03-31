@@ -11,15 +11,14 @@
 {{ end }}
 
 {{ define "breadcrumbs" }}
-    {{ .Scratch.Set "output-format" "snippet" }}
-    {{ partial "page/breadcrumbs" . }}
+    {{ partial "page/embed/breadcrumbs" . }}
 {{ end }}
 
 {{ define "header" }}
-    {{ .Scratch.Set "scope" "single" }}
+    {{ .Scratch.Set "scope" "list" }}
     {{ partial "page/header" . }}
 {{ end }}
 
 {{ define "content" }}
-    {{ partial "article/root" . }}
+    {{ partial "page/list" . }}
 {{ end }}
