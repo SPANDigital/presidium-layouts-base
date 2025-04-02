@@ -20,5 +20,12 @@
 {{ end }}
 
 {{ define "content" }}
+    <div
+      data-key="{{ $.Site.Params.enterprise_key }}"
+      data-title="{{ $.Site.Title }}"
+      id="presidium-enterprise"
+      class="presidium-enterprise"
+      style="display: none"
+    ></div>
     {{ partial "page/list" . }}
 {{ end }}
