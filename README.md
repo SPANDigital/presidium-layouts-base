@@ -1,11 +1,14 @@
 # presidium-layouts-base
+
 This repo makes up the `layouts` portion of the Presidium System Level Theme, and contains the officially support theme features.
-For more info on Hugo Themes see the official Hugo documentation [here](https://gohugo.io/hugo-modules/theme-components/) 
+For more info on Hugo Themes see the official Hugo documentation [here](https://gohugo.io/hugo-modules/theme-components/)
 
 # Getting Started
 
 ### Method 1 - Just using the Presidium Themes in your Hugo site (Default)
+
 Update the `config.yml`:
+
 ```
 module:
   imports:
@@ -14,23 +17,29 @@ module:
 ```
 
 ### Method 2 - Working on contributing to this repo in local development.
+
 1. Clone the theme
 1. Clone the [presidium-test-validation](https://github.com/SPANDigital/presidium-test-validation) repo. We use the `presidium-test-validation` repo as the styling and functionality test bed, where we throw all the officially supported features in with the kitchen sink, so that we can validate every theme change has no unintended effects.
 1. Open the `go.mod` file in your `presidium-test-validation` clone.
 1. Add the following to the bottom of your `go.mod` file, and update the path after the arrow to the correct path where you cloned the theme layout:
+
 ```
 replace github.com/spandigital/presidium-layouts-base => /{path-on-your-machine}/presidium-layouts-base
 ```
 
 4. Run a refresh and then build the docset with Hugo:
+
 ```
 make refresh
 ```
+
 If you don't have the Makefile in your docset, then you can copy it from [here](https://github.com/SPANDigital/presidium/blob/develop/templates/default/Makefile)
 Then run
+
 ```
 make serve
 ```
+
 Your served site should be available on `localhost:1313`.
 
 ---
@@ -44,6 +53,7 @@ At SPAN we use [Conventional Commits 1.0.0](https://www.conventionalcommits.org/
 This repository uses [Semantic Release](https://semantic-release.gitbook.io/semantic-release/) tool to automate version management and package publishing.
 
 Upon merging into to the main or develop branch, Semantic Release tool will:
+
 - Calculate the new release version based on the commits
 - Create a git commit and a git tag for the release
 - Create a Release with release notes from the commit messages
@@ -53,15 +63,30 @@ Upon merging into to the main or develop branch, Semantic Release tool will:
 
 ## Branching
 
-Please see this [Presidium Git Strategy Miro board](https://miro.com/app/board/uXjVPK0XxiU=/).
+This repo uses trunk-based development (TBD).
+If you are not familiar with TBD, then please read this [article](https://www.optimizely.com/optimization-glossary/trunk-based-development/).
+
+Other TBD articles:
+
+- [Trunk based development - pros and cons](https://medium.com/@sabri.mutlucag/trunk-based-development-pros-cons-and-why-you-should-consider-adopting-it-81cd7c24626c)
+- [Why I love TBD](https://medium.com/@mattia.battiston/why-i-love-trunk-based-development-641fcf0b94a0)
+- [A complete guide to TBD](https://medium.com/@SplitSoftware/a-complete-guide-to-trunk-based-development-2b335f57d286)
 
 In summary:
-- `main` ⇾ production
-  - Only hotfixes or `develop` get merged into `main`
-- `develop`
-  - Feature branches and bug fixes are branched from and merged into `develop`
-- `feat/<TITLE>`
-  - If there is a feature in development it will be on a feature branch
+
+- `main` ⇾ release versions created from main.
+- `develop` ⇾ the develop branch should NOT exist in this repo.
+- `branch` ⇾ branch directly off main.  
+  **Branch prefixes** : prefix your branch with the type of work done in the branch, eg.:
+  - `feat/` : feature.
+  - `fix/` : fixing a bug.
+  - `chore/` : mundane update chore.
+  - `refactor/` : restructuring or cleaning-up code but no functional additions.
+
+Make sure to include:
+
+- Any necessary feature flags, and set the default behaviour as DISABLED until the team agrees to change that.
+- Code unit tests as far as possible.
 
 ---
 
@@ -71,26 +96,27 @@ In summary:
 
 ### Snippets
 
-The `Snippet` output format is a alternative HTML output format to the standard output  (`index.html`) for _pages_ and _sections_. It's intended for generating standalone articles that can be used in third-party/isolated contexts (such as in an `iframe`).
+The `Snippet` output format is a alternative HTML output format to the standard output (`index.html`) for _pages_ and _sections_. It's intended for generating standalone articles that can be used in third-party/isolated contexts (such as in an `iframe`).
 
 Features of a snippet:
- - Generates content from the `content/` directory.
- - Uses the same stylesheets as the standard output.
- - Excludes inter-host navigation contexts that are in the standard output, such as the toolbar and left sidebar.
- - Includes breadcrumbs to ancestor snippets for limited navigation within the docset.
 
-**Usage**  
+- Generates content from the `content/` directory.
+- Uses the same stylesheets as the standard output.
+- Excludes inter-host navigation contexts that are in the standard output, such as the toolbar and left sidebar.
+- Includes breadcrumbs to ancestor snippets for limited navigation within the docset.
+
+**Usage**
 
 Snippet outputs must be configured per docset repository in `config.yml`.
 
 ```yaml
 # <my-docset>/config.yml
-...
+---
 outputs:
   page:
-    - html      # -> index.html
-    - snippet   # -> snippet.html
+    - html # -> index.html
+    - snippet # -> snippet.html
   section:
-    - html      # -> index.html
-    - snippet   # -> snippet.html
+    - html # -> index.html
+    - snippet # -> snippet.html
 ```
