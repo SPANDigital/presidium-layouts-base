@@ -1,0 +1,37 @@
+{{ $depth := .depth | default 1 }}
+{{ $childDepth := add $depth 1 }}
+
+{{ $path := trim (replaceRE "\\W+" "-" .context.RelPermalink) "-"}}
+{{ $slug := (partial "common/slug" .context) }}
+
+{{ $permalinkSlug := index (split .context.RelPermalink "/") (sub (len (split .context.RelPermalink "/")) 2) }}
+{{$filepath := split .context.File.Filename "/"}}
+{{ $baseFilename := index $filepath (sub (len $filepath) 1) }}
+
+{{ if ne $baseFilename "_index.md" }}
+{{ $path = replace $path $permalinkSlug $slug }}
+{{ end }}
+
+{{ $fileSlug := anchorize .context.File.BaseFileName }}
+{{ $fileSlugAlt := replaceRE `^\d+-` "" .context.File.BaseFileName }}
+{{ if eq .context.File.BaseFileName "_index" }}
+{{ $fileSlug = (partial "pdf/common/parent-slug" .context) }}
+{{ $fileSlugAlt = replaceRE `^\d+-` "" $fileSlug }}
+{{ end }}
+
+<div class="presidium-article-wrapper">
+  {{ if ne .context.Parent.Title .context.Title}}
+  <h{{ $depth }} class="article-title" id="{{ $slug }}">{{ .context.Title }}</h{{ $depth }}>
+  {{ end }}
+  {{ .context.Content }}
+</div>
+
+{{ if .context.Site.Params.sortByFilePath }}
+{{ range sort .context.Data.Pages "File.Path"}}
+{{ partial "pdf/article" (dict "context" . "depth" $childDepth) }}
+{{ end }}
+{{ else }}
+{{ range .context.Data.Pages.ByWeight }}
+{{ partial "pdf/article" (dict "context" . "depth" $childDepth) }}
+{{ end }}
+{{ end }}
