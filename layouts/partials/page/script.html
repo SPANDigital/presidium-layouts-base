@@ -111,15 +111,19 @@
   window.presidium?.tooltips?.load();
   window.presidium?.modal?.init();
 
-  mermaid.initialize({
-      startOnLoad: true,
-      theme: 'base',
-      themeVariables: {
-          'primaryColor': '#00827E',
-          'primaryBorderColor': '#2C6764',
-          'secondaryColor': '#FFFFFF',
-          'lineColor': '#666',
-      },
+  document.addEventListener('DOMContentLoaded', () => {
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+            'primaryColor': '#00827E',
+            'primaryBorderColor': '#2C6764',
+            'secondaryColor': '#FFFFFF',
+            'lineColor': '#666',
+        },
+    });
+    // Explicitly initialize all Mermaid diagrams
+    mermaid.init(undefined, document.querySelectorAll('.mermaid'));
   });
 
   // Ensure nav-items fit within the viewport without overlapping the header
