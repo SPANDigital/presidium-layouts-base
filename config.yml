@@ -24,12 +24,6 @@ outputformats:
     mediaType: text/html
     isHtml: true
     permalinkable: true
-  # TODO(PRSDM-7807): remove Snippet and related snippet templates once the API rework to serve embed.html instead of snippet.html is in SPAN production
-  Snippet:
-    basename: snippet
-    mediaType: text/html
-    isHtml: true
-    permalinkable: true
   Pdf:
     basename: pdf
     mediaType: text/html
