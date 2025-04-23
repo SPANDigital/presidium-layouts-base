@@ -22,24 +22,28 @@ for (var i = 0; i < links.length; i++) {
     continue;
   }
 
-  href = href.replace(baseURL, "");
-
-  if (href.indexOf("#") === 0) {
-    continue;
-  }
+  // Normalize the URL by removing trailing slash before hash
+  href = href.replace(baseURL, "").replace(/\/(?=#)/, "");
 
   var segments = href.split("/").filter(function(x) {
     return x;
   });
 
-  var anchor = segments.pop();
+  // slugify the segments by replacing slashes and hashes with dashes
+  var newAnchor = segments.map(function(x) {
+    return x.replace("/", "-").replace("#", "-");
+  }).join("-");
 
-  if (anchor.indexOf("#") === 0) {
-    anchor = anchor.substring(1);
-  }
+  var match = document.getElementById(newAnchor);
 
-  var match = document.getElementById(anchor);
+  // If the article exists, link to it instead of the original URL
   if (match) {
-    link.href = "#" + anchor;
+    link.href = "#" + newAnchor;
+  }
+  else {
+    // If the article doesn't exist, link to the link hash instead
+    if (!link.hash == "") {
+      link.href = link.hash
+    }
   }
 }

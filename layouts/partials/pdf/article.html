@@ -12,16 +12,10 @@
 {{ $path = replace $path $permalinkSlug $slug }}
 {{ end }}
 
-{{ $fileSlug := anchorize .context.File.BaseFileName }}
-{{ $fileSlugAlt := replaceRE `^\d+-` "" .context.File.BaseFileName }}
-{{ if eq .context.File.BaseFileName "_index" }}
-{{ $fileSlug = (partial "pdf/common/parent-slug" .context) }}
-{{ $fileSlugAlt = replaceRE `^\d+-` "" $fileSlug }}
-{{ end }}
-
 <div class="presidium-article-wrapper">
   {{ if ne .context.Parent.Title .context.Title}}
-  <h{{ $depth }} class="article-title" id="{{ $slug }}">{{ .context.Title }}</h{{ $depth }}>
+    <span id="{{ $slug }}"></span>
+    <h{{ $depth }} class="article-title" id="{{ $path }}">{{ .context.Title }}</h{{ $depth }}>
   {{ end }}
   {{ .context.Content }}
 </div>
