@@ -6,7 +6,6 @@
     {{ $contentRendered := .Scratch.Get "contentRendered" }}
     <section data-section="{{ .Parent.Path | strings.TrimPrefix "/" }}">
         {{ if not $contentRendered }}
-{{/*            {{ .Scratch.Set "contentRendered" (partial "page/single" .) }}*/}}
             {{ $contentRendered = partial "page/single" . }}
         {{ end }}
         {{ $contentRendered }}
@@ -16,7 +15,6 @@
 {{ define "footer" }}
     {{ $footerRendered := .Scratch.Get "footerRendered" }}
     {{ if not $footerRendered }}
-{{/*        {{ .Scratch.Set "footerRendered" (partialCached "page/footer" .) }}*/}}
         {{ $footerRendered = partialCached "page/footer" . }}
     {{ end }}
     {{ .Scratch.Get "footerRendered" }}
