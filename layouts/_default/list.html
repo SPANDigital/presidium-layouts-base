@@ -1,5 +1,5 @@
 {{ define "header" }}
-    {{ .Scratch.Set "scope" "list" }}
+{{/*    {{ .Scratch.Set "scope" "list" }}*/}}
     {{ partial "page/header" . }}
 {{ end }}
 
@@ -8,5 +8,5 @@
 {{ end }}
 
 {{ define "footer" }}
-    {{ partial "page/footer" . }}
+    {{ partialCached "page/footer" . }}
 {{ end }}

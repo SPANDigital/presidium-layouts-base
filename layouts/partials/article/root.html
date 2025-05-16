@@ -1,54 +1,53 @@
+{{/* Fetch configurations and defaults */}}
 {{ $roles := .Params.roles | default "All Roles" }}
 {{ $slug := (partial "common/slug" .) }}
-
 {{ $nestedArticles := .Site.Params.includeNestedArticles | default true }}
-
-{{ $articleLink := (printf "%v#%v" .Parent.Page.RelPermalink $slug ) }}
-{{ $.Scratch.Set "articleLink" $articleLink }}
-
-{{/*  Type of article  */}}
-{{ $type := cond (not .Data.Pages) "child" "parent" }}
-
-{{/* Unique id for this article */}}
 {{ $file := .File }}
-{{ if $file}}
-{{ $articleId := lower (.Params.id | default $file.Path) }}
-{{ $noContent := (eq (len .Content) 0) }}
+{{ $type := cond (not .Data.Pages) "child" "parent" }}
+{{ $noContent := $file | and (eq (len .Content) 0) }}
 
-{{/* Unique id for file, used by scroll-spy and menu toggle  */}}
-{{ $uid := $file.UniqueID }}
+{{ if $file }}
+    {{/* Unique identifiers for articles and files */}}
+    {{ $articleId := lower (.Params.id | default $file.Path) }}
+    {{ $uid := $file.UniqueID }}
+    {{ $articleLink := (printf "%v#%v" .Parent.Page.RelPermalink $slug) }}
+    {{ $.Scratch.Set "articleLink" $articleLink }}
 
-<div class="article {{ $type }}" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $articleLink }}" permalink="{{.Page.RelPermalink}}" data-no-content="{{ $noContent }}" title="{{ .Title }}" >
-    {{ if or (ne (len .Content) 0) (and $nestedArticles (partial "common/pages" .)) }}
-        <div class="presidium-article-wrapper">
-            <span class="anchor"  id="{{ $slug }}" data-id="{{ $articleId }}"></span>
+    <div class="article {{ $type }}"
+         data-roles="{{ $roles }}"
+         id="{{ $uid }}"
+         data-link="{{ $articleLink }}"
+         permalink="{{ .Page.RelPermalink }}"
+         data-no-content="{{ $noContent }}"
+         title="{{ .Title }}">
 
-            {{ partial "article/validation" . }}
-            {{ partial "article/header" . }}
-            {{ partial "article/title" . }}
-            {{ partial "article/frontmatter" . }}
-            {{ partial "article/content" . }}
-            {{ partial "article/footer" . }}
-        </div>
-    </div>
+        {{/* Check if content or nested articles exist */}}
+        {{ if or (gt (len .Content) 0) (and $nestedArticles (partial "common/pages" .)) }}
+            <div class="presidium-article-wrapper">
+                <span class="anchor" id="{{ $slug }}" data-id="{{ $articleId }}"></span>
 
-    {{ if $nestedArticles }}
-        {{/* Sort by filename if specified in config */}}
-        {{ $sortByFilePath := .Parent.Params.sortByFilePath | default .Site.Params.sortByFilePath }}
-        {{ if $sortByFilePath }}
-            {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
-            {{/* Sort by file prefix */}}
-            {{ range sort .Data.Pages "File.Path" $sortOrder }}
-                {{ partial "article/root" . }}
-            {{ end }}
-        {{ else }}
-            {{/* Sort by weight otherwise the hugo default */}}
-            {{ range .Data.Pages.ByWeight }}
+                {{/* Include article sections as partials */}}
+                {{ partialCached "article/validation" . }}
+                {{ partial "article/header" . }}
+                {{ partial "article/title" . }}
+                {{ partial "article/frontmatter" . }}
+                {{ partial "article/content" . }}
+                {{ partialCached "article/footer" . }}
+            </div>
+        {{ end }}
+
+        {{/* Handle nested articles if enabled */}}
+        {{ if $nestedArticles }}
+            {{/* Determine sorting method */}}
+            {{ $sortByFilePath := .Parent.Params.sortByFilePath | default .Site.Params.sortByFilePath }}
+            {{ $pages := (cond $sortByFilePath
+              (sort .Data.Pages "File.Path" (partialCached "common/sortorder" (dict "SortByFilePath" $sortByFilePath)))
+                .Data.Pages.ByWeight) }}
+
+            {{/* Iterate over sorted articles */}}
+            {{ range $pages }}
                 {{ partial "article/root" . }}
             {{ end }}
         {{ end }}
-    {{ end }}
-{{ else }}
-</div>
-{{ end }}
+    </div>
 {{ end }}
