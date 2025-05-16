@@ -1,15 +1,23 @@
 {{ define "header" }}
-    {{ partial "page/parentheader" . }}
+    {{ partialCached "page/parentheader" . "parentheader_key" }}
 {{ end }}
 
 {{ define "section" }}
-<section data-section="{{ strings.TrimPrefix "/" .Parent.Path }}">
-{{ block "content" . }}
-    {{ partial "page/single" . }}
-{{ end }}
-</section>
+    {{ $contentRendered := .Scratch.Get "contentRendered" }}
+    <section data-section="{{ .Parent.Path | strings.TrimPrefix "/" }}">
+        {{ if not $contentRendered }}
+{{/*            {{ .Scratch.Set "contentRendered" (partial "page/single" .) }}*/}}
+            {{ $contentRendered = partial "page/single" . }}
+        {{ end }}
+        {{ $contentRendered }}
+    </section>
 {{ end }}
 
 {{ define "footer" }}
-    {{ partial "page/footer" . }}
+    {{ $footerRendered := .Scratch.Get "footerRendered" }}
+    {{ if not $footerRendered }}
+{{/*        {{ .Scratch.Set "footerRendered" (partialCached "page/footer" .) }}*/}}
+        {{ $footerRendered = partialCached "page/footer" . }}
+    {{ end }}
+    {{ .Scratch.Get "footerRendered" }}
 {{ end }}
