@@ -1,41 +1,47 @@
 <!doctype html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>{{ if .IsHome }}{{ $.Site.Title }}{{ else }}{{ .Title }} - {{ .Site.Title }}{{ end }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <title>{{ if .IsHome }}{{ $.Site.Title }}{{ else }}{{ .Title }} - {{ .Site.Title }}{{ end }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {{ hugo.Generator }}
-    <link rel="icon" href="{{ .Site.Params.favicon | absURL }}" type="image/x-icon">
-    {{ $basePath := $.Site.Params.basePath  | default "/" }}
-    {{ $style := resources.Get "presidium.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
-    <link rel="stylesheet" href="{{ $style.RelPermalink }}">
+
+  <!-- Favicon -->
+  <link rel="icon" href="{{ .Site.Params.favicon | absURL }}" type="image/x-icon">
+
+  <!-- CSS Styles -->
+    {{ $basePath := $.Site.Params.basePath | default "/" }}
+    {{ $mainStyle := resources.Get "presidium.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
+  <link rel="stylesheet" href="{{ $mainStyle.RelPermalink }}">
     {{ if resources.Get "index.scss" }}
-      {{ with resources.Get "index.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
-        <link rel="stylesheet" href="{{ .RelPermalink }}">
-      {{ end }}
+        {{ with resources.Get "index.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
+          <link rel="stylesheet" href="{{ .RelPermalink }}">
+        {{ end }}
     {{ end }}
 
+  <!-- Enterprise-specific assets -->
     {{ if $.Site.Params.enterprise_enabled }}
-      {{ $enterpriseScript := $.Site.Params.enterprise_script | default "/presidium-enterprise.js" }}
-      {{ $enterpriseStyling := $.Site.Params.enterprise_styling | default "/presidium-enterprise.css" }}
-      
-      <link data-test="{{$basePath}}" rel="stylesheet" href="{{ path.Join $basePath $enterpriseStyling }}">
-      <link data-test="{{$basePath}}" rel="preload" href="{{ path.Join $basePath $enterpriseScript }}" as="script">
-      <script data-test="{{$basePath}}"> window.baseURL = '{{$basePath}}'; </script>
+        {{ $enterpriseScript := $.Site.Params.enterprise_script | default "/presidium-enterprise.js" }}
+        {{ $enterpriseStyling := $.Site.Params.enterprise_styling | default "/presidium-enterprise.css" }}
+      <link rel="stylesheet" href="{{ path.Join $basePath $enterpriseStyling }}">
+      <script src="{{ path.Join $basePath $enterpriseScript }}" defer></script>
+      <script>window.baseURL = '{{ $basePath }}';</script>
     {{ end }}
 
+  <!-- Lazy loads navigation JavaScript if enabled -->
     {{ if $.Site.Params.lazyLoad }}
-    {{ block "scripts" . }}
-      {{ $url := urls.Parse .Site.BaseURL }}
-      {{ $url = path.Clean $url.Path }}
-      {{ $navUrl := path.Join $url "/navigation.js"  }}
-      <script src="{{$navUrl}}"></script>
-    {{ end }}
+        {{ block "scripts" . }}
+            {{ $url := path.Clean (urls.Parse $.Site.BaseURL).Path }}
+            {{ $navUrl := path.Join $url "/navigation.js" }}
+          <script src="{{ $navUrl }}" async></script>
+        {{ end }}
     {{ end }}
 </head>
 
 <body id="presidium" {{ partial "page/attributes" . }}>
-    {{ if $.Site.Params.enterprise_enabled }}
+
+<!-- Toolbar for Enterprise -->
+{{ if $.Site.Params.enterprise_enabled }}
     {{ block "toolbar" . }}
       <div class="toolbar-wrapper">
         <button class="toggle">
@@ -48,61 +54,72 @@
           data-key="{{ $.Site.Params.enterprise_key }}"
           data-title="{{ $.Site.Title }}"
           id="presidium-enterprise"
-          class="presidium-enterprise"
-        ></div>
+          class="presidium-enterprise">
+        </div>
       </div>
     {{ end }}
-    {{ end }}
+{{ end }}
 
-    <div class="content-wrapper">
-      {{ block "left-sidebar" . }}
+<div class="content-wrapper">
+  <!-- Sidebar or Navigation -->
+    {{ block "left-sidebar" . }}
       <div id="presidium-navigation">
-        {{ if $.Site.Params.lazyLoad }}
-          <script>
-            document.querySelector('#presidium-navigation').innerHTML = window.navigation;
-          </script>
-        {{ else }}
-          {{ partialCached "navigation/root" . 0 }}
-        {{ end }}
+          {{ if $.Site.Params.lazyLoad }}
+            <!-- Lazy-loaded navigation -->
+            <script>
+              document.querySelector('#presidium-navigation').innerHTML = window.navigation;
+            </script>
+          {{ else }}
+              {{ partialCached "navigation/root" . 0 }}
+          {{ end }}
       </div>
       <div id="resizer"></div>
-      {{ end }}
-
-      <div id="presidium-container" class="container-fluid">
-        <div class="row">
-          {{ block "breadcrumbs" .}}{{ end }}
-            <div id="presidium-content">
-                {{ block "header" . }}{{ end }}
-                {{ block "section" . }}
-                <section data-section="{{ strings.TrimPrefix "/" .Path }}">
-                  {{ block "content" . }}{{ end }}
-                </section>
-                {{ end }}
-            </div>
-            {{ block "footer" . }}
-              {{ partial "page/footer" . }}
-            {{ end }}
-        </div>
-      </div>
-    </div>
-    <div class="container-fluid">
-      {{ block "globalfooter" . }}
-          {{/*  {{ partial "page/globalfooter" . }}  remove this comment to enable global footer */}}
-      {{ end }}
-    </div>
-    <div class="toast-wrapper">
-        <div id="copy-toast" class="toast">
-            <div class="editor-popup-panel-copy">
-                <div class="popup-copy-tick"></div>
-                <span class="popup-copy-text mb-0"></span>
-            </div>
-        </div>
-    </div>
-
-    {{ partialCached "page/modal" 0 }}
-    {{ partialCached "page/script" . }}
-    {{ if $.Site.Params.analyticsToken }}
-      {{ partialCached "analytics.html"  . }}
     {{ end }}
+
+  <!-- Main Content Area -->
+  <div id="presidium-container" class="container-fluid">
+    <div class="row">
+        {{ block "breadcrumbs" . }}{{ end }}
+      <div id="presidium-content">
+          {{ block "header" . }}{{ end }}
+          {{ block "section" . }}
+            <section data-section="{{ strings.TrimPrefix "/" .Path }}">
+                {{ block "content" . }}{{ end }}
+            </section>
+          {{ end }}
+      </div>
+        {{ block "footer" . }}
+            {{ partial "page/footer" . }}
+        {{ end }}
+    </div>
+  </div>
+</div>
+
+<!-- Optional Global Footer -->
+<div class="container-fluid">
+    {{ block "globalfooter" . }}
+        {{/* Uncomment partial below if global footer is required */}}
+        {{/* {{ partial "page/globalfooter" . }} */}}
+    {{ end }}
+</div>
+
+<!-- Toast Notifications -->
+<div class="toast-wrapper">
+  <div id="copy-toast" class="toast">
+    <div class="editor-popup-panel-copy">
+      <div class="popup-copy-tick"></div>
+      <span class="popup-copy-text mb-0"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Cached Partials -->
+{{ partialCached "page/modal" 0 }}
+{{ partialCached "page/script" . }}
+
+<!-- Analytics if enabled -->
+{{ if $.Site.Params.analyticsToken }}
+    {{ partialCached "analytics.html" . }}
+{{ end }}
 </body>
 </html>
