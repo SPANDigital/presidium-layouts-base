@@ -12,7 +12,7 @@
 {{/* Unique id for this article */}}
 {{ $file := .File }}
 {{ if $file}}
-{{ $articleId := lower (.Params.id | default $file.Path) }}
+{{ $articleId := (.Params.id | default $file.Path) }}
 {{ $noContent := (eq (len .Content) 0) }}
 
 {{/* Unique id for file, used by scroll-spy and menu toggle  */}}
