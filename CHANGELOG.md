@@ -1,3 +1,7 @@
+## 2025-06-30
+### Refactor
+- Preserve casing of file paths in search map to be usable by case-sensitive file systems. @lourensv https://spandigital.atlassian.net/browse/PRSDM-8446
+
 ## 2025-04-08
 ### Refactor
 - Remove Snippet output format superceded by Embed. @DustinFischer https://spandigital.atlassian.net/browse/PRSDM-7807
