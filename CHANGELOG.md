@@ -20,3 +20,7 @@
 ## 2025-01-27
 ### Fix
 - Update presidium.js version for local and open source usage. @Zalaras https://spandigital.atlassian.net/browse/PRSDM-7167
+
+## 2025-07-16
+### Feature
+- Add base styling partial to enable custom styling. @thebulmad [PRSD-8528](https://spandigital.atlassian.net/browse/PRSDM-8528)
