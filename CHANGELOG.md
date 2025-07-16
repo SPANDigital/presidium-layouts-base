@@ -23,4 +23,4 @@
 
 ## 2025-07-16
 ### Feature
-- Add base styling partial to enable custom styling. @thebulmad [PRSD-8528](https://spandigital.atlassian.net/browse/PRSDM-8528)
+- Added base styling partial to enable custom styling. The type-class partial is used to isolate class level styling that is shared across repos. This allows for e.g. styling blog articles without affecting non blog articles. @thebulmad [PRSD-8528](https://spandigital.atlassian.net/browse/PRSDM-8528)
