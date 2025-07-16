@@ -71,7 +71,7 @@
       <div id="presidium-container" class="container-fluid">
         <div class="row">
           {{ block "breadcrumbs" .}}{{ end }}
-            <div id="presidium-content">
+            <div id="presidium-content" class="{{ partial "type/typeclass"  }}">
                 {{ block "header" . }}{{ end }}
                 {{ block "section" . }}
                 <section data-section="{{ strings.TrimPrefix "/" .Path }}">
