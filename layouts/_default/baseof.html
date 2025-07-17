@@ -68,10 +68,10 @@
       <div id="resizer"></div>
       {{ end }}
 
-      <div id="presidium-container" class="container-fluid">
+      <div id="presidium-container" class="container-fluid {{ partial "type/typeclass" . }}">
         <div class="row">
           {{ block "breadcrumbs" .}}{{ end }}
-            <div id="presidium-content" class="{{ partial "type/typeclass"  }}">
+            <div id="presidium-content">
                 {{ block "header" . }}{{ end }}
                 {{ block "section" . }}
                 <section data-section="{{ strings.TrimPrefix "/" .Path }}">
