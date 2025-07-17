@@ -20,3 +20,7 @@
 ## 2025-01-27
 ### Fix
 - Update presidium.js version for local and open source usage. @Zalaras https://spandigital.atlassian.net/browse/PRSDM-7167
+
+## 2025-07-16
+### Feature
+- Added base styling partial to enable custom styling. The type-class partial is used to isolate class level styling that is shared across repos. This allows for e.g. styling blog articles without affecting non blog articles. @thebulmad [PRSD-8528](https://spandigital.atlassian.net/browse/PRSDM-8528)
