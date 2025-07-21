@@ -54,7 +54,7 @@
     {{ end }}
     {{ end }}
 
-    <div class="content-wrapper">
+    <div class="content-wrapper {{ partial "type/typeclass" . }}">
       {{ block "left-sidebar" . }}
       <div id="presidium-navigation">
         {{ if $.Site.Params.lazyLoad }}
@@ -71,7 +71,7 @@
       <div id="presidium-container" class="container-fluid">
         <div class="row">
           {{ block "breadcrumbs" .}}{{ end }}
-            <div id="presidium-content" class="{{ partial "type/typeclass"  }}">
+            <div id="presidium-content">
                 {{ block "header" . }}{{ end }}
                 {{ block "section" . }}
                 <section data-section="{{ strings.TrimPrefix "/" .Path }}">
