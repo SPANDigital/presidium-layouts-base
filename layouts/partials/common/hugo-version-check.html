@@ -8,8 +8,8 @@
   
   {{ $recommendMessage := printf "✅ Recommended: Hugo %s%s" $maxVersion $extendedText }}
 
-  {{ $toInstallCmd := "CGO_ENABLED=1 go install -tags extended github.com/gohugoio/hugo@v%s" }}
-  {{ $toInstallRecommended := "🔧 To install the recommended version:\n %s" }}
+  {{ $toInstallCmd := "\nCGO_ENABLED=1 go install -tags extended github.com/gohugoio/hugo@v%s" }}
+  {{ $toInstallRecommended := "🔧 To install the recommended version (see https://gohugo.io/installation/macos/#build-from-source): \n %s" }}
 
   {{/* Min version check */}}
   {{ if and $minVersion (lt hugo.Version $minVersion) }}
