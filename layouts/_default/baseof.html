@@ -3,6 +3,9 @@
 <head>
     <meta charset="utf-8">
     <title>{{ if .IsHome }}{{ $.Site.Title }}{{ else }}{{ .Title }} - {{ .Site.Title }}{{ end }}</title>
+    
+    {{/* Hugo version compatibility check */}}
+    {{ partial "common/hugo-version-check.html" . }}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {{ hugo.Generator }}
     <link rel="icon" href="{{ .Site.Params.favicon | absURL }}" type="image/x-icon">

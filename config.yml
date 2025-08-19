@@ -35,6 +35,11 @@ outputs:
     - Pdf
 params:
   _merge: shallow
+  hugoVersion:
+    enabled: true
+    min: "0.133.0"
+    max: "0.147.7"
+    extended: true
   attributes:
     website: 2.15.0
   frontmatter:
