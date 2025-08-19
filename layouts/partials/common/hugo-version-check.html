@@ -1,0 +1,31 @@
+{{/* Hugo version compatibility check */}}
+{{ $config := $.Site.Params.hugoVersion }}
+{{ if and $config $config.enabled }}
+  {{ $minVersion := $config.min }}
+  {{ $maxVersion := $config.max }}
+  {{ $extendedRequired := $config.extended | default true }}
+  {{ $extendedText := cond $extendedRequired "+extended" "" }}
+  
+  {{ $recommendMessage := printf "✅ Recommended: Hugo %s%s" $maxVersion $extendedText }}
+
+  {{ $toInstallCmd := "CGO_ENABLED=1 go install -tags extended github.com/gohugoio/hugo@v%s" }}
+  {{ $toInstallRecommended := "🔧 To install the recommended version:\n %s" }}
+
+  {{/* Min version check */}}
+  {{ if and $minVersion (lt hugo.Version $minVersion) }}
+    {{ $installCmd := printf $toInstallCmd $maxVersion }}
+    {{ warnf "⚠️  Your Hugo version (%s) is not compatible with our build pipeline: Min %s\n\n%s\n\n%s" hugo.Version $minVersion $recommendMessage (printf $toInstallRecommended $installCmd) }}
+  {{ end }}
+  
+  {{/* Max version check */}}
+  {{ if and $maxVersion (gt hugo.Version $maxVersion) }}
+      {{ $installCmd := printf $toInstallCmd $maxVersion }}
+      {{ warnf "⚠️  Your Hugo version (%s) is not compatible with our build pipeline: Max %s\n\n%s\n\n%s" hugo.Version $maxVersion $recommendMessage (printf $toInstallRecommended $installCmd) }}
+  {{ end }}
+  
+  {{/* Extended version check */}}
+  {{ if and $extendedRequired (not hugo.IsExtended) }}
+    {{ $installCmd := printf $toInstallCmd hugo.Version }}
+    {{ errorf "❌ You are using the standard Hugo version. This module requires the Hugo extended edition.\n\n%s" (printf $toInstallRecommended $installCmd) }}
+  {{ end }}
+{{ end }}
