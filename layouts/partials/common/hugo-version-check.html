@@ -26,6 +26,6 @@
   {{/* Extended version check */}}
   {{ if and $extendedRequired (not hugo.IsExtended) }}
     {{ $installCmd := printf $toInstallCmd hugo.Version }}
-    {{ errorf "❌ You are using the standard Hugo version. This module requires the Hugo extended edition.\n\n%s" (printf $toInstallRecommended $installCmd) }}
+    {{ warnf "⚠️ You are using the standard Hugo version. This module requires the Hugo extended edition.\n\n%s" (printf $toInstallRecommended $installCmd) }}
   {{ end }}
 {{ end }}
