@@ -1,8 +1,33 @@
 {{ $items := slice }}
+{{ $processedPaths := dict }}
 
-{{ range (union .Site.RegularPages .Site.Sections) }}
-    {{ range $searchmapItem := (partial "searchmap/item" (dict "Page" . "Level" 1)) }}
-        {{ $items = $items | append $searchmapItem }}
+{{/* Use Site.AllPages and filter for top-level pages to avoid duplicates */}}
+{{ range .Site.AllPages }}
+    {{ if .File }}
+        {{ $filePath := .File.Path }}
+        {{ if not (index $processedPaths $filePath) }}
+            {{/* Mark this page as processed immediately to prevent duplicate processing */}}
+            {{ $processedPaths = merge $processedPaths (dict $filePath true) }}
+
+        {{/* Only process if this is a top-level page (no parent or parent has no file) */}}
+        {{ $isTopLevel := true }}
+        {{ if .Parent }}
+            {{ if and .Parent.File (ne .Parent.Kind "home") }}
+                {{ $isTopLevel = false }}
+            {{ end }}
+        {{ end }}
+
+            {{ if $isTopLevel }}
+                {{/* Process this page */}}
+                {{ range $searchmapItem := (partial "searchmap/item" (dict "Page" . "Level" 1)) }}
+                    {{ $items = $items | append $searchmapItem }}
+                    {{/* Also mark any child page IDs as processed to prevent duplication */}}
+                    {{ if ne $searchmapItem.id $filePath }}
+                        {{ $processedPaths = merge $processedPaths (dict $searchmapItem.id true) }}
+                    {{ end }}
+                {{ end }}
+            {{ end }}
+        {{ end }}
     {{ end }}
 {{ end }}
 
