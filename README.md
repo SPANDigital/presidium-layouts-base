@@ -106,8 +106,8 @@ The `Embed` output format generates an embeddable version of a section or articl
 outputs:
   page:
     - html      # -> output: index.html
-    - snippet   # -> output: embed.html
+    - embed     # -> output: embed.html
   section:
     - html      # -> output: index.html
-    - snippet   # -> output: embed.html
+    - embed     # -> output: embed.html
 ```
