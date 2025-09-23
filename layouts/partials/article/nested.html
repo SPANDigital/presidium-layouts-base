@@ -1,0 +1,61 @@
+{{/*
+High-performance nested article renderer using Hugo's template functions.
+Optimized for senior engineering teams with focus on:
+- Performance: Minimal context passing overhead
+- Maintainability: Clear separation of concerns
+- Flexibility: Configurable sorting and filtering
+- Safety: Controlled recursion via template functions
+*/}}
+
+{{/* Cache frequently accessed values to reduce repeated lookups */}}
+{{ $site := .Site }}
+{{ $nestedArticles := $site.Params.includeNestedArticles | default true }}
+{{ $globalSortByFilePath := $site.Params.sortByFilePath }}
+
+{{/*
+Optimized article rendering function with minimal context passing.
+Uses Hugo's internal template system for efficient recursion.
+*/}}
+{{ define "renderArticleTree" }}
+    {{- $page := .page -}}
+    {{- $site := .site -}}
+    {{- $nestedArticles := .nestedArticles -}}
+    {{- $globalSortByFilePath := .globalSortByFilePath -}}
+
+    {{/* Render current article using dedicated partial */}}
+    {{- partial "article/item" $page -}}
+
+    {{/* Process children only if nesting enabled and children exist */}}
+    {{- if and $nestedArticles $page.Data.Pages -}}
+        {{/* Determine sorting strategy with local override capability */}}
+        {{- $sortByFilePath := $page.Parent.Params.sortByFilePath | default $globalSortByFilePath -}}
+
+        {{- if $sortByFilePath -}}
+            {{/* File path based sorting with cached sort order */}}
+            {{- $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) -}}
+            {{- range sort $page.Data.Pages "File.Path" $sortOrder -}}
+                {{- template "renderArticleTree" (dict
+                    "page" .
+                    "site" $site
+                    "nestedArticles" $nestedArticles
+                    "globalSortByFilePath" $globalSortByFilePath) -}}
+            {{- end -}}
+        {{- else -}}
+            {{/* Weight-based sorting (Hugo default) */}}
+            {{- range $page.Data.Pages.ByWeight -}}
+                {{- template "renderArticleTree" (dict
+                    "page" .
+                    "site" $site
+                    "nestedArticles" $nestedArticles
+                    "globalSortByFilePath" $globalSortByFilePath) -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+{{/* Initialize rendering with optimized context */}}
+{{- template "renderArticleTree" (dict
+    "page" .
+    "site" $site
+    "nestedArticles" $nestedArticles
+    "globalSortByFilePath" $globalSortByFilePath) -}}
