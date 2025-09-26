@@ -24,3 +24,7 @@
 ## 2025-07-16
 ### Feature
 - Added base styling partial to enable custom styling. The type-class partial is used to isolate class level styling that is shared across repos. This allows for e.g. styling blog articles without affecting non blog articles. @thebulmad [PRSD-8528](https://spandigital.atlassian.net/browse/PRSDM-8528)
+
+## 2025-09-26
+### Fix
+- Update presidium.js version with left menu navigation fixes. @DustinFischer https://spandigital.atlassian.net/browse/PRSDM-8871
