@@ -23,7 +23,12 @@
 {{/* adds the slug to the link if the article has no children */}}
 {{ $articleLink := .NavPage.RelPermalink }}
 {{if and .NavPage.IsPage $slugifyUrl }}
-    {{ $articleLink = (printf "%v#%v" .NavPage.Parent.RelPermalink $slug ) }}
+    {{/* Check if this is a true child section vs standalone page */}}
+    {{/* A standalone page should have its own content and not just be a content fragment */}}
+    {{ $isStandalonePage := and (ne (len .NavPage.Content) 0) (.NavPage.File) }}
+    {{ if not $isStandalonePage }}
+        {{ $articleLink = (printf "%v#%v" .NavPage.Parent.RelPermalink $slug ) }}
+    {{ end }}
 {{end}}
 
 {{/* combines the parent slug with the current slug to ensure it's globally unique */}}
