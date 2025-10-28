@@ -3,7 +3,16 @@
 {{ end }}
 
 {{ define "section" }}
-<section data-section="{{ strings.TrimPrefix "/" .Parent.Path }}">
+{{ $isImported := false }}
+{{ with .File }}
+    {{ $filename := .Filename }}
+    {{ range $.Site.Params.imported_content_modules }}
+        {{ if in $filename . }}
+            {{ $isImported = true }}
+        {{ end }}
+    {{ end }}
+{{ end }}
+<section data-section="{{ strings.TrimPrefix "/" .Parent.Path }}" data-imported="{{ $isImported }}">
 {{ block "content" . }}
     {{ partial "page/single" . }}
 {{ end }}
