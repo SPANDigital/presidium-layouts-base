@@ -3,7 +3,7 @@
 {{ end }}
 
 {{ define "section" }}
-<section data-section="{{ strings.TrimPrefix "/" .Parent.Path }}"">
+<section data-section="{{ strings.TrimPrefix "/" .Parent.Path }}">
 {{ block "content" . }}
     {{ partial "page/single" . }}
 {{ end }}
