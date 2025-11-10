@@ -77,16 +77,7 @@
             <div id="presidium-content">
                 {{ block "header" . }}{{ end }}
                 {{ block "section" . }}
-                {{ $isImported := false }}
-                {{ with .File }}
-                    {{ $filename := .Filename }}
-                    {{ range $.Site.Params.imported_content_modules }}
-                        {{ if in $filename . }}
-                            {{ $isImported = true }}
-                        {{ end }}
-                    {{ end }}
-                {{ end }}
-                <section data-section="{{ strings.TrimPrefix "/" .Path }}" data-imported="{{ $isImported }}">
+                <section data-section="{{ strings.TrimPrefix "/" .Path }}">
                   {{ block "content" . }}{{ end }}
                 </section>
                 {{ end }}

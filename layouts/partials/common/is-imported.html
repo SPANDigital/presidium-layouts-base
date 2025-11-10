@@ -1,0 +1,15 @@
+{{/*
+Checks if the current page/content is from an imported content module.
+Returns: boolean (true if imported, false otherwise)
+Usage: {{ $isImported := partial "common/is-imported" . }}
+*/}}
+{{- $isImported := false -}}
+{{- with .File -}}
+    {{- $filename := .Filename -}}
+    {{- range $.Site.Params.imported_content_modules -}}
+        {{- if in $filename . -}}
+            {{- $isImported = true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- return $isImported -}}
