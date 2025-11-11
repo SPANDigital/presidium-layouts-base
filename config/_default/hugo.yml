@@ -1,0 +1,26 @@
+params:
+  frontmatter:
+    author:
+      type: string
+      required: true
+      pattern: ^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$
+    status:
+      type: enum
+      required: true
+      items:
+        - Draft
+        - Review
+        - Published
+        - Deprecated
+    slug:
+      type: string
+      required: true
+      pattern: ^[a-z]+(-[a-z]+)*$
+    URL:
+      type: string
+      required: true
+      pattern: ^(\/[a-zA-Z0-9-._~]+)*\/?$
+    weight:
+      type: number
+      required: true
+      minimum: 1
