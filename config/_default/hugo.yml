@@ -1,6 +1,5 @@
 params:
   frontmatter:
     author:
-      type: string
+      type: email
       required: true
-      pattern: ^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$
