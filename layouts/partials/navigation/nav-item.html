@@ -46,9 +46,9 @@
 
 {{/* Unique id for file, used by scroll-spy and menu toggle  */}}
 {{ $uid := .NavPage.File.UniqueID }}
+{{- $isImported := partial "common/is-imported" .NavPage -}}
 
-{{ $isImported := .Imported | default false }}
-<li class="menu-row {{ if .NavPage.IsPage }}child{{end}}" style="overflow: hidden;" data-roles="{{ $roles }}" data-imported="{{ $isImported }}">
+<li class="menu-row {{ if .NavPage.IsPage }}child{{end}}" style="overflow: hidden;" data-roles="{{ $roles }}" {{ if .NavPage.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }}>
     <div class="link level-{{ .Level }}">
         <!-- data-target is used by the scrollspy on presidium-js to determine which section of the page the <a> corresponds to -->
         <a class="level-{{ .Level }} {{ if eq .Index 0 }}first-child{{end}}" data-slug="{{ $slug }}" data-target="#{{$uid}}" data-id="{{ $articleId }}" href="{{ $articleLink }}">
@@ -74,11 +74,11 @@
                 {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
                 {{/* Sort by file prefix */}}
                 {{ range $index, $subMenu := (sort (after $offset $pages) "File.Path" $sortOrder) }}
-                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl "Imported" $isImported ) }}
+                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
                 {{ end }}
             {{ else }}
                 {{ range $index, $subMenu := after $offset $pages }}
-                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl "Imported" $isImported ) }}
+                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
                 {{ end }}
             {{ end }}
         </ul>
