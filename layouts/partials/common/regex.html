@@ -1,0 +1,19 @@
+{{/*
+  Central repository for all regex patterns used across templates.
+
+  Usage:
+    {{ $regex := partial "common/regex" }}
+    {{ $slug := replaceRE $regex.multipleDashes "-" $slug }}
+    {{ $valid := findRE $regex.emailValidation $email }}
+
+  Patterns:
+    - emailValidation: Validates email address format
+    - multipleDashes: Matches two or more consecutive dashes
+    - nonWordChars: Matches non-word characters (for path sanitization)
+*/}}
+{{ $patterns := dict
+    "emailValidation"      `^[^\s@]+@[^\s@]+\.[^\s@]+$`
+    "multipleDashes"       `(-{2,})`
+    "nonWordChars"         `\W+`
+}}
+{{ return $patterns }}

@@ -10,8 +10,9 @@
 {{- $pageLink := .Page.Parent.RelPermalink -}}
 {{- $slug := (partial "common/slug" .Parent) -}}
 {{- $noContent := (eq (len .Content) 0) -}}
+{{- $isImported := partial "common/is-imported" . -}}
 
-<div class="page index" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $pageLink }}" permalink="{{ .Page.Parent.RelPermalink }}" data-no-content="true" >
+<div class="page index" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $pageLink }}" permalink="{{ .Page.Parent.RelPermalink }}" data-no-content="true" {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }}>
     <div class="presidium-article-wrapper">
         <span class="anchor" id="{{ $slug }}" data-id="{{ $articleId }}"></span>
     </div>

@@ -6,8 +6,8 @@ Usage: {{ $isImported := partial "common/is-imported" . }}
 {{- $isImported := false -}}
 {{- with .File -}}
     {{- $filename := .Filename -}}
-    {{- range $.Site.Params.imported_content_modules -}}
-        {{- if in $filename . -}}
+    {{- range $index, $element := hugo.Deps -}}
+        {{- if in $filename $element.Path -}}
             {{- $isImported = true -}}
         {{- end -}}
     {{- end -}}
