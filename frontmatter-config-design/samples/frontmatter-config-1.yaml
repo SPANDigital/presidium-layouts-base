@@ -1,0 +1,33 @@
+author:
+  type: email
+  required: true
+
+title:
+  type: string
+  required: true
+  placeholder_text: "Enter document title"
+  max_length: 100
+
+status:
+  type: enum
+  required: true
+  items:
+    - Draft
+    - Review
+    - Published
+    - Deprecated
+
+slug:
+  type: string
+  required: true
+  pattern: ^[a-z]+(-[a-z]+)*$
+
+URL:
+  type: string
+  required: true
+  pattern: ^(\/[a-zA-Z0-9-._~]+)*\/?$
+
+weight:
+  type: number
+  required: true
+  minimum: 1
