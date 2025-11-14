@@ -1,23 +1,23 @@
 string:
   extends: root             # Inherits attributes from root type
-  placeholder_text: string  # Placeholder text for input fields
-  pattern: string           # Regex pattern for validation
-  min_length: number        # Minimum length of the string
-  max_length: number        # Maximum length of the string
+  placeholder_text: string  # [Optional] - Placeholder text for input fields
+  pattern: string           # [Optional] - Regex pattern for validation
+  min_length: number        # [Default: 0] - Minimum length of the string
+  max_length: number        # [Optional] - Maximum length of the string
 
 number:
   extends: root             # Inherits attributes from root type
-  placeholder_text: string  # Placeholder text for input fields
-  minimum: number           # Minimum value
-  maximum: number           # Maximum value
-  integer: boolean         # Whether the number should be an integer
+  placeholder_text: string  # [Optional] - Placeholder text for input fields
+  minimum: number           # [Optional] - Minimum value
+  maximum: number           # [Optional] - Maximum value
+  integer: boolean          # [Default: false] - Whether the number should be an integer
 
 boolean:
   extends: root             # Inherits attributes from root type
 
 array:
   extends: root             # Inherits attributes from root type
-  items_type: string        # Type of items in the array
-  items: array              # Type of items in the array
-  allowMultiple: boolean    # Whether multiple items are allowed
+  items_type: string        # [Required] - Type of items in the array
+  items: array              # [Optional] - List of allowed items
+  allowMultiple: boolean    # [Conditional to items] - Whether multiple of the allowed items can be selected
   min_items: number         # Minimum number of items
