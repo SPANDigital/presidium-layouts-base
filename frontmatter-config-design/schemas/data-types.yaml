@@ -1,0 +1,29 @@
+
+string:
+  extends: root             # Inherits attributes from root type
+  placeholder_text: string  # Placeholder text for input fields
+  pattern: string           # Regex pattern for validation
+  min_length: number        # Minimum length of the string
+  max_length: number        # Maximum length of the string
+
+number:
+  extends: root             # Inherits attributes from root type
+  placeholder_text: string  # Placeholder text for input fields
+  minimum: number           # Minimum value
+  maximum: number           # Maximum value
+  multiple_of: number       # Value must be a multiple of this number
+
+boolean:
+  extends: root             # Inherits attributes from root type
+
+enum:
+  extends: root             # Inherits attributes from root type
+  items: array[string]      # List of valid enum values
+  min_items: number         # Minimum number of items \\TODO: erase
+
+array:
+  extends: root             # Inherits attributes from root type
+  items:
+    type: string           # Type of items in the array
+    enums: array[string|number] # Valid enum values for items (if type is enum)
+    min_items: number

@@ -1,0 +1,6 @@
+
+root:
+  type: string              # The type name
+  required: boolean         # Whether field is mandatory
+  validation_text: string   # Custom validation message
+  default_value: any        # Default value for the field
