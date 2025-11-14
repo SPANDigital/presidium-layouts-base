@@ -108,4 +108,10 @@
       {{ partialCached "analytics.html"  . }}
     {{ end }}
 </body>
+<script>
+  const theme = localStorage.getItem('theme');
+  if (theme === 'dark') {
+    document.body.classList.add('dark');
+  }
+</script>
 </html>
