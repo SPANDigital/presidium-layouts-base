@@ -1,4 +1,3 @@
-
 root:
   type: string              # The type name
   required: boolean         # Whether field is mandatory

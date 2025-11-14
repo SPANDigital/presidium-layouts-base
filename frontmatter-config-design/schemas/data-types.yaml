@@ -1,4 +1,3 @@
-
 string:
   extends: root             # Inherits attributes from root type
   placeholder_text: string  # Placeholder text for input fields
@@ -11,7 +10,7 @@ number:
   placeholder_text: string  # Placeholder text for input fields
   minimum: number           # Minimum value
   maximum: number           # Maximum value
-  multiple_of: number       # Value must be a multiple of this number
+  integer: boolean         # Whether the number should be an integer
 
 boolean:
   extends: root             # Inherits attributes from root type
@@ -19,7 +18,7 @@ boolean:
 enum:
   extends: root             # Inherits attributes from root type
   items: array[string]      # List of valid enum values
-  min_items: number         # Minimum number of items \\TODO: erase
+  min_items: number         # Minimum number of items
 
 array:
   extends: root             # Inherits attributes from root type
