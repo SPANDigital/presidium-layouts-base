@@ -9,8 +9,10 @@ title:
   max_length: 100
 
 status:
-  type: enum
+  type: array
   required: true
+  allowMultiple: false
+  items_type: string
   items:
     - Draft
     - Review

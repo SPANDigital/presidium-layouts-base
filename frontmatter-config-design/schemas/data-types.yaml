@@ -15,14 +15,9 @@ number:
 boolean:
   extends: root             # Inherits attributes from root type
 
-enum:
-  extends: root             # Inherits attributes from root type
-  items: array[string]      # List of valid enum values
-  min_items: number         # Minimum number of items
-
 array:
   extends: root             # Inherits attributes from root type
-  items:
-    type: string           # Type of items in the array
-    enums: array[string|number] # Valid enum values for items (if type is enum)
-    min_items: number
+  items_type: string        # Type of items in the array
+  items: array              # Type of items in the array
+  allowMultiple: boolean    # Whether multiple items are allowed
+  min_items: number         # Minimum number of items
