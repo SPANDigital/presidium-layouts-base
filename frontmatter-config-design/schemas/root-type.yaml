@@ -1,5 +1,6 @@
 root:
   type: string              # [Required] - The type name
   required: boolean         # [Default: false] - Whether field is mandatory
-  validation_text: string   # [Optional] - Custom validation message
+  placeholder_text: string  # [Required] - Placeholder text message
+  validation_text: string   # [Required] - Custom validation message
   default_value: any        # [Optional] - Default value for the field

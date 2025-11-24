@@ -1,13 +1,11 @@
 string:
   extends: root             # Inherits attributes from root type
-  placeholder_text: string  # [Optional] - Placeholder text for input fields
   pattern: string           # [Optional] - Regex pattern for validation
   min_length: number        # [Default: 0] - Minimum length of the string
   max_length: number        # [Optional] - Maximum length of the string
 
 number:
   extends: root             # Inherits attributes from root type
-  placeholder_text: string  # [Optional] - Placeholder text for input fields
   minimum: number           # [Optional] - Minimum value
   maximum: number           # [Optional] - Maximum value
   integer: boolean          # [Default: false] - Whether the number should be an integer

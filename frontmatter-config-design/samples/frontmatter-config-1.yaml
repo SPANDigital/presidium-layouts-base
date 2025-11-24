@@ -1,16 +1,21 @@
 author:
   type: email
   required: true
+  placeholder_text: "Enter author email address"
+  validation_text: "Invalid email address"
 
 title:
   type: string
   required: true
   placeholder_text: "Enter document title"
+  validation_text: "Title cannot exceed 100 characters"
   max_length: 100
 
 status:
   type: array
   required: true
+  placeholder_text: "Select document status"
+  validation_text: "Please select a valid status"
   allowMultiple: false
   items_type: string
   items:
@@ -22,14 +27,21 @@ status:
 slug:
   type: string
   required: true
+  placeholder_text: "Enter URL-friendly slug"
+  validation_text: "Slug can only contain lowercase letters and hyphens"
   pattern: ^[a-z]+(-[a-z]+)*$
 
 URL:
   type: string
   required: true
+  placeholder_text: "Enter document URL"
+  validation_text: "Invalid URL format"
   pattern: ^(\/[a-zA-Z0-9-._~]+)*\/?$
 
 weight:
   type: number
   required: true
+  placeholder_text: "Enter document weight"
+  validation_text: "Weight must be a positive integer"
+  integer: true
   minimum: 1
