@@ -1,5 +1,13 @@
 params:
   frontmatter:
+    title:
+      type: string
+      required: true
+      placeholder_text: "Enter document title"
+      validation_text: "Title cannot exceed 100 characters"
+      max_length: 100
     author:
       type: email
       required: true
+      placeholder_text: "Enter author email address"
+      validation_text: "Invalid email address"
