@@ -15,8 +15,9 @@
 <div class="{{ $type }} index" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $pageLink }}" permalink="{{ .Page.RelPermalink }}" data-no-content="{{ $noContent }}" >
     <div class="presidium-article-wrapper">
         <span class="anchor" id="{{ $slug }}" data-id="{{ $articleId }}"></span>
+        {{- partial "article/frontmatter" . -}}
         {{ if (ne (len .Content) 0) -}}
-            <article class="article-actions" data-align="center-top">{{ .Content }}</article>
+            <article class="article-actions" data-align="center-top" title="{{ .Title }}" aria-label="{{ .Title }}">{{ .Content }}</article>
             <hr />
         {{- end }}
     </div>
