@@ -1,0 +1,34 @@
+# object example
+author:
+  type: object
+  required: true
+  placeholder_message: Enter author details
+  properties:
+    name:
+      type: string
+      required: true
+    email:
+      type: email
+      required: true
+    avatar:
+      type: string
+      required: false
+    bio:
+      type: string
+      required: false
+
+# array of objects example
+related_articles:
+  type: array
+  required: false
+  items_type: object
+  items_properties:
+    title:
+      type: string
+      required: true
+    url:
+      type: string
+      required: true
+    description:
+      type: string
+      required: false
