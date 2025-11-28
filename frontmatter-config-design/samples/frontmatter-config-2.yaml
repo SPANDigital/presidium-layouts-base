@@ -1,0 +1,60 @@
+# object example (PRSDM-9766 example)
+persona:
+  type: object
+  required: true
+  placeholder_message: Enter persona details
+  validation_message: Please provide all the required persona information
+  properties:
+    name:
+      type: string
+      required: true
+      placeholder_message: Enter the persona's name
+      validation_message: Name is required
+    role:
+      type: string
+      required: true
+      placeholder_message: Enter the persona's role
+      validation_message: Role is required
+
+# array of objects example 1 (PRSDM-9766 example)
+attributes:
+  type: array
+  required: true
+  items_type: object
+  items_properties:
+    name:
+      type: string
+      required: true
+      placeholder_message: Enter attribute name
+      validation_message: Attribute name is required
+    key-role:
+      type: string
+      required: true
+      placeholder_message: Enter key role
+      validation_message: Key role is required
+    optionality:
+      type: string
+      required: true
+      placeholder_message: Enter optionality
+      validation_message: Optionality is required
+    description:
+      type: string
+      required: true
+      placeholder_message: Enter description
+      validation_message: Description is required
+
+# array of objects example 2
+related_articles:
+  type: array
+  required: false
+  items_type: object
+  items_properties:
+    title:
+      type: string
+      required: true
+    url:
+      type: string
+      required: true
+    description:
+      type: string
+      required: false
