@@ -1,0 +1,35 @@
+string:
+  extends: root             # Inherits attributes from root type
+  pattern: string           # [Optional] - Regex pattern for validation
+  min_length: number        # [Default: 0] - Minimum length of the string
+  max_length: number        # [Optional] - Maximum length of the string
+
+#number: probably needed in future
+#  extends: root             # Inherits attributes from root type
+#  minimum: number           # [Optional] - Minimum value
+#  maximum: number           # [Optional] - Maximum value
+#  integer: boolean          # [Default: false] - Whether the number should be an integer
+
+boolean:
+  extends: root             # Inherits attributes from root type
+
+array:
+  extends: root             # Inherits attributes from root type
+  items_type: string        # [Required] - Type of items in the array
+  items: array              # [Optional] - List of allowed items
+  min_items: number         # [Default: 0] - Minimum number of items
+  items_properties:         # [required | items_type: object] - Properties of each item if items_type is object
+    key:                     # Property name
+      type: string           # Type of the property
+      required: boolean      # Whether the property is required
+      placeholder_message: string  # [Required] - Placeholder message
+      validation_message: string   # [Optional] - Custom validation message
+
+object:
+  extends: root             # Inherits attributes from root type
+  properties:               # [Required] - Properties of the object
+    key:                     # Property name
+      type: string           # Type of the property
+      required: boolean      # Whether the property is required
+      placeholder_message: string   # [Required] - Placeholder message
+      validation_message: string    # [Optional] - Custom validation message
