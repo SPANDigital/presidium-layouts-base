@@ -23,7 +23,7 @@ array:
       type: string           # Type of the property
       required: boolean      # Whether the property is required
       placeholder_message: string  # [Required] - Placeholder message
-      validation_message: string   # [Required] - Custom validation message
+      validation_message: string   # [Optional] - Custom validation message
 
 object:
   extends: root             # Inherits attributes from root type
@@ -32,4 +32,4 @@ object:
       type: string           # Type of the property
       required: boolean      # Whether the property is required
       placeholder_message: string   # [Required] - Placeholder message
-      validation_message: string    # [Required] - Custom validation message
+      validation_message: string    # [Optional] - Custom validation message
