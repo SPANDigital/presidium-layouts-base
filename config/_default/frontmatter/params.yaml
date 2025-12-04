@@ -1,20 +1,22 @@
-# Mock frontmatter config for testing email format validator
+# Mock frontmatter config for testing number type validator
 # Replace presidium-layouts-base/config/_default/frontmatter/params.yaml with this file
-# Then regenerate schema: hugo --cleanDestinationDir
+# Then regenerate schema
 
 frontmatter:
-  # Test field: email format (extends string with email pattern)
-  test_email:
-    type: email
+  # Test field: number type with min/max and integer constraint
+  test_number:
+    type: number
     required: true
-    validation_message: "A valid email address is required"
-    placeholder_message: "Enter your email address"
-    min_length: 5
-    max_length: 100
+    # validation_message: removed to allow specific error messages from validator
+    placeholder_message: "Enter a number between 1 and 100"
+    minimum: 1
+    maximum: 100
+    integer: true
 
-  # Additional optional email field for testing non-required behavior
-  optional_email:
-    type: email
+  # Additional optional number field for testing non-required behavior
+  optional_number:
+    type: number
     required: false
-    placeholder_message: "Optional email address"
-    max_length: 100
+    placeholder_message: "Optional number"
+    minimum: 0
+    maximum: 1000
