@@ -1,0 +1,14 @@
+{{/* Text Format Validator - delegates to string validator */}}
+{{/* Text extends string type - multiline text input with string validation */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+
+{{/* Delegate to string validator - handles type check, pattern, min_length, max_length */}}
+{{- partial "frontmatter/validators/types/string.html" (dict "value" $value "rules" $rules "fieldName" $fieldName "context" $ctx) -}}
+
+{{/* Pass through result from string validator */}}
+{{- $result := $ctx.Scratch.Get "type_validation_result" -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}
