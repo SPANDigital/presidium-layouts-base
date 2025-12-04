@@ -3,6 +3,8 @@
 {{ end }}
 
 {{ define "section" }}
+{{/* TEMP: Test validation */}}
+{{ partial "frontmatter/_test-string-validation.html" . }}
 <section data-section="{{ strings.TrimPrefix "/" .Parent.Path }}">
 {{ block "content" . }}
     {{ partial "page/single" . }}
