@@ -1,3 +1,8 @@
+mediatypes:
+  text/yaml:
+    suffixes:
+      - yaml
+      - yml
 module:
   mounts:
     - source: static
@@ -28,13 +33,21 @@ outputformats:
     basename: pdf
     mediaType: text/html
     isHtml: true
+  frontmatterSchemaYaml:
+    baseName: frontmatter-schema
+    mediaType: text/yaml
+    isPlainText: true
+    notAlternative: true
 outputs:
   home:
     - Navigation
     - Compendium
     - Pdf
+    - frontmatterSchemaYaml
 params:
   _merge: shallow
+  data:
+    namespace: "presidium"  # Data directory namespace for generated files (schema, etc.)
   hugoVersion:
     enabled: true
     min: "0.133.0"
@@ -42,13 +55,6 @@ params:
     extended: true
   attributes:
     website: 2.15.0
-  frontmatter:
-  - key: author
-    type: email
-    strict: false
-  - key: title
-    type: text
-    strict: true
   # not yet implemented
   docset-logo: images/logo.png # recommend minimum size of 250px x 250px. Is used on the landing page. 
   left-nav-logo: images/logo.png # if the left nav logo is different from the main logo, specify it here.

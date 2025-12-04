@@ -1,0 +1,126 @@
+{{/* Test harness for email validation - manually test validators */}}
+
+{{/* Load schema directly from data */}}
+{{- $schema := index .Site.Data "_gen" "frontmatter-schema" -}}
+
+{{- if not $schema -}}
+  {{- warnf "❌ TEST FAILED: Schema not loaded" -}}
+{{- else -}}
+  {{/* Test validation with current page frontmatter */}}
+  {{- $pageParams := .Params -}}
+  {{- warnf "\n📝 Testing page: %s" .File.Path -}}
+
+  {{/* Test test_email field */}}
+  {{- $testEmailRules := index $schema "test_email" -}}
+  {{- if $testEmailRules -}}
+    {{- $value := index $pageParams "test_email" -}}
+    {{- $fieldExists := isset $pageParams "test_email" -}}
+
+    {{/* Inline validation logic for testing */}}
+    {{- $errors := slice -}}
+
+    {{/* Check required */}}
+    {{- if and $testEmailRules.required (not $fieldExists) -}}
+      {{- $message := $testEmailRules.validation_message | default "test_email is required" -}}
+      {{- $errors = $errors | append $message -}}
+    {{- end -}}
+
+    {{/* Type and constraint checks (only if field exists) */}}
+    {{- if $fieldExists -}}
+      {{/* Type check: must be string */}}
+      {{- $valueType := printf "%T" $value -}}
+      {{- if ne $valueType "string" -}}
+        {{- $errors = $errors | append "test_email must be a string" -}}
+      {{- else -}}
+        {{/* Pattern validation */}}
+        {{- if $testEmailRules.pattern -}}
+          {{- $matches := findRE $testEmailRules.pattern $value -}}
+          {{- if not $matches -}}
+            {{- $errors = $errors | append "test_email does not match required pattern" -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{/* Min length */}}
+        {{- if $testEmailRules.min_length -}}
+          {{- if lt (len $value) (int $testEmailRules.min_length) -}}
+            {{- $errors = $errors | append (printf "test_email must be at least %d characters" (int $testEmailRules.min_length)) -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{/* Max length */}}
+        {{- if $testEmailRules.max_length -}}
+          {{- if gt (len $value) (int $testEmailRules.max_length) -}}
+            {{- $errors = $errors | append (printf "test_email must be no more than %d characters" (int $testEmailRules.max_length)) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* Print result */}}
+    {{- if eq (len $errors) 0 -}}
+      {{- warnf "   ✅ test_email: VALID (value=%s, length=%d)" $value (len $value) -}}
+    {{- else -}}
+      {{- warnf "   ❌ test_email: INVALID (value=%s)" $value -}}
+      {{- range $errors -}}
+        {{- warnf "      - %s" . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- warnf "   ⚠️  test_email: NOT IN SCHEMA" -}}
+  {{- end -}}
+
+  {{/* Test optional_email field */}}
+  {{- $optionalEmailRules := index $schema "optional_email" -}}
+  {{- if $optionalEmailRules -}}
+    {{- $value := index $pageParams "optional_email" -}}
+    {{- $fieldExists := isset $pageParams "optional_email" -}}
+
+    {{/* Inline validation logic for testing */}}
+    {{- $errors := slice -}}
+
+    {{/* Check required */}}
+    {{- if and $optionalEmailRules.required (not $fieldExists) -}}
+      {{- $errors = $errors | append "optional_email is required" -}}
+    {{- end -}}
+
+    {{/* Type and constraint checks (only if field exists) */}}
+    {{- if $fieldExists -}}
+      {{/* Type check: must be string */}}
+      {{- $valueType := printf "%T" $value -}}
+      {{- if ne $valueType "string" -}}
+        {{- $errors = $errors | append "optional_email must be a string" -}}
+      {{- else -}}
+        {{/* Pattern validation */}}
+        {{- if $optionalEmailRules.pattern -}}
+          {{- $matches := findRE $optionalEmailRules.pattern $value -}}
+          {{- if not $matches -}}
+            {{- $errors = $errors | append "optional_email does not match required pattern" -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{/* Max length */}}
+        {{- if $optionalEmailRules.max_length -}}
+          {{- if gt (len $value) (int $optionalEmailRules.max_length) -}}
+            {{- $errors = $errors | append (printf "optional_email must be no more than %d characters" (int $optionalEmailRules.max_length)) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* Print result */}}
+    {{- if eq (len $errors) 0 -}}
+      {{- if $value -}}
+        {{- warnf "   ✅ optional_email: VALID (value=%s, length=%d)" $value (len $value) -}}
+      {{- else -}}
+        {{- warnf "   ✅ optional_email: VALID (not provided, optional)" -}}
+      {{- end -}}
+    {{- else -}}
+      {{- warnf "   ❌ optional_email: INVALID (value=%s)" $value -}}
+      {{- range $errors -}}
+        {{- warnf "      - %s" . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- warnf "   ⚠️  optional_email: NOT IN SCHEMA" -}}
+  {{- end -}}
+{{- end -}}

@@ -1,0 +1,30 @@
+{{/* Enum Validator - pure type validation logic */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Validate value is in allowed items list */}}
+{{- if not $rules.items -}}
+  {{- $errors = $errors | append (printf "%s has no allowed values defined" $fieldName) -}}
+{{- else -}}
+  {{- $found := false -}}
+  {{- range $rules.items -}}
+    {{- if eq . $value -}}
+      {{- $found = true -}}
+    {{- end -}}
+  {{- end -}}
+  
+  {{- if not $found -}}
+    {{/* Format allowed values as comma-separated list */}}
+    {{- $allowedValues := delimit $rules.items ", " -}}
+    {{- $errors = $errors | append (printf "%s must be one of: %s" $fieldName $allowedValues) -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

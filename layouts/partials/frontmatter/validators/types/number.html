@@ -1,0 +1,45 @@
+{{/* Number Type Validator - pure number type validation logic */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Type check - numbers can be int or float in Hugo */}}
+{{- $valueType := printf "%T" $value -}}
+{{- $isInt := or (eq $valueType "int") (eq $valueType "int64") -}}
+{{- $isFloat := or (eq $valueType "float64") (eq $valueType "float32") -}}
+{{- $isNumber := or $isInt $isFloat -}}
+
+{{- if not $isNumber -}}
+  {{- $errors = $errors | append (printf "%s must be a number" $fieldName) -}}
+{{- else -}}
+  {{/* Integer constraint - if integer: true, reject floats */}}
+  {{- if isset $rules "integer" -}}
+    {{- if $rules.integer -}}
+      {{- if not $isInt -}}
+        {{- $errors = $errors | append (printf "%s must be an integer" $fieldName) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Minimum value constraint */}}
+  {{- if isset $rules "minimum" -}}
+    {{- if lt $value $rules.minimum -}}
+      {{- $errors = $errors | append (printf "%s must be at least %v" $fieldName $rules.minimum) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Maximum value constraint */}}
+  {{- if isset $rules "maximum" -}}
+    {{- if gt $value $rules.maximum -}}
+      {{- $errors = $errors | append (printf "%s must be no more than %v" $fieldName $rules.maximum) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Store result in scratch */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

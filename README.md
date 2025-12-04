@@ -111,3 +111,7 @@ outputs:
     - html      # -> output: index.html
     - embed     # -> output: embed.html
 ```
+
+## Frontmatter Validation
+
+See [FRONTMATTER.md](FRONTMATTER.md) for documentation on the configurable frontmatter validation system. This system provides runtime validation of Hugo page frontmatter against a JSON schema, generating build warnings for invalid configurations.

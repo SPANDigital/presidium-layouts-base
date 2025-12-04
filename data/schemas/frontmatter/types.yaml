@@ -1,0 +1,79 @@
+# =============================================================================
+# DATA TYPES SCHEMA
+# =============================================================================
+# Core validation types for frontmatter fields.
+# Each type extends 'root' and adds type-specific constraints.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# STRING TYPE
+# -----------------------------------------------------------------------------
+# Text validation with optional pattern matching and length constraints.
+# -----------------------------------------------------------------------------
+string:
+  extends: root
+  pattern: string                 # [Optional] Regex pattern for validation
+  min_length: number              # [Default: 0] Minimum character length
+  max_length: number              # [Optional] Maximum character length
+
+# -----------------------------------------------------------------------------
+# NUMBER TYPE
+# -----------------------------------------------------------------------------
+# Numeric validation with range and integer constraints.
+# -----------------------------------------------------------------------------
+number:
+  extends: root
+  minimum: number                 # [Optional] Minimum value (inclusive)
+  maximum: number                 # [Optional] Maximum value (inclusive)
+  integer: boolean                # [Default: false] Require integer values
+
+# -----------------------------------------------------------------------------
+# BOOLEAN TYPE
+# -----------------------------------------------------------------------------
+# True/false validation with no additional constraints.
+# -----------------------------------------------------------------------------
+boolean:
+  extends: root
+
+# -----------------------------------------------------------------------------
+# ENUM TYPE
+# -----------------------------------------------------------------------------
+# Fixed list of allowed values. Use for dropdowns and constrained choices.
+# -----------------------------------------------------------------------------
+enum:
+  extends: root
+  items: array                    # [Required] List of allowed values
+
+# -----------------------------------------------------------------------------
+# ARRAY TYPE
+# -----------------------------------------------------------------------------
+# Collection validation for multiple values of same type.
+# -----------------------------------------------------------------------------
+array:
+  extends: root
+  items_type: string              # [Required] Type of array elements
+  min_items: number               # [Default: 0] Minimum number of items
+  max_items: number               # [Optional] Maximum number of items
+
+  # TODO(`object`): Planned future work (not in current scope)
+  # items_properties:             # [Required | items_type: object] Object element schema
+  #   key:                        # Property name
+  #     type: string              # Property type
+  #     required: boolean         # Whether property is required
+  #     placeholder_message: string
+  #     validation_message: string
+
+# TODO(`object`): Planned future work (not in current scope)
+# -----------------------------------------------------------------------------
+# OBJECT TYPE
+# -----------------------------------------------------------------------------
+# Complex nested object validation with defined properties.
+# -----------------------------------------------------------------------------
+# object:
+#   extends: root
+#   properties:                   # [Required] Object property definitions
+#     key:                        # Property name
+#       type: string              # Property type
+#       required: boolean         # Whether property is required
+#       placeholder_message: string
+#       validation_message: string

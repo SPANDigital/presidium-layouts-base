@@ -1,0 +1,37 @@
+{{/* Array Validator - pure type validation logic */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Type check: must be slice/array */}}
+{{- $valueType := printf "%T" $value -}}
+{{- if not (hasPrefix $valueType "[]") -}}
+  {{- $errors = $errors | append (printf "%s must be an array" $fieldName) -}}
+{{- else -}}
+  {{/* Only validate constraints if type is correct */}}
+  {{- $length := len $value -}}
+
+  {{/* Validate min_items */}}
+  {{- if $rules.min_items -}}
+    {{- if lt $length (int $rules.min_items) -}}
+      {{- $errors = $errors | append (printf "%s must have at least %d items" $fieldName (int $rules.min_items)) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Validate max_items */}}
+  {{- if $rules.max_items -}}
+    {{- if gt $length (int $rules.max_items) -}}
+      {{- $errors = $errors | append (printf "%s must have no more than %d items" $fieldName (int $rules.max_items)) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* TODO: Validate items_type for each element (requires recursive type validation) */}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}
