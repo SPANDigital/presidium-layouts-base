@@ -1,0 +1,34 @@
+{{/* Array Validator - pure type validation logic */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $errors := slice -}}
+
+{{/* Type check: must be slice/array */}}
+{{- $valueType := printf "%T" $value -}}
+{{- if not (hasPrefix $valueType "[]") -}}
+  {{- $errors = $errors | append (printf "%s must be an array" $fieldName) -}}
+{{- else -}}
+  {{/* Only validate constraints if type is correct */}}
+  {{- $length := len $value -}}
+
+  {{/* Validate min_items */}}
+  {{- if $rules.min_items -}}
+    {{- if lt $length $rules.min_items -}}
+      {{- $errors = $errors | append (printf "%s must have at least %d items" $fieldName $rules.min_items) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Validate max_items */}}
+  {{- if $rules.max_items -}}
+    {{- if gt $length $rules.max_items -}}
+      {{- $errors = $errors | append (printf "%s must have no more than %d items" $fieldName $rules.max_items) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* TODO: Validate items_type for each element (requires recursive type validation) */}}
+{{- end -}}
+
+{{- dict "valid" (eq (len $errors) 0) "errors" $errors -}}
