@@ -1,0 +1,2 @@
+{{- $config := .Site.Params.frontmatter -}}
+{{- dict "config" $config | jsonify (dict "indent" "  ") -}}

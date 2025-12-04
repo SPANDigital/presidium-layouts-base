@@ -19,6 +19,11 @@ outputformats:
   Compendium:
     baseName: compendium
     mediaType: application/json
+  frontmatterSchema:
+    baseName: frontmatter-schema
+    mediaType: application/json
+    isPlainText: true
+    notAlternative: true
   Embed:
     basename: embed
     mediaType: text/html
@@ -32,7 +37,8 @@ outputs:
   home:
     - Navigation
     - Compendium
-    - Pdf
+    - frontmatterSchema
+    # - Pdf  # Temporarily disabled for testing
 params:
   _merge: shallow
   hugoVersion:
@@ -42,13 +48,6 @@ params:
     extended: true
   attributes:
     website: 2.15.0
-  frontmatter:
-  - key: author
-    type: email
-    strict: false
-  - key: title
-    type: text
-    strict: true
   # not yet implemented
   docset-logo: images/logo.png # recommend minimum size of 250px x 250px. Is used on the landing page. 
   left-nav-logo: images/logo.png # if the left nav logo is different from the main logo, specify it here.

@@ -1,0 +1,147 @@
+{{/*
+=============================================================================
+Schema Generator Partial
+=============================================================================
+Generates complete frontmatter schema by merging Hugo config with schema
+type definitions. Handles type inheritance (formats → types → root).
+
+Input: . (page context with .Site.Params._frontmatter config)
+Output: Complete schema dict with all fields and their attributes
+
+Usage: {{ $schema := partial "frontmatter/schema-generator.html" . }}
+=============================================================================
+*/}}
+
+{{- $completeSchema := dict -}}
+
+{{/* Get merged frontmatter config from Hugo (base → client → module) */}}
+{{- $mergedConfig := .Site.Params.frontmatter -}}
+
+{{/* Debug: Check if config exists */}}
+{{- if not $mergedConfig -}}
+  {{- warnf "SCHEMA-GEN: No frontmatter config found at .Site.Params.frontmatter" -}}
+{{- else -}}
+  {{- warnf "SCHEMA-GEN: Found frontmatter config with %d fields" (len $mergedConfig) -}}
+{{- end -}}
+
+{{/* Load schema type definitions from data directory */}}
+{{- warnf "SCHEMA-GEN: Site.Data exists: %t" (ne .Site.Data nil) -}}
+{{- warnf "SCHEMA-GEN: schemas.frontmatter exists: %t" (ne .Site.Data.schemas.frontmatter nil) -}}
+
+{{- $rootTypes := .Site.Data.schemas.frontmatter.root -}}
+{{- $rootType := dict -}}
+{{- if $rootTypes -}}
+  {{- $rootType = index $rootTypes "root" -}}
+  {{- warnf "SCHEMA-GEN: Loaded root type with %d attributes" (len $rootType) -}}
+{{- else -}}
+  {{- warnf "SCHEMA-GEN: ERROR - root data file not found" -}}
+{{- end -}}
+
+{{- $dataTypes := .Site.Data.schemas.frontmatter.types -}}
+{{- if $dataTypes -}}
+  {{- warnf "SCHEMA-GEN: Loaded %d data types" (len $dataTypes) -}}
+{{- else -}}
+  {{- warnf "SCHEMA-GEN: ERROR - types file not found" -}}
+{{- end -}}
+
+{{- $dataFormats := .Site.Data.schemas.frontmatter.formats -}}
+{{- if $dataFormats -}}
+  {{- warnf "SCHEMA-GEN: Loaded %d data formats" (len $dataFormats) -}}
+{{- else -}}
+  {{- warnf "SCHEMA-GEN: ERROR - formats file not found" -}}
+{{- end -}}
+
+{{/* Iterate through each configured field */}}
+{{- range $fieldKey, $fieldConfig := $mergedConfig -}}
+  {{- $fieldType := $fieldConfig.type -}}
+
+  {{/* Start with empty field schema */}}
+  {{- $fieldSchema := dict -}}
+
+  {{/* Step 1: Apply root type defaults */}}
+  {{- range $attrKey, $attrValue := $rootType -}}
+    {{- if ne $attrKey "extends" -}}
+      {{/* Extract default value if this is a type definition (e.g., "required: boolean" becomes false) */}}
+      {{- $defaultValue := "" -}}
+      {{- if eq $attrValue "boolean" -}}
+        {{- $defaultValue = false -}}
+      {{- else if eq $attrValue "string" -}}
+        {{- $defaultValue = "" -}}
+      {{- else if eq $attrValue "number" -}}
+        {{- $defaultValue = 0 -}}
+      {{- else -}}
+        {{- $defaultValue = $attrValue -}}
+      {{- end -}}
+      {{- $fieldSchema = merge $fieldSchema (dict $attrKey $defaultValue) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Step 2: Check if this is a format type that extends a data type */}}
+  {{- $formatDef := index $dataFormats $fieldType -}}
+  {{- $parentType := "" -}}
+  {{- warnf "SCHEMA-GEN: Field %s has type %s, formatDef exists: %t" $fieldKey $fieldType (ne $formatDef nil) -}}
+  {{- if $formatDef -}}
+    {{- $parentType = index $formatDef "extends" -}}
+    {{/* Apply parent type defaults */}}
+    {{- if $parentType -}}
+      {{- $parentTypeDef := index $dataTypes $parentType -}}
+      {{- if $parentTypeDef -}}
+        {{- range $attrKey, $attrValue := $parentTypeDef -}}
+          {{- if ne $attrKey "extends" -}}
+            {{- $defaultValue := "" -}}
+            {{- if eq $attrValue "boolean" -}}
+              {{- $defaultValue = false -}}
+            {{- else if eq $attrValue "string" -}}
+              {{- $defaultValue = "" -}}
+            {{- else if eq $attrValue "number" -}}
+              {{- $defaultValue = 0 -}}
+            {{- else if eq $attrValue "array" -}}
+              {{- $defaultValue = slice -}}
+            {{- else -}}
+              {{- $defaultValue = $attrValue -}}
+            {{- end -}}
+            {{- $fieldSchema = merge $fieldSchema (dict $attrKey $defaultValue) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{/* Apply format type attributes */}}
+    {{- range $attrKey, $attrValue := $formatDef -}}
+      {{- if ne $attrKey "extends" -}}
+        {{- $fieldSchema = merge $fieldSchema (dict $attrKey $attrValue) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{/* Not a format, check if it's a data type */}}
+    {{- $typeDef := index $dataTypes $fieldType -}}
+    {{- if $typeDef -}}
+      {{- range $attrKey, $attrValue := $typeDef -}}
+        {{- if ne $attrKey "extends" -}}
+          {{- $defaultValue := "" -}}
+          {{- if eq $attrValue "boolean" -}}
+            {{- $defaultValue = false -}}
+          {{- else if eq $attrValue "string" -}}
+            {{- $defaultValue = "" -}}
+          {{- else if eq $attrValue "number" -}}
+            {{- $defaultValue = 0 -}}
+          {{- else if eq $attrValue "array" -}}
+            {{- $defaultValue = slice -}}
+          {{- else -}}
+            {{- $defaultValue = $attrValue -}}
+          {{- end -}}
+          {{- $fieldSchema = merge $fieldSchema (dict $attrKey $defaultValue) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Step 3: Override with explicit config values */}}
+  {{- range $configKey, $configValue := $fieldConfig -}}
+    {{- $fieldSchema = merge $fieldSchema (dict $configKey $configValue) -}}
+  {{- end -}}
+
+  {{/* Add to complete schema */}}
+  {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}
+{{- end -}}
+
+{{- return $completeSchema -}}
