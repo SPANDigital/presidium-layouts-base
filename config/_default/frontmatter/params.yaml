@@ -1,22 +1,11 @@
-# Mock frontmatter config for testing number type validator
-# Replace presidium-layouts-base/config/_default/frontmatter/params.yaml with this file
-# Then regenerate schema
-
 frontmatter:
-  # Test field: number type with min/max and integer constraint
-  test_number:
-    type: number
+  title:
+    type: string
     required: true
-    # validation_message: removed to allow specific error messages from validator
-    placeholder_message: "Enter a number between 1 and 100"
-    minimum: 1
-    maximum: 100
-    integer: true
-
-  # Additional optional number field for testing non-required behavior
-  optional_number:
-    type: number
-    required: false
-    placeholder_message: "Optional number"
-    minimum: 0
-    maximum: 1000
+    placeholder_message: Enter a title
+    validation_message: Please ensure your article has a title
+  author:
+    type: email
+    required: true
+    placeholder_message: Enter author email
+    validation_message: Please ensure your article has an author email address
