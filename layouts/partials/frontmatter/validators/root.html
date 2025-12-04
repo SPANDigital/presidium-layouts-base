@@ -15,7 +15,7 @@
 {{/* Step 2: Check required fields */}}
 {{- if $rules.required -}}
   {{- if not $fieldExists -}}
-    {{- $message := $rules.validation_message | default (printf "%s is required" $fieldName) -}}
+    {{- $message := printf "%s is required" $fieldName -}}
     {{- $errors = $errors | append $message -}}
     {{- $result = dict "valid" false "errors" $errors -}}
   {{- end -}}
