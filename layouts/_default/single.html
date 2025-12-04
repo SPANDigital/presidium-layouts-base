@@ -4,7 +4,7 @@
 
 {{ define "section" }}
 {{/* TEMP: Test validation */}}
-{{ partial "frontmatter/_test-string-validation.html" . }}
+{{ partial "frontmatter/_test-array-validation.html" . }}
 <section data-section="{{ strings.TrimPrefix "/" .Parent.Path }}">
 {{ block "content" . }}
     {{ partial "page/single" . }}

@@ -16,15 +16,15 @@
 
   {{/* Validate min_items */}}
   {{- if $rules.min_items -}}
-    {{- if lt $length $rules.min_items -}}
-      {{- $errors = $errors | append (printf "%s must have at least %d items" $fieldName $rules.min_items) -}}
+    {{- if lt $length (int $rules.min_items) -}}
+      {{- $errors = $errors | append (printf "%s must have at least %d items" $fieldName (int $rules.min_items)) -}}
     {{- end -}}
   {{- end -}}
 
   {{/* Validate max_items */}}
   {{- if $rules.max_items -}}
-    {{- if gt $length $rules.max_items -}}
-      {{- $errors = $errors | append (printf "%s must have no more than %d items" $fieldName $rules.max_items) -}}
+    {{- if gt $length (int $rules.max_items) -}}
+      {{- $errors = $errors | append (printf "%s must have no more than %d items" $fieldName (int $rules.max_items)) -}}
     {{- end -}}
   {{- end -}}
 

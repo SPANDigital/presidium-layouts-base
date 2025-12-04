@@ -4,26 +4,30 @@
 {{- $value := .value -}}
 {{- $rules := .rules -}}
 {{- $fieldName := .fieldName -}}
+{{- $pageParams := .pageParams -}}
 {{- $errors := slice -}}
 {{- $result := dict -}}
 
-{{/* Step 1: Check required fields */}}
+{{/* Step 1: Check if field exists (use isset to handle empty arrays correctly) */}}
+{{- $fieldExists := isset $pageParams $fieldName -}}
+
+{{/* Step 2: Check required fields */}}
 {{- if $rules.required -}}
-  {{- if not $value -}}
+  {{- if not $fieldExists -}}
     {{- $message := $rules.validation_message | default (printf "%s is required" $fieldName) -}}
     {{- $errors = $errors | append $message -}}
     {{- $result = dict "valid" false "errors" $errors -}}
   {{- end -}}
 {{- end -}}
 
-{{/* Step 2: Skip validation if field not present and not required */}}
-{{- if and (not $value) (not $result.valid) (eq (len $errors) 0) -}}
+{{/* Step 3: Skip validation if field not present and not required */}}
+{{- if and (not $fieldExists) (eq (len $errors) 0) -}}
   {{- $result = dict "valid" true "errors" slice -}}
 {{- end -}}
 
-{{/* Steps 3-5: Only execute if we haven't already determined result */}}
+{{/* Steps 4-6: Only execute if we haven't already determined result */}}
 {{- if not $result.valid -}}
-  {{- if and (eq (len $errors) 0) $value -}}
+  {{- if and (eq (len $errors) 0) $fieldExists -}}
     {{/* Step 3: Determine validator path based on type */}}
     {{- $fieldType := $rules.type -}}
     {{- $validatorPath := "" -}}
