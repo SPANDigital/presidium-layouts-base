@@ -4,6 +4,7 @@
 {{- $value := .value -}}
 {{- $rules := .rules -}}
 {{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
 {{- $errors := slice -}}
 
 {{/* Type check: must be slice/array */}}
@@ -31,4 +32,6 @@
   {{/* TODO: Validate items_type for each element (requires recursive type validation) */}}
 {{- end -}}
 
-{{- dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

@@ -4,10 +4,12 @@
 {{- $value := .value -}}
 {{- $rules := .rules -}}
 {{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
 {{- $errors := slice -}}
 
 {{/* Type check: must be string */}}
-{{- if not (reflect.IsString $value) -}}
+{{- $valueType := printf "%T" $value -}}
+{{- if ne $valueType "string" -}}
   {{- $errors = $errors | append (printf "%s must be a string" $fieldName) -}}
 {{- else -}}
   {{/* Only validate constraints if type is correct */}}
@@ -35,4 +37,6 @@
   {{- end -}}
 {{- end -}}
 
-{{- dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

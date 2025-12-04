@@ -3,8 +3,14 @@
 {{ end }}
 
 {{ define "section" }}
-{{/* TEMP: Test validation */}}
-{{ partial "frontmatter/_test-array-validation.html" . }}
+{{/* Frontmatter Validation */}}
+{{- partial "frontmatter/validate.html" . -}}
+{{- $validation := .Scratch.Get "frontmatter_validation" -}}
+{{- if not $validation.valid -}}
+  {{- range $error := $validation.errors -}}
+    {{- warnf "[Frontmatter Validation] %s: %s" $.File.Path $error -}}
+  {{- end -}}
+{{- end -}}
 <section data-section="{{ strings.TrimPrefix "/" .Parent.Path }}">
 {{ block "content" . }}
     {{ partial "page/single" . }}
