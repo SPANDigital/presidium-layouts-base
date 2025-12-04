@@ -1,11 +1,22 @@
+# Mock frontmatter config for testing string validator
+# Replace presidium-layouts-base/config/_default/frontmatter/params.yaml with this file
+# Then regenerate schema: hugo --cleanDestinationDir
+
 frontmatter:
-  title:
+  # Test field: string type with various constraints
+  test_string:
     type: string
     required: true
-    placeholder_message: Enter a title
-    validation_message: Please ensure your article has a title
-  author:
-    type: email
-    required: true
-    placeholder_message: Enter author email
-    validation_message: Please ensure your article has an author email address
+    validation_message: "Test string field is required"
+    placeholder_message: "Enter test string"
+    min_length: 3
+    max_length: 50
+    pattern: '^[a-zA-Z0-9\s]+$'  # Alphanumeric with spaces only
+    default: "Default test string"
+
+  # Additional optional string field for testing non-required behavior
+  optional_string:
+    type: string
+    required: false
+    placeholder_message: "Optional string field"
+    max_length: 100

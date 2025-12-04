@@ -5,45 +5,53 @@
 {{- $rules := .rules -}}
 {{- $fieldName := .fieldName -}}
 {{- $errors := slice -}}
+{{- $result := dict -}}
 
 {{/* Step 1: Check required fields */}}
 {{- if $rules.required -}}
   {{- if not $value -}}
     {{- $message := $rules.validation_message | default (printf "%s is required" $fieldName) -}}
     {{- $errors = $errors | append $message -}}
-    {{- return (dict "valid" false "errors" $errors) -}}
+    {{- $result = dict "valid" false "errors" $errors -}}
   {{- end -}}
 {{- end -}}
 
 {{/* Step 2: Skip validation if field not present and not required */}}
-{{- if not $value -}}
-  {{- return (dict "valid" true "errors" slice) -}}
+{{- if and (not $value) (not $result.valid) (eq (len $errors) 0) -}}
+  {{- $result = dict "valid" true "errors" slice -}}
 {{- end -}}
 
-{{/* Step 3: Determine validator path based on type */}}
-{{- $fieldType := $rules.type -}}
-{{- $validatorPath := "" -}}
+{{/* Steps 3-5: Only execute if we haven't already determined result */}}
+{{- if not $result.valid -}}
+  {{- if and (eq (len $errors) 0) $value -}}
+    {{/* Step 3: Determine validator path based on type */}}
+    {{- $fieldType := $rules.type -}}
+    {{- $validatorPath := "" -}}
 
-{{- $formatTypes := slice "text" "email" "date" "datetime" "option" -}}
-{{- if in $formatTypes $fieldType -}}
-  {{- $validatorPath = printf "frontmatter/validators/formats/%s.html" $fieldType -}}
-{{- else -}}
-  {{- $validatorPath = printf "frontmatter/validators/types/%s.html" $fieldType -}}
-{{- end -}}
+    {{- $formatTypes := slice "text" "email" "date" "datetime" "option" -}}
+    {{- if in $formatTypes $fieldType -}}
+      {{- $validatorPath = printf "frontmatter/validators/formats/%s.html" $fieldType -}}
+    {{- else -}}
+      {{- $validatorPath = printf "frontmatter/validators/types/%s.html" $fieldType -}}
+    {{- end -}}
 
-{{/* Step 4: Delegate to type-specific validator */}}
-{{- $validationResult := partial $validatorPath (dict "value" $value "rules" $rules "fieldName" $fieldName) -}}
+    {{/* Step 4: Delegate to type-specific validator */}}
+    {{- $validationResult := partial $validatorPath (dict "value" $value "rules" $rules "fieldName" $fieldName) -}}
 
-{{/* Step 5: Format errors using validation_message if needed */}}
-{{- if not $validationResult.valid -}}
-  {{- if $rules.validation_message -}}
-    {{/* Use custom validation message if provided */}}
-    {{- $errors = $errors | append $rules.validation_message -}}
-  {{- else -}}
-    {{/* Use errors from type validator */}}
-    {{- $errors = $validationResult.errors -}}
+    {{/* Step 5: Format errors using validation_message if needed */}}
+    {{- if not $validationResult.valid -}}
+      {{- if $rules.validation_message -}}
+        {{/* Use custom validation message if provided */}}
+        {{- $errors = $errors | append $rules.validation_message -}}
+      {{- else -}}
+        {{/* Use errors from type validator */}}
+        {{- $errors = $validationResult.errors -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- $result = dict "valid" (eq (len $errors) 0) "errors" $errors -}}
   {{- end -}}
 {{- end -}}
 
 {{/* Return final result */}}
-{{- return (dict "valid" (eq (len $errors) 0) "errors" $errors) -}}
+{{- $result -}}
