@@ -1,0 +1,12 @@
+{{/* Email Format Validator - delegates to string validator */}}
+{{/* Email extends string type - inherits all string validation including pattern */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+
+{{/* Delegate to string validator - handles type check, pattern, min_length, max_length */}}
+{{- $result := partial "frontmatter/validators/types/string.html" (dict "value" $value "rules" $rules "fieldName" $fieldName) -}}
+
+{{/* Return string validator result */}}
+{{- $result -}}
