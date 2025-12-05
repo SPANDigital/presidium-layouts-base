@@ -40,6 +40,8 @@ outputs:
     - Pdf
 params:
   _merge: shallow
+  data:
+    namespace: "presidium"  # Data directory namespace for generated files (schema, etc.)
   hugoVersion:
     enabled: true
     min: "0.133.0"

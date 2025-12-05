@@ -1,0 +1,14 @@
+{{/* Date Format Validator - delegates to string validator */}}
+{{/* Date extends string type - inherits all string validation including pattern */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+
+{{/* Delegate to string validator - handles type check, pattern, min_length, max_length */}}
+{{- partial "frontmatter/validators/types/string.html" (dict "value" $value "rules" $rules "fieldName" $fieldName "context" $ctx) -}}
+
+{{/* Get result from scratch and pass through to root validator */}}
+{{- $result := $ctx.Scratch.Get "type_validation_result" -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

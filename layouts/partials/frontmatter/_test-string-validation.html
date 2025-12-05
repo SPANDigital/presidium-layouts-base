@@ -1,0 +1,109 @@
+{{/* Test harness for validation - manually test validators */}}
+
+{{/* Load schema directly from data */}}
+{{- $schema := index .Site.Data "_gen" "frontmatter-schema" -}}
+
+{{- if not $schema -}}
+  {{- warnf "❌ TEST FAILED: Schema not loaded" -}}
+{{- else -}}
+  {{/* Test validation with current page frontmatter */}}
+  {{- $pageParams := .Params -}}
+  {{- warnf "\n📝 Testing page: %s" .File.Path -}}
+
+  {{/* Test test_string field */}}
+  {{- $testStringRules := index $schema "test_string" -}}
+  {{- if $testStringRules -}}
+    {{- $value := index $pageParams "test_string" -}}
+
+    {{/* Inline validation logic for testing */}}
+    {{- $errors := slice -}}
+
+    {{/* Check required */}}
+    {{- if and $testStringRules.required (not $value) -}}
+      {{- $errors = $errors | append (printf "test_string is required") -}}
+    {{- end -}}
+
+    {{/* Type and constraint checks (only if value exists) */}}
+    {{- if $value -}}
+      {{- $valueType := printf "%T" $value -}}
+      {{- if ne $valueType "string" -}}
+        {{- $errors = $errors | append "test_string must be a string" -}}
+      {{- else -}}
+        {{/* Pattern check */}}
+        {{- if $testStringRules.pattern -}}
+          {{- $matches := findRE $testStringRules.pattern $value -}}
+          {{- if not $matches -}}
+            {{- $errors = $errors | append "test_string does not match required pattern" -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{/* Min length */}}
+        {{- if $testStringRules.min_length -}}
+          {{- if lt (len $value) $testStringRules.min_length -}}
+            {{- $errors = $errors | append (printf "test_string must be at least %d characters" $testStringRules.min_length) -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{/* Max length */}}
+        {{- if $testStringRules.max_length -}}
+          {{- if gt (len $value) $testStringRules.max_length -}}
+            {{- $errors = $errors | append (printf "test_string must be no more than %d characters" $testStringRules.max_length) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* Print result */}}
+    {{- if eq (len $errors) 0 -}}
+      {{- warnf "   ✅ test_string: VALID (value=%v)" $value -}}
+    {{- else -}}
+      {{- warnf "   ❌ test_string: INVALID (value=%v)" $value -}}
+      {{- range $errors -}}
+        {{- warnf "      - %s" . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- warnf "   ⚠️  test_string: NOT IN SCHEMA" -}}
+  {{- end -}}
+
+  {{/* Test optional_string field */}}
+  {{- $optionalStringRules := index $schema "optional_string" -}}
+  {{- if $optionalStringRules -}}
+    {{- $value := index $pageParams "optional_string" -}}
+
+    {{/* Inline validation logic for testing */}}
+    {{- $errors := slice -}}
+
+    {{/* Check required */}}
+    {{- if and $optionalStringRules.required (not $value) -}}
+      {{- $errors = $errors | append (printf "optional_string is required") -}}
+    {{- end -}}
+
+    {{/* Type and constraint checks (only if value exists) */}}
+    {{- if $value -}}
+      {{- $valueType := printf "%T" $value -}}
+      {{- if ne $valueType "string" -}}
+        {{- $errors = $errors | append "optional_string must be a string" -}}
+      {{- else -}}
+        {{/* Max length */}}
+        {{- if $optionalStringRules.max_length -}}
+          {{- if gt (len $value) $optionalStringRules.max_length -}}
+            {{- $errors = $errors | append (printf "optional_string must be no more than %d characters" $optionalStringRules.max_length) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* Print result */}}
+    {{- if eq (len $errors) 0 -}}
+      {{- warnf "   ✅ optional_string: VALID (value=%v)" $value -}}
+    {{- else -}}
+      {{- warnf "   ❌ optional_string: INVALID (value=%v)" $value -}}
+      {{- range $errors -}}
+        {{- warnf "      - %s" . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- warnf "   ⚠️  optional_string: NOT IN SCHEMA" -}}
+  {{- end -}}
+{{- end -}}

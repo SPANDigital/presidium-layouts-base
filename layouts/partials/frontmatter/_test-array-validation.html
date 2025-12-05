@@ -1,0 +1,110 @@
+{{/* Test harness for array validation - manually test validators */}}
+
+{{/* Load schema directly from data */}}
+{{- $schema := index .Site.Data "_gen" "frontmatter-schema" -}}
+
+{{- if not $schema -}}
+  {{- warnf "❌ TEST FAILED: Schema not loaded" -}}
+{{- else -}}
+  {{/* Test validation with current page frontmatter */}}
+  {{- $pageParams := .Params -}}
+  {{- warnf "\n📝 Testing page: %s" .File.Path -}}
+
+  {{/* Test test_array field */}}
+  {{- $testArrayRules := index $schema "test_array" -}}
+  {{- if $testArrayRules -}}
+    {{- $value := index $pageParams "test_array" -}}
+    {{- $fieldExists := isset $pageParams "test_array" -}}
+
+    {{/* Inline validation logic for testing */}}
+    {{- $errors := slice -}}
+
+    {{/* Check required */}}
+    {{- if and $testArrayRules.required (not $fieldExists) -}}
+      {{- $errors = $errors | append (printf "test_array is required") -}}
+    {{- end -}}
+
+    {{/* Type and constraint checks (only if field exists) */}}
+    {{- if $fieldExists -}}
+      {{- $valueType := printf "%T" $value -}}
+      {{- if not (hasPrefix $valueType "[]") -}}
+        {{- $errors = $errors | append "test_array must be an array" -}}
+      {{- else -}}
+        {{- $length := len $value -}}
+
+        {{/* Min items */}}
+        {{- if $testArrayRules.min_items -}}
+          {{- if lt $length (int $testArrayRules.min_items) -}}
+            {{- $errors = $errors | append (printf "test_array must have at least %d items" (int $testArrayRules.min_items)) -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{/* Max items */}}
+        {{- if $testArrayRules.max_items -}}
+          {{- if gt $length (int $testArrayRules.max_items) -}}
+            {{- $errors = $errors | append (printf "test_array must have no more than %d items" (int $testArrayRules.max_items)) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* Print result */}}
+    {{- if eq (len $errors) 0 -}}
+      {{- warnf "   ✅ test_array: VALID (value=%v, length=%d)" $value (len $value) -}}
+    {{- else -}}
+      {{- warnf "   ❌ test_array: INVALID (value=%v)" $value -}}
+      {{- range $errors -}}
+        {{- warnf "      - %s" . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- warnf "   ⚠️  test_array: NOT IN SCHEMA" -}}
+  {{- end -}}
+
+  {{/* Test optional_array field */}}
+  {{- $optionalArrayRules := index $schema "optional_array" -}}
+  {{- if $optionalArrayRules -}}
+    {{- $value := index $pageParams "optional_array" -}}
+    {{- $fieldExists := isset $pageParams "optional_array" -}}
+
+    {{/* Inline validation logic for testing */}}
+    {{- $errors := slice -}}
+
+    {{/* Check required */}}
+    {{- if and $optionalArrayRules.required (not $fieldExists) -}}
+      {{- $errors = $errors | append (printf "optional_array is required") -}}
+    {{- end -}}
+
+    {{/* Type and constraint checks (only if field exists) */}}
+    {{- if $fieldExists -}}
+      {{- $valueType := printf "%T" $value -}}
+      {{- if not (hasPrefix $valueType "[]") -}}
+        {{- $errors = $errors | append "optional_array must be an array" -}}
+      {{- else -}}
+        {{/* Max items */}}
+        {{- if $optionalArrayRules.max_items -}}
+          {{- $length := len $value -}}
+          {{- if gt $length (int $optionalArrayRules.max_items) -}}
+            {{- $errors = $errors | append (printf "optional_array must have no more than %d items" (int $optionalArrayRules.max_items)) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* Print result */}}
+    {{- if eq (len $errors) 0 -}}
+      {{- if $value -}}
+        {{- warnf "   ✅ optional_array: VALID (value=%v, length=%d)" $value (len $value) -}}
+      {{- else -}}
+        {{- warnf "   ✅ optional_array: VALID (not provided, optional)" -}}
+      {{- end -}}
+    {{- else -}}
+      {{- warnf "   ❌ optional_array: INVALID (value=%v)" $value -}}
+      {{- range $errors -}}
+        {{- warnf "      - %s" . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- warnf "   ⚠️  optional_array: NOT IN SCHEMA" -}}
+  {{- end -}}
+{{- end -}}
