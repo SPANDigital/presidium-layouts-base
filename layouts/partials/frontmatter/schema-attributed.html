@@ -22,10 +22,38 @@
   {{- end -}}
 {{- end -}}
 
-{{/* Detect module name for attribution */}}
+{{/* Detect module name and base theme for attribution */}}
 {{- $moduleName := "module" -}}
-{{- if .Site.Params.module -}}
-  {{- $moduleName = .Site.Params.module.name | default "module" -}}
+{{- $baseThemeName := "github.com/spandigital/presidium-layouts-base" -}}
+
+{{/* Get current project/module name from working directory */}}
+{{- with .Page.File -}}
+  {{- with .Dir -}}
+    {{- $parts := split . "/" -}}
+    {{- if gt (len $parts) 0 -}}
+      {{- $moduleName = index $parts 0 -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Fallback: try to detect from site title or base URL */}}
+{{- if eq $moduleName "module" -}}
+  {{- with .Site.Title -}}
+    {{- $moduleName = . | urlize -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Detect base theme from module configuration if available */}}
+{{- with .Site.Data.module -}}
+  {{- with .imports -}}
+    {{- range . -}}
+      {{- if .path -}}
+        {{- if in .path "layouts-base" -}}
+          {{- $baseThemeName = .path -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
 {{- end -}}
 
 {{/* Initialize YAML output */}}
@@ -37,7 +65,7 @@
 {{- $yaml = $yaml | append "#" -}}
 {{- $yaml = $yaml | append "# Configuration Sources:" -}}
 {{- $yaml = $yaml | append (printf "#   %s (module)" $moduleName) -}}
-{{- $yaml = $yaml | append "#   github.com/spandigital/presidium-layouts-base (indirect)" -}}
+{{- $yaml = $yaml | append (printf "#   %s (indirect)" $baseThemeName) -}}
 {{- $yaml = $yaml | append "" -}}
 {{- $yaml = $yaml | append "frontmatter:" -}}
 
@@ -86,7 +114,7 @@
   {{- $fieldSource := $moduleName -}}
   {{- $fieldTier := "module" -}}
   {{- if isset $baseConfig $fieldName -}}
-    {{- $fieldSource = "github.com/spandigital/presidium-layouts-base" -}}
+    {{- $fieldSource = $baseThemeName -}}
     {{- $fieldTier = "indirect" -}}
   {{- end -}}
   
