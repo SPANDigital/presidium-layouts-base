@@ -5,7 +5,8 @@
 {{- $mergedConfig := .Site.Params.frontmatter | default dict -}}
 
 {{/* Load schema types for enrichment */}}
-{{- $rootSchema := index .Site.Data.schemas.frontmatter "root" | default dict -}}
+{{- $rootSchemaOuter := index .Site.Data.schemas.frontmatter "root" | default dict -}}
+{{- $rootSchema := index $rootSchemaOuter "root" | default dict -}}
 {{- $typeSchemas := index .Site.Data.schemas.frontmatter "types" | default dict -}}
 {{- $formatSchemas := index .Site.Data.schemas.frontmatter "formats" | default dict -}}
 
@@ -94,43 +95,81 @@
   {{- $fieldType := $fieldRules.type | default "string" -}}
   {{- $fieldFormat := $fieldRules.format | default "" -}}
   
-  {{/* Start with merged rules */}}
+  {{/* Start with merged rules from config */}}
   {{- $enriched := $fieldRules -}}
   
-  {{/* Apply root defaults */}}
+  {{/* Build schema with same precedence order as JSON generator: */}}
+  {{/* 1. Start with empty schema */}}
+  {{- $schema := dict -}}
+  
+  {{/* 2. Apply root type defaults first */}}
   {{- range $key, $value := $rootSchema -}}
-    {{- if not (isset $enriched $key) -}}
-      {{/* Skip type placeholder values */}}
-      {{- if not (in (slice "string" "number" "boolean" "array" "object") $value) -}}
-        {{- $enriched = merge $enriched (dict $key $value) -}}
+    {{- if and (ne $key "extends") (ne $key "root") -}}
+      {{- $defaultValue := $value -}}
+      {{- if eq $value "boolean" -}}
+        {{- $defaultValue = false -}}
+      {{- else if eq $value "string" -}}
+        {{- $defaultValue = "" -}}
+      {{- else if eq $value "number" -}}
+        {{- $defaultValue = 0 -}}
       {{- end -}}
+      {{- $schema = merge $schema (dict $key $defaultValue) -}}
     {{- end -}}
   {{- end -}}
   
-  {{/* Apply type defaults */}}
-  {{- if $fieldFormat -}}
-    {{- $formatDefaults := index $formatSchemas $fieldFormat | default dict -}}
-    {{- range $key, $value := $formatDefaults -}}
-      {{- if not (isset $enriched $key) -}}
-        {{/* Skip type placeholder values */}}
-        {{- if not (in (slice "string" "number" "boolean" "array" "object") $value) -}}
-          {{- $enriched = merge $enriched (dict $key $value) -}}
+  {{/* 3. Check if fieldType is a format or base type, apply inheritance */}}
+  {{- $formatDef := index $formatSchemas $fieldType | default dict -}}
+  {{- $parentType := "" -}}
+  {{- if $formatDef -}}
+    {{/* fieldType is a format, apply parent type then format */}}
+    {{- $parentType = index $formatDef "extends" | default "" -}}
+    {{- if $parentType -}}
+      {{- $parentTypeDef := index $typeSchemas $parentType | default dict -}}
+      {{- range $key, $value := $parentTypeDef -}}
+        {{- if and (ne $key "extends") (ne $key "root") -}}
+          {{- $defaultValue := $value -}}
+          {{- if eq $value "boolean" -}}
+            {{- $defaultValue = false -}}
+          {{- else if eq $value "string" -}}
+            {{- $defaultValue = "" -}}
+          {{- else if eq $value "number" -}}
+            {{- $defaultValue = 0 -}}
+          {{- else if eq $value "array" -}}
+            {{- $defaultValue = slice -}}
+          {{- end -}}
+          {{- $schema = merge $schema (dict $key $defaultValue) -}}
         {{- end -}}
       {{- end -}}
     {{- end -}}
-  {{- end -}}
-  
-  {{- $typeDefaults := index $typeSchemas $fieldType | default dict -}}
-  {{- range $key, $value := $typeDefaults -}}
-    {{- if not (isset $enriched $key) -}}
-      {{/* Skip type placeholder values */}}
-      {{- if not (in (slice "string" "number" "boolean" "array" "object") $value) -}}
-        {{- $enriched = merge $enriched (dict $key $value) -}}
+    {{/* Apply format attributes (can override parent type) */}}
+    {{- range $key, $value := $formatDef -}}
+      {{- if and (ne $key "extends") (ne $key "root") -}}
+        {{- $schema = merge $schema (dict $key $value) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{/* Not a format, apply base type defaults */}}
+    {{- $typeDefaults := index $typeSchemas $fieldType | default dict -}}
+    {{- range $key, $value := $typeDefaults -}}
+      {{- if and (ne $key "extends") (ne $key "root") -}}
+        {{- $defaultValue := $value -}}
+        {{- if eq $value "boolean" -}}
+          {{- $defaultValue = false -}}
+        {{- else if eq $value "string" -}}
+          {{- $defaultValue = "" -}}
+        {{- else if eq $value "number" -}}
+          {{- $defaultValue = 0 -}}
+        {{- end -}}
+        {{- $schema = merge $schema (dict $key $defaultValue) -}}
       {{- end -}}
     {{- end -}}
   {{- end -}}
   
-  {{/* Detect field source */}}
+  {{/* 4. Finally, merge user config (can override everything) */}}
+  {{- $schema = merge $schema $fieldRules -}}
+  
+  {{/* Use the fully enriched schema */}}
+  {{- $enriched = $schema -}}  {{/* Detect field source */}}
   {{- $fieldSource := $moduleName -}}
   {{- $fieldTier := "module" -}}
   {{- if isset $baseConfig $fieldName -}}
@@ -141,36 +180,75 @@
   {{/* Add field with attribution comment */}}
   {{- $yaml = $yaml | append (printf "  %s:  # %s (%s)" $fieldName $fieldSource $fieldTier) -}}
   
-  {{/* Process attributes in consistent order */}}
-  {{- $orderedKeys := slice "type" "format" "required" "min_length" "max_length" "minimum" "maximum" "integer" "pattern" "items" "min_items" "max_items" "validation_message" "placeholder_message" "help_message" -}}
+  {{/* Collect all attribute keys from enriched schema and sort for consistent order */}}
+  {{- $allKeys := slice -}}
+  {{- range $key, $value := $enriched -}}
+    {{- $allKeys = $allKeys | append $key -}}
+  {{- end -}}
   
+  {{/* Define preferred order for common keys, others will be alphabetical */}}
+  {{- $preferredOrder := slice "type" "format" "required" "default" "min_length" "max_length" "minimum" "maximum" "integer" "pattern" "items" "min_items" "max_items" "validation_message" "placeholder_message" "help_message" -}}
+  
+  {{/* Sort keys: preferred order first, then alphabetically */}}
+  {{- $orderedKeys := slice -}}
+  {{- range $preferredKey := $preferredOrder -}}
+    {{- if in $allKeys $preferredKey -}}
+      {{- $orderedKeys = $orderedKeys | append $preferredKey -}}
+    {{- end -}}
+  {{- end -}}
+  {{/* Add any remaining keys not in preferred order */}}
+  {{- range $key := $allKeys -}}
+    {{- if not (in $preferredOrder $key) -}}
+      {{- $orderedKeys = $orderedKeys | append $key -}}
+    {{- end -}}
+  {{- end -}}
+  
+  {{/* Process attributes in order */}}
   {{- range $attrName := $orderedKeys -}}
-    {{- if isset $enriched $attrName -}}
-      {{- $attrValue := index $enriched $attrName -}}
+    {{- $attrValue := index $enriched $attrName -}}
       
       {{/* Detect attribute source and override */}}
       {{- $attrSource := $fieldSource -}}
       {{- $attrTier := $fieldTier -}}
       {{- $isOverride := false -}}
+      {{- $isInherited := false -}}
+      
+      {{/* Check if attribute exists in module or base config */}}
+      {{- $inModuleConfig := false -}}
+      {{- $inBaseConfig := false -}}
+      
+      {{- if isset $mergedConfig $fieldName -}}
+        {{- $mergedField := index $mergedConfig $fieldName -}}
+        {{- if isset $mergedField $attrName -}}
+          {{- $inModuleConfig = true -}}
+        {{- end -}}
+      {{- end -}}
       
       {{- if isset $baseConfig $fieldName -}}
         {{- $baseField := index $baseConfig $fieldName -}}
         {{- if isset $baseField $attrName -}}
-          {{/* Attribute exists in base */}}
+          {{- $inBaseConfig = true -}}
           {{- $baseValue := index $baseField $attrName -}}
-          {{- if ne $baseValue $attrValue -}}
-            {{/* Value differs - it's an override */}}
+          {{- if and $inModuleConfig (ne $baseValue $attrValue) -}}
+            {{/* Value differs between base and module - it's an override */}}
             {{- $attrSource = $moduleName -}}
             {{- $attrTier = "module" -}}
             {{- $isOverride = true -}}
           {{- end -}}
-        {{- else -}}
-          {{/* Attribute only in module */}}
-          {{- $attrSource = $moduleName -}}
-          {{- $attrTier = "module" -}}
         {{- end -}}
-      {{- else -}}
-        {{/* Field only in module */}}
+      {{- end -}}
+      
+      {{/* If attribute not in either config, it's inherited from type system */}}
+      {{- if and (not $inModuleConfig) (not $inBaseConfig) -}}
+        {{- $isInherited = true -}}
+        {{- $attrSource = "[default]" -}}
+        {{- $attrTier = "inherited" -}}
+      {{- else if and $inBaseConfig (not $inModuleConfig) -}}
+        {{/* Attribute only in base */}}
+        {{- $attrSource = $baseThemeName -}}
+        {{- $attrTier = "indirect" -}}
+      {{- else if and $inModuleConfig (not $inBaseConfig) (not $isOverride) -}}
+        {{/* Attribute only in module */}}
         {{- $attrSource = $moduleName -}}
         {{- $attrTier = "module" -}}
       {{- end -}}
@@ -190,7 +268,9 @@
       {{- end -}}
       
       {{/* Build line with optional attribution */}}
-      {{- if or (ne $attrSource $fieldSource) (ne $attrTier $fieldTier) -}}
+      {{- if $isInherited -}}
+        {{- $yaml = $yaml | append (printf "    %s: %s  # %s (%s)" $attrName $formatted $attrSource $attrTier) -}}
+      {{- else if or (ne $attrSource $fieldSource) (ne $attrTier $fieldTier) -}}
         {{- $comment := printf "%s (%s)" $attrSource $attrTier -}}
         {{- if $isOverride -}}
           {{- $comment = printf "%s [override]" $comment -}}
@@ -199,7 +279,6 @@
       {{- else -}}
         {{- $yaml = $yaml | append (printf "    %s: %s" $attrName $formatted) -}}
       {{- end -}}
-    {{- end -}}
   {{- end -}}
 {{- end -}}
 
