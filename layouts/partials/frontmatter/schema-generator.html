@@ -17,39 +17,15 @@ Usage: {{ $schema := partial "frontmatter/schema-generator.html" . }}
 {{/* Get merged frontmatter config from Hugo (base → client → module) */}}
 {{- $mergedConfig := .Site.Params.frontmatter -}}
 
-{{/* Debug: Check if config exists */}}
-{{- if not $mergedConfig -}}
-  {{- warnf "SCHEMA-GEN: No frontmatter config found at .Site.Params.frontmatter" -}}
-{{- else -}}
-  {{- warnf "SCHEMA-GEN: Found frontmatter config with %d fields" (len $mergedConfig) -}}
-{{- end -}}
-
 {{/* Load schema type definitions from data directory */}}
-{{- warnf "SCHEMA-GEN: Site.Data exists: %t" (ne .Site.Data nil) -}}
-{{- warnf "SCHEMA-GEN: schemas.frontmatter exists: %t" (ne .Site.Data.schemas.frontmatter nil) -}}
-
 {{- $rootTypes := .Site.Data.schemas.frontmatter.root -}}
 {{- $rootType := dict -}}
 {{- if $rootTypes -}}
   {{- $rootType = index $rootTypes "root" -}}
-  {{- warnf "SCHEMA-GEN: Loaded root type with %d attributes" (len $rootType) -}}
-{{- else -}}
-  {{- warnf "SCHEMA-GEN: ERROR - root data file not found" -}}
 {{- end -}}
 
 {{- $dataTypes := .Site.Data.schemas.frontmatter.types -}}
-{{- if $dataTypes -}}
-  {{- warnf "SCHEMA-GEN: Loaded %d data types" (len $dataTypes) -}}
-{{- else -}}
-  {{- warnf "SCHEMA-GEN: ERROR - types file not found" -}}
-{{- end -}}
-
 {{- $dataFormats := .Site.Data.schemas.frontmatter.formats -}}
-{{- if $dataFormats -}}
-  {{- warnf "SCHEMA-GEN: Loaded %d data formats" (len $dataFormats) -}}
-{{- else -}}
-  {{- warnf "SCHEMA-GEN: ERROR - formats file not found" -}}
-{{- end -}}
 
 {{/* Iterate through each configured field */}}
 {{- range $fieldKey, $fieldConfig := $mergedConfig -}}
@@ -79,7 +55,6 @@ Usage: {{ $schema := partial "frontmatter/schema-generator.html" . }}
   {{/* Step 2: Check if this is a format type that extends a data type */}}
   {{- $formatDef := index $dataFormats $fieldType -}}
   {{- $parentType := "" -}}
-  {{- warnf "SCHEMA-GEN: Field %s has type %s, formatDef exists: %t" $fieldKey $fieldType (ne $formatDef nil) -}}
   {{- if $formatDef -}}
     {{- $parentType = index $formatDef "extends" -}}
     {{/* Apply parent type defaults */}}
