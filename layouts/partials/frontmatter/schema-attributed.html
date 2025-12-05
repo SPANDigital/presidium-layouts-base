@@ -24,7 +24,7 @@
 
 {{/* Detect module name and base theme for attribution */}}
 {{- $moduleName := "module" -}}
-{{- $baseThemeName := "github.com/spandigital/presidium-layouts-base" -}}
+{{- $baseThemeName := "" -}}
 
 {{/* Get current project/module name from working directory */}}
 {{- with .Page.File -}}
@@ -43,17 +43,37 @@
   {{- end -}}
 {{- end -}}
 
-{{/* Detect base theme from module configuration if available */}}
-{{- with .Site.Data.module -}}
-  {{- with .imports -}}
-    {{- range . -}}
-      {{- if .path -}}
-        {{- if in .path "layouts-base" -}}
-          {{- $baseThemeName = .path -}}
+{{/* Dynamically detect base theme from Hugo config.yml module imports */}}
+{{- $configPath := "config.yml" -}}
+{{- if fileExists $configPath -}}
+  {{- $configContent := os.ReadFile $configPath -}}
+  {{- if $configContent -}}
+    {{- $configData := transform.Unmarshal $configContent -}}
+    {{- with $configData.module -}}
+      {{- with .imports -}}
+        {{/* Strategy 1: Find first module with "layouts" in path */}}
+        {{- range . -}}
+          {{- $path := .path | default "" -}}
+          {{- if and $path (in $path "layouts") -}}
+            {{- if not $baseThemeName -}}
+              {{- $baseThemeName = $path -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+        {{/* Strategy 2: If no layouts module found, use first import as base theme */}}
+        {{- if not $baseThemeName -}}
+          {{- range first 1 . -}}
+            {{- $baseThemeName = .path | default "base-theme" -}}
+          {{- end -}}
         {{- end -}}
       {{- end -}}
     {{- end -}}
   {{- end -}}
+{{- end -}}
+
+{{/* Fallback if no imports detected */}}
+{{- if not $baseThemeName -}}
+  {{- $baseThemeName = "base-theme" -}}
 {{- end -}}
 
 {{/* Initialize YAML output */}}
