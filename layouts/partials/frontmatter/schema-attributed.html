@@ -1,0 +1,286 @@
+{{- $ctx := . -}}
+{{- $namespace := .Site.Params.data.namespace | default "presidium" -}}
+
+{{/* Load merged config from Hugo */}}
+{{- $mergedConfig := .Site.Params.frontmatter | default dict -}}
+
+{{/* Load schema types for enrichment */}}
+{{- $rootSchemaOuter := index .Site.Data.schemas.frontmatter "root" | default dict -}}
+{{- $rootSchema := index $rootSchemaOuter "root" | default dict -}}
+{{- $typeSchemas := index .Site.Data.schemas.frontmatter "types" | default dict -}}
+{{- $formatSchemas := index .Site.Data.schemas.frontmatter "formats" | default dict -}}
+
+{{/* Read raw base config */}}
+{{- $baseConfig := dict -}}
+{{- $basePath := "config/_default/frontmatter/params.yaml" -}}
+{{- if fileExists $basePath -}}
+  {{- $baseContent := os.ReadFile $basePath -}}
+  {{- if $baseContent -}}
+    {{- $parsed := transform.Unmarshal $baseContent -}}
+    {{- if $parsed -}}
+      {{- $baseConfig = index $parsed "frontmatter" | default dict -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Detect module name and base theme for attribution */}}
+{{- $moduleName := "module" -}}
+{{- $baseThemeName := "" -}}
+
+{{/* Get current project/module name from working directory */}}
+{{- with .Page.File -}}
+  {{- with .Dir -}}
+    {{- $parts := split . "/" -}}
+    {{- if gt (len $parts) 0 -}}
+      {{- $moduleName = index $parts 0 -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Fallback: try to detect from site title or base URL */}}
+{{- if eq $moduleName "module" -}}
+  {{- with .Site.Title -}}
+    {{- $moduleName = . | urlize -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Dynamically detect base theme from Hugo config.yml module imports */}}
+{{- $configPath := "config.yml" -}}
+{{- if fileExists $configPath -}}
+  {{- $configContent := os.ReadFile $configPath -}}
+  {{- if $configContent -}}
+    {{- $configData := transform.Unmarshal $configContent -}}
+    {{- with $configData.module -}}
+      {{- with .imports -}}
+        {{/* Strategy 1: Find first module with "layouts" in path */}}
+        {{- range . -}}
+          {{- $path := .path | default "" -}}
+          {{- if and $path (in $path "layouts") -}}
+            {{- if not $baseThemeName -}}
+              {{- $baseThemeName = $path -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+        {{/* Strategy 2: If no layouts module found, use first import as base theme */}}
+        {{- if not $baseThemeName -}}
+          {{- range first 1 . -}}
+            {{- $baseThemeName = .path | default "base-theme" -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Fallback if no imports detected */}}
+{{- if not $baseThemeName -}}
+  {{- $baseThemeName = "base-theme" -}}
+{{- end -}}
+
+{{/* Initialize YAML output */}}
+{{- $yaml := slice -}}
+
+{{/* Header */}}
+{{- $yaml = $yaml | append "# Consolidated Frontmatter Schema" -}}
+{{- $yaml = $yaml | append (printf "# Generated: %s" (now.Format "2006-01-02T15:04:05Z07:00")) -}}
+{{- $yaml = $yaml | append "#" -}}
+{{- $yaml = $yaml | append "# Configuration Sources:" -}}
+{{- $yaml = $yaml | append (printf "#   %s (module)" $moduleName) -}}
+{{- $yaml = $yaml | append (printf "#   %s (indirect)" $baseThemeName) -}}
+{{- $yaml = $yaml | append "" -}}
+{{- $yaml = $yaml | append "frontmatter:" -}}
+
+{{/* Process each field */}}
+{{- range $fieldName, $fieldRules := $mergedConfig -}}
+  {{- $fieldType := $fieldRules.type | default "string" -}}
+  {{- $fieldFormat := $fieldRules.format | default "" -}}
+  
+  {{/* Start with merged rules from config */}}
+  {{- $enriched := $fieldRules -}}
+  
+  {{/* Build schema with same precedence order as JSON generator: */}}
+  {{/* 1. Start with empty schema */}}
+  {{- $schema := dict -}}
+  
+  {{/* 2. Apply root type defaults first */}}
+  {{- range $key, $value := $rootSchema -}}
+    {{- if and (ne $key "extends") (ne $key "root") -}}
+      {{- $defaultValue := $value -}}
+      {{- if eq $value "boolean" -}}
+        {{- $defaultValue = false -}}
+      {{- else if eq $value "string" -}}
+        {{- $defaultValue = "" -}}
+      {{- else if eq $value "number" -}}
+        {{- $defaultValue = 0 -}}
+      {{- end -}}
+      {{- $schema = merge $schema (dict $key $defaultValue) -}}
+    {{- end -}}
+  {{- end -}}
+  
+  {{/* 3. Check if fieldType is a format or base type, apply inheritance */}}
+  {{- $formatDef := index $formatSchemas $fieldType | default dict -}}
+  {{- $parentType := "" -}}
+  {{- if $formatDef -}}
+    {{/* fieldType is a format, apply parent type then format */}}
+    {{- $parentType = index $formatDef "extends" | default "" -}}
+    {{- if $parentType -}}
+      {{- $parentTypeDef := index $typeSchemas $parentType | default dict -}}
+      {{- range $key, $value := $parentTypeDef -}}
+        {{- if and (ne $key "extends") (ne $key "root") -}}
+          {{- $defaultValue := $value -}}
+          {{- if eq $value "boolean" -}}
+            {{- $defaultValue = false -}}
+          {{- else if eq $value "string" -}}
+            {{- $defaultValue = "" -}}
+          {{- else if eq $value "number" -}}
+            {{- $defaultValue = 0 -}}
+          {{- else if eq $value "array" -}}
+            {{- $defaultValue = slice -}}
+          {{- end -}}
+          {{- $schema = merge $schema (dict $key $defaultValue) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{/* Apply format attributes (can override parent type) */}}
+    {{- range $key, $value := $formatDef -}}
+      {{- if and (ne $key "extends") (ne $key "root") -}}
+        {{- $schema = merge $schema (dict $key $value) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{/* Not a format, apply base type defaults */}}
+    {{- $typeDefaults := index $typeSchemas $fieldType | default dict -}}
+    {{- range $key, $value := $typeDefaults -}}
+      {{- if and (ne $key "extends") (ne $key "root") -}}
+        {{- $defaultValue := $value -}}
+        {{- if eq $value "boolean" -}}
+          {{- $defaultValue = false -}}
+        {{- else if eq $value "string" -}}
+          {{- $defaultValue = "" -}}
+        {{- else if eq $value "number" -}}
+          {{- $defaultValue = 0 -}}
+        {{- end -}}
+        {{- $schema = merge $schema (dict $key $defaultValue) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  
+  {{/* 4. Finally, merge user config (can override everything) */}}
+  {{- $schema = merge $schema $fieldRules -}}
+  
+  {{/* Use the fully enriched schema */}}
+  {{- $enriched = $schema -}}  {{/* Detect field source */}}
+  {{- $fieldSource := $moduleName -}}
+  {{- $fieldTier := "module" -}}
+  {{- if isset $baseConfig $fieldName -}}
+    {{- $fieldSource = $baseThemeName -}}
+    {{- $fieldTier = "indirect" -}}
+  {{- end -}}
+  
+  {{/* Add field with attribution comment */}}
+  {{- $yaml = $yaml | append (printf "  %s:  # %s (%s)" $fieldName $fieldSource $fieldTier) -}}
+  
+  {{/* Collect all attribute keys from enriched schema and sort for consistent order */}}
+  {{- $allKeys := slice -}}
+  {{- range $key, $value := $enriched -}}
+    {{- $allKeys = $allKeys | append $key -}}
+  {{- end -}}
+  
+  {{/* Define preferred order for common keys, others will be alphabetical */}}
+  {{- $preferredOrder := slice "type" "format" "required" "default" "min_length" "max_length" "minimum" "maximum" "integer" "pattern" "items" "min_items" "max_items" "validation_message" "placeholder_message" "help_message" -}}
+  
+  {{/* Sort keys: preferred order first, then alphabetically */}}
+  {{- $orderedKeys := slice -}}
+  {{- range $preferredKey := $preferredOrder -}}
+    {{- if in $allKeys $preferredKey -}}
+      {{- $orderedKeys = $orderedKeys | append $preferredKey -}}
+    {{- end -}}
+  {{- end -}}
+  {{/* Add any remaining keys not in preferred order */}}
+  {{- range $key := $allKeys -}}
+    {{- if not (in $preferredOrder $key) -}}
+      {{- $orderedKeys = $orderedKeys | append $key -}}
+    {{- end -}}
+  {{- end -}}
+  
+  {{/* Process attributes in order */}}
+  {{- range $attrName := $orderedKeys -}}
+    {{- $attrValue := index $enriched $attrName -}}
+      
+      {{/* Detect attribute source and override */}}
+      {{- $attrSource := $fieldSource -}}
+      {{- $attrTier := $fieldTier -}}
+      {{- $isOverride := false -}}
+      {{- $isInherited := false -}}
+      
+      {{/* Check if attribute exists in module or base config */}}
+      {{- $inModuleConfig := false -}}
+      {{- $inBaseConfig := false -}}
+      
+      {{- if isset $mergedConfig $fieldName -}}
+        {{- $mergedField := index $mergedConfig $fieldName -}}
+        {{- if isset $mergedField $attrName -}}
+          {{- $inModuleConfig = true -}}
+        {{- end -}}
+      {{- end -}}
+      
+      {{- if isset $baseConfig $fieldName -}}
+        {{- $baseField := index $baseConfig $fieldName -}}
+        {{- if isset $baseField $attrName -}}
+          {{- $inBaseConfig = true -}}
+          {{- $baseValue := index $baseField $attrName -}}
+          {{- if and $inModuleConfig (ne $baseValue $attrValue) -}}
+            {{/* Value differs between base and module - it's an override */}}
+            {{- $attrSource = $moduleName -}}
+            {{- $attrTier = "module" -}}
+            {{- $isOverride = true -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+      
+      {{/* If attribute not in either config, it's inherited from type system */}}
+      {{- if and (not $inModuleConfig) (not $inBaseConfig) -}}
+        {{- $isInherited = true -}}
+        {{- $attrSource = "[default]" -}}
+        {{- $attrTier = "inherited" -}}
+      {{- else if and $inBaseConfig (not $inModuleConfig) -}}
+        {{/* Attribute only in base */}}
+        {{- $attrSource = $baseThemeName -}}
+        {{- $attrTier = "indirect" -}}
+      {{- else if and $inModuleConfig (not $inBaseConfig) (not $isOverride) -}}
+        {{/* Attribute only in module */}}
+        {{- $attrSource = $moduleName -}}
+        {{- $attrTier = "module" -}}
+      {{- end -}}
+      
+      {{/* Format value based on type */}}
+      {{- $formatted := "" -}}
+      {{- if eq (printf "%T" $attrValue) "bool" -}}
+        {{- $formatted = printf "%t" $attrValue -}}
+      {{- else if eq (printf "%T" $attrValue) "int" -}}
+        {{- $formatted = printf "%d" $attrValue -}}
+      {{- else if eq (printf "%T" $attrValue) "float64" -}}
+        {{- $formatted = printf "%v" $attrValue -}}
+      {{- else if reflect.IsSlice $attrValue -}}
+        {{- $formatted = printf "%s" (jsonify $attrValue) -}}
+      {{- else -}}
+        {{- $formatted = printf "%q" $attrValue -}}
+      {{- end -}}
+      
+      {{/* Build line with optional attribution */}}
+      {{- if $isInherited -}}
+        {{- $yaml = $yaml | append (printf "    %s: %s  # %s (%s)" $attrName $formatted $attrSource $attrTier) -}}
+      {{- else if or (ne $attrSource $fieldSource) (ne $attrTier $fieldTier) -}}
+        {{- $comment := printf "%s (%s)" $attrSource $attrTier -}}
+        {{- if $isOverride -}}
+          {{- $comment = printf "%s [override]" $comment -}}
+        {{- end -}}
+        {{- $yaml = $yaml | append (printf "    %s: %s  # %s" $attrName $formatted $comment) -}}
+      {{- else -}}
+        {{- $yaml = $yaml | append (printf "    %s: %s" $attrName $formatted) -}}
+      {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Store result in scratch */}}
+{{- $ctx.Scratch.Set "yaml_output" (delimit $yaml "\n") -}}

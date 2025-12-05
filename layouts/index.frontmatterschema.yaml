@@ -1,0 +1,2 @@
+{{- partial "frontmatter/schema-attributed.html" . -}}
+{{- .Scratch.Get "yaml_output" -}}

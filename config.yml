@@ -24,6 +24,11 @@ outputformats:
     mediaType: application/json
     isPlainText: true
     notAlternative: true
+  frontmatterSchemaYaml:
+    baseName: frontmatter-schema
+    mediaType: application/yaml
+    isPlainText: true
+    notAlternative: true
   Embed:
     basename: embed
     mediaType: text/html
