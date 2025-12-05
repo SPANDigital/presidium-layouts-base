@@ -37,8 +37,7 @@ outputs:
   home:
     - Navigation
     - Compendium
-    - frontmatterSchema
-    # - Pdf  # Temporarily disabled for testing
+    - Pdf
 params:
   _merge: shallow
   data:
