@@ -1,4 +1,4 @@
-_frontmatter: #TODO: PRSDM-9735 Rename to frontmatter when ready
+frontmatter:
   title:
     type: string
     required: true

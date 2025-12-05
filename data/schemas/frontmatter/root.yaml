@@ -1,0 +1,16 @@
+# =============================================================================
+# ROOT TYPE SCHEMA
+# =============================================================================
+# Foundation type that all frontmatter types inherit from.
+# Provides core validation and UI attributes.
+# =============================================================================
+
+root:
+  # Core Attributes
+  type: string                    # [Required] Type name (string, number, enum, etc.)
+  required: boolean               # [Default: false] Whether field is mandatory
+  default: any                    # [Optional] Default value if not provided
+
+  # UI Attributes
+  placeholder_message: string     # [Required] Placeholder text for input
+  validation_message: string      # [Optional] Custom error message on validation failure

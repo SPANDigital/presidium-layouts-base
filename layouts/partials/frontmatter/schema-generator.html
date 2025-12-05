@@ -1,0 +1,122 @@
+{{/*
+=============================================================================
+Schema Generator Partial
+=============================================================================
+Generates complete frontmatter schema by merging Hugo config with schema
+type definitions. Handles type inheritance (formats → types → root).
+
+Input: . (page context with .Site.Params._frontmatter config)
+Output: Complete schema dict with all fields and their attributes
+
+Usage: {{ $schema := partial "frontmatter/schema-generator.html" . }}
+=============================================================================
+*/}}
+
+{{- $completeSchema := dict -}}
+
+{{/* Get merged frontmatter config from Hugo (base → client → module) */}}
+{{- $mergedConfig := .Site.Params.frontmatter -}}
+
+{{/* Load schema type definitions from data directory */}}
+{{- $rootTypes := .Site.Data.schemas.frontmatter.root -}}
+{{- $rootType := dict -}}
+{{- if $rootTypes -}}
+  {{- $rootType = index $rootTypes "root" -}}
+{{- end -}}
+
+{{- $dataTypes := .Site.Data.schemas.frontmatter.types -}}
+{{- $dataFormats := .Site.Data.schemas.frontmatter.formats -}}
+
+{{/* Iterate through each configured field */}}
+{{- range $fieldKey, $fieldConfig := $mergedConfig -}}
+  {{- $fieldType := $fieldConfig.type -}}
+
+  {{/* Start with empty field schema */}}
+  {{- $fieldSchema := dict -}}
+
+  {{/* Step 1: Apply root type defaults */}}
+  {{- range $attrKey, $attrValue := $rootType -}}
+    {{- if ne $attrKey "extends" -}}
+      {{/* Extract default value if this is a type definition (e.g., "required: boolean" becomes false) */}}
+      {{- $defaultValue := "" -}}
+      {{- if eq $attrValue "boolean" -}}
+        {{- $defaultValue = false -}}
+      {{- else if eq $attrValue "string" -}}
+        {{- $defaultValue = "" -}}
+      {{- else if eq $attrValue "number" -}}
+        {{- $defaultValue = 0 -}}
+      {{- else -}}
+        {{- $defaultValue = $attrValue -}}
+      {{- end -}}
+      {{- $fieldSchema = merge $fieldSchema (dict $attrKey $defaultValue) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Step 2: Check if this is a format type that extends a data type */}}
+  {{- $formatDef := index $dataFormats $fieldType -}}
+  {{- $parentType := "" -}}
+  {{- if $formatDef -}}
+    {{- $parentType = index $formatDef "extends" -}}
+    {{/* Apply parent type defaults */}}
+    {{- if $parentType -}}
+      {{- $parentTypeDef := index $dataTypes $parentType -}}
+      {{- if $parentTypeDef -}}
+        {{- range $attrKey, $attrValue := $parentTypeDef -}}
+          {{- if ne $attrKey "extends" -}}
+            {{- $defaultValue := "" -}}
+            {{- if eq $attrValue "boolean" -}}
+              {{- $defaultValue = false -}}
+            {{- else if eq $attrValue "string" -}}
+              {{- $defaultValue = "" -}}
+            {{- else if eq $attrValue "number" -}}
+              {{- $defaultValue = 0 -}}
+            {{- else if eq $attrValue "array" -}}
+              {{- $defaultValue = slice -}}
+            {{- else -}}
+              {{- $defaultValue = $attrValue -}}
+            {{- end -}}
+            {{- $fieldSchema = merge $fieldSchema (dict $attrKey $defaultValue) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{/* Apply format type attributes */}}
+    {{- range $attrKey, $attrValue := $formatDef -}}
+      {{- if ne $attrKey "extends" -}}
+        {{- $fieldSchema = merge $fieldSchema (dict $attrKey $attrValue) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{/* Not a format, check if it's a data type */}}
+    {{- $typeDef := index $dataTypes $fieldType -}}
+    {{- if $typeDef -}}
+      {{- range $attrKey, $attrValue := $typeDef -}}
+        {{- if ne $attrKey "extends" -}}
+          {{- $defaultValue := "" -}}
+          {{- if eq $attrValue "boolean" -}}
+            {{- $defaultValue = false -}}
+          {{- else if eq $attrValue "string" -}}
+            {{- $defaultValue = "" -}}
+          {{- else if eq $attrValue "number" -}}
+            {{- $defaultValue = 0 -}}
+          {{- else if eq $attrValue "array" -}}
+            {{- $defaultValue = slice -}}
+          {{- else -}}
+            {{- $defaultValue = $attrValue -}}
+          {{- end -}}
+          {{- $fieldSchema = merge $fieldSchema (dict $attrKey $defaultValue) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Step 3: Override with explicit config values */}}
+  {{- range $configKey, $configValue := $fieldConfig -}}
+    {{- $fieldSchema = merge $fieldSchema (dict $configKey $configValue) -}}
+  {{- end -}}
+
+  {{/* Add to complete schema */}}
+  {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}
+{{- end -}}
+
+{{- return $completeSchema -}}
