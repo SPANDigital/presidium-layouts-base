@@ -6,10 +6,12 @@
 {{ end }}
 
 <div class="module-title-bar-logo">
-  <img src="{{ $navImg }}" alt="{{ .Site.Title }} logo" class="brand" />
+  <a href="{{ $rootUrl }}" aria-label="{{ .Site.Title }} home">
+    <img src="{{ $navImg }}" alt="{{ .Site.Title }} logo" class="brand" />
+  </a>
 </div>
 
-<h1 class="brand-name">{{ .Site.Title }}</h1>
+<h4 class="brand-name">{{ .Site.Title }}</h4>
 
 {{ with .Site.Params.quality_category }}
   <span class="quality-category-labels">{{ . | lower }}</span>
