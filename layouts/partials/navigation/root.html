@@ -5,9 +5,6 @@
 {{ $slugifyUrl := .Site.Params.slugifyUrl | default true }}
 
 <nav class="navbar">
-  <div class="navbar-header">
-    {{ partial "navigation/brand.html" . }}
-  </div>
   <div class="navbar-items">
     {{ $currentPage := . }}
     <ul class="navbar-nav">
