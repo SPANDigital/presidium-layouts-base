@@ -4,11 +4,17 @@ Returns: boolean (true if imported, false otherwise)
 Usage: {{ $isImported := partial "common/is-imported" . }}
 */}}
 {{- $isImported := false -}}
+{{- $.Scratch.Set "githubRepo" "" -}}
 {{- with .File -}}
     {{- $filename := .Filename -}}
     {{- range $index, $element := hugo.Deps -}}
         {{- if in $filename $element.Path -}}
             {{- $isImported = true -}}
+            {{- if strings.Contains $element.Path "github.com" -}}
+                {{- $githubPath := index (split $element.Path "github.com/") 1 -}}
+                {{- $githubUrl := printf "https://github.com/%s/blob/main/%s" $githubPath $filename -}}
+                {{- $.Scratch.Set "githubRepo" $githubUrl -}}
+            {{- end -}}
         {{- end -}}
     {{- end -}}
 {{- end -}}
