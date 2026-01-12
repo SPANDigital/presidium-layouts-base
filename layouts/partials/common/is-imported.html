@@ -1,21 +1,32 @@
 {{/*
 Checks if the current page/content is from an imported content module.
-Returns: boolean (true if imported, false otherwise)
-Usage: {{ $isImported := partial "common/is-imported" . }}
+Returns: dict with isImported and githubUrl
+Usage: {{ $result := partial "common/is-imported" . }}
 */}}
-{{- $isImported := false -}}
-{{- $.Scratch.Set "githubRepo" "" -}}
+{{- $result := dict "isImported" false "githubUrl" "" -}}
 {{- with .File -}}
     {{- $filename := .Filename -}}
     {{- range $index, $element := hugo.Deps -}}
         {{- if in $filename $element.Path -}}
-            {{- $isImported = true -}}
-            {{- if strings.Contains $element.Path "github.com" -}}
-                {{- $githubPath := index (split $element.Path "github.com/") 1 -}}
-                {{- $githubUrl := printf "https://github.com/%s/blob/main/%s" $githubPath $filename -}}
-                {{- $.Scratch.Set "githubRepo" $githubUrl -}}
+            {{- $result = dict "isImported" true "githubUrl" "" -}}
+            {{- if strings.Contains $element.Path "github" -}}
+                {{- $pathParts := split $element.Path "github" -}}
+                {{- if ge (len $pathParts) 2 -}}
+                    {{- $githubPart := index $pathParts 1 -}}
+                    {{- $githubPart = strings.TrimPrefix ".com/" $githubPart -}}
+                    {{- $githubPart = strings.TrimPrefix "/" $githubPart -}}
+                    {{- $ownerRepoParts := split $githubPart "/" -}}
+                    {{- if ge (len $ownerRepoParts) 2 -}}
+                        {{- $owner := index $ownerRepoParts 0 -}}
+                        {{- $repo := index $ownerRepoParts 1 -}}
+                        {{- $ref := cond (ne $element.Version "") $element.Version "HEAD" -}}
+                        {{- $relativePath := strings.TrimPrefix $element.Path $filename -}}
+                        {{- $githubUrl := printf "https://github.com/%s/%s/blob/%s/%s" $owner $repo $ref $relativePath -}}
+                        {{- $result = dict "isImported" true "githubUrl" $githubUrl -}}
+                    {{- end -}}
+                {{- end -}}
             {{- end -}}
         {{- end -}}
     {{- end -}}
 {{- end -}}
-{{- return $isImported -}}
+{{- return $result -}}

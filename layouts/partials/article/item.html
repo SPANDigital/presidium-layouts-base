@@ -14,8 +14,9 @@ Optimized for performance with minimal DOM manipulation and efficient conditiona
 
 {{- $hasDataPages := .Data.Pages -}}
 {{- $type := cond (not $hasDataPages) "child" "parent" -}}
-{{- $isImported := partial "common/is-imported" . -}}
-{{- $githubUrl := $.Scratch.Get "githubRepo" -}}
+{{- $importInfo := partial "common/is-imported" . -}}
+{{- $isImported := $importInfo.isImported -}}
+{{- $githubUrl := $importInfo.githubUrl -}}
 
 {{/* File-based article identification with null safety */}}
 {{- $file := .File -}}
@@ -34,7 +35,7 @@ Optimized for performance with minimal DOM manipulation and efficient conditiona
          data-link="{{ $articleLink }}"
          permalink="{{ .Page.RelPermalink }}"
          data-no-content="{{ $noContent }}"
-         {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" data-github-url="{{ $githubUrl }}" {{ end }}
+         {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }} {{ end }}
          title="{{ .Title }}">
 
         {{- if $shouldRenderWrapper -}}
@@ -55,7 +56,7 @@ Optimized for performance with minimal DOM manipulation and efficient conditiona
     {{/* Graceful degradation for pages without file context */}}
     <div class="article {{ $type }}"
          data-roles="{{ $roles }}"
-         {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" data-github-url="{{ $githubUrl }}" {{ end }}
+         {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }} {{ end }}
          title="{{ .Title }}">
         <!-- Article without file context -->
     </div>
