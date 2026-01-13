@@ -46,7 +46,8 @@
 
 {{/* Unique id for file, used by scroll-spy and menu toggle  */}}
 {{ $uid := .NavPage.File.UniqueID }}
-{{- $isImported := partial "common/is-imported" .NavPage -}}
+{{- $importInfo := partial "common/is-imported" .NavPage -}}
+{{- $isImported := $importInfo.isImported -}}
 
 <li class="menu-row {{ if .NavPage.IsPage }}child{{end}}" style="overflow: hidden;" data-roles="{{ $roles }}" {{ if .NavPage.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }}>
     <div class="link level-{{ .Level }}">

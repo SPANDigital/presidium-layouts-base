@@ -10,18 +10,20 @@ Usage: {{ $result := partial "common/is-imported" . }}
         {{- if in $filename $element.Path -}}
             {{- $result = dict "isImported" true "githubUrl" "" -}}
             {{- if strings.Contains $element.Path "github" -}}
-                {{- $pathParts := split $element.Path "github" -}}
-                {{- if ge (len $pathParts) 2 -}}
-                    {{- $githubPart := index $pathParts 1 -}}
-                    {{- $githubPart = strings.TrimPrefix ".com/" $githubPart -}}
-                    {{- $githubPart = strings.TrimPrefix "/" $githubPart -}}
-                    {{- $ownerRepoParts := split $githubPart "/" -}}
-                    {{- if ge (len $ownerRepoParts) 2 -}}
-                        {{- $owner := index $ownerRepoParts 0 -}}
-                        {{- $repo := index $ownerRepoParts 1 -}}
-                        {{- $ref := cond (ne $element.Version "") $element.Version "HEAD" -}}
-                        {{- $relativePath := strings.TrimPrefix $element.Path $filename -}}
-                        {{- $githubUrl := printf "https://github.com/%s/%s/blob/%s/%s" $owner $repo $ref $relativePath -}}
+                {{/* Split module path by "/" to extract host, owner, repo */}}
+                {{- $moduleParts := split $element.Path "/" -}}
+                {{- if ge (len $moduleParts) 3 -}}
+                    {{- $host := index $moduleParts 0 -}}
+                    {{- $owner := index $moduleParts 1 -}}
+                    {{- $repo := index $moduleParts 2 -}}
+                    {{- $ref := cond (ne $element.Version "") $element.Version "HEAD" -}}
+
+                    {{/* Extract relative path by splitting filename on module path */}}
+                    {{- $filePathParts := split $filename $element.Path -}}
+                    {{- if ge (len $filePathParts) 2 -}}
+                        {{- $relativePath := index $filePathParts 1 -}}
+                        {{- $relativePath = strings.TrimPrefix "/" $relativePath -}}
+                        {{- $githubUrl := printf "https://%s/%s/%s/blob/%s/%s" $host $owner $repo $ref $relativePath -}}
                         {{- $result = dict "isImported" true "githubUrl" $githubUrl -}}
                     {{- end -}}
                 {{- end -}}
