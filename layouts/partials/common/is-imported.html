@@ -16,7 +16,13 @@ Usage: {{ $result := partial "common/is-imported" . }}
                     {{- $host := index $moduleParts 0 -}}
                     {{- $owner := index $moduleParts 1 -}}
                     {{- $repo := index $moduleParts 2 -}}
-                    {{- $ref := cond (ne $element.Version "") $element.Version "HEAD" -}}
+                    {{/* Use version if available, validate it doesn't contain path traversal */}}
+                    {{- $ref := "HEAD" -}}
+                    {{- if ne $element.Version "" -}}
+                        {{- if not (or (strings.Contains $element.Version "..") (strings.Contains $element.Version "/")) -}}
+                            {{- $ref = $element.Version -}}
+                        {{- end -}}
+                    {{- end -}}
 
                     {{/* Extract relative path by splitting filename on module path */}}
                     {{- $filePathParts := split $filename $element.Path -}}
@@ -25,6 +31,8 @@ Usage: {{ $result := partial "common/is-imported" . }}
                         {{- $relativePath = strings.TrimPrefix "/" $relativePath -}}
                         {{- $githubUrl := printf "https://%s/%s/%s/blob/%s/%s" $host $owner $repo $ref $relativePath -}}
                         {{- $result = dict "isImported" true "githubUrl" $githubUrl -}}
+                        {{/* Break out of loop once we find a GitHub URL */}}
+                        {{- break -}}
                     {{- end -}}
                 {{- end -}}
             {{- end -}}
