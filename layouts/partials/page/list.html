@@ -11,7 +11,8 @@
 {{- $slug := (partial "common/slug" .) -}}
 {{- $noContent := (eq (len .Content) 0) -}}
 {{- $type := cond $noContent "page" "article" -}}
-{{- $isImported := partial "common/is-imported" . -}}
+{{- $importInfo := partial "common/is-imported" . -}}
+{{- $isImported := $importInfo.isImported -}}
 
 <div class="{{ $type }} index" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $pageLink }}" permalink="{{ .Page.RelPermalink }}" data-no-content="{{ $noContent }}" {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }} >
     <div class="presidium-article-wrapper">

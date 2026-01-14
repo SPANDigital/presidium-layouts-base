@@ -1,15 +1,42 @@
 {{/*
 Checks if the current page/content is from an imported content module.
-Returns: boolean (true if imported, false otherwise)
-Usage: {{ $isImported := partial "common/is-imported" . }}
+Returns: dict with isImported and githubUrl
+Usage: {{ $result := partial "common/is-imported" . }}
 */}}
-{{- $isImported := false -}}
+{{- $result := dict "isImported" false "githubUrl" "" -}}
 {{- with .File -}}
     {{- $filename := .Filename -}}
     {{- range $index, $element := hugo.Deps -}}
         {{- if in $filename $element.Path -}}
-            {{- $isImported = true -}}
+            {{- $result = dict "isImported" true "githubUrl" "" -}}
+            {{- if strings.Contains $element.Path "github" -}}
+                {{/* Split module path by "/" to extract host, owner, repo */}}
+                {{- $moduleParts := split $element.Path "/" -}}
+                {{- if ge (len $moduleParts) 3 -}}
+                    {{- $host := index $moduleParts 0 -}}
+                    {{- $owner := index $moduleParts 1 -}}
+                    {{- $repo := index $moduleParts 2 -}}
+                    {{/* Use version if available, validate it doesn't contain path traversal */}}
+                    {{- $ref := "HEAD" -}}
+                    {{- if ne $element.Version "" -}}
+                        {{- if not (or (strings.Contains $element.Version "..") (strings.Contains $element.Version "/")) -}}
+                            {{- $ref = $element.Version -}}
+                        {{- end -}}
+                    {{- end -}}
+
+                    {{/* Extract relative path by splitting filename on module path */}}
+                    {{- $filePathParts := split $filename $element.Path -}}
+                    {{- if ge (len $filePathParts) 2 -}}
+                        {{- $relativePath := index $filePathParts 1 -}}
+                        {{- $relativePath = strings.TrimPrefix "/" $relativePath -}}
+                        {{- $githubUrl := printf "https://%s/%s/%s/edit/%s/%s" $host $owner $repo $ref $relativePath -}}
+                        {{- $result = dict "isImported" true "githubUrl" $githubUrl -}}
+                        {{/* Break out of loop once we find a GitHub URL */}}
+                        {{- break -}}
+                    {{- end -}}
+                {{- end -}}
+            {{- end -}}
         {{- end -}}
     {{- end -}}
 {{- end -}}
-{{- return $isImported -}}
+{{- return $result -}}
