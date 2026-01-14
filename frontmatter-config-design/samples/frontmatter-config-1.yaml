@@ -1,0 +1,46 @@
+author:
+  type: email
+  required: true
+  placeholder_message: Enter author email
+  validation_message: Please ensure your article has an author email address
+
+title:
+  type: string
+  required: true
+  placeholder_message: Enter a title
+  validation_message: Please ensure your article has a title
+  max_length: 100
+
+status:
+  type: option
+  required: true
+  placeholder_message: Select status
+  validation_message: Please select a valid status from the dropdown
+  items_type: string
+  items:
+    - Draft
+    - Review
+    - Published
+    - Deprecated
+
+slug:
+  type: string
+  required: true
+  placeholder_message: eg. example-slug
+  validation_message: Invalid slug format. Use lowercase letters, numbers, underscores and hyphens only (e.g. "validate" or "solution-definition")
+  pattern: ^[a-z]+(-[a-z]+)*$
+
+URL:
+  type: string
+  required: true
+  placeholder_message: https://example.com
+  validation_message: Please enter a valid URL (e.g. https://example.com)
+  pattern: ^(\/[a-zA-Z0-9-._~]+)*\/?$
+
+weight:
+  type: number
+  required: true
+  placeholder_message: eg. 5
+  validation_message: Weight must be a non-negative integer
+  integer: true
+  minimum: 1
