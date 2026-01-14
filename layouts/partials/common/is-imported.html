@@ -29,7 +29,7 @@ Usage: {{ $result := partial "common/is-imported" . }}
                     {{- if ge (len $filePathParts) 2 -}}
                         {{- $relativePath := index $filePathParts 1 -}}
                         {{- $relativePath = strings.TrimPrefix "/" $relativePath -}}
-                        {{- $githubUrl := printf "https://%s/%s/%s/blob/%s/%s" $host $owner $repo $ref $relativePath -}}
+                        {{- $githubUrl := printf "https://%s/%s/%s/edit/%s/%s" $host $owner $repo $ref $relativePath -}}
                         {{- $result = dict "isImported" true "githubUrl" $githubUrl -}}
                         {{/* Break out of loop once we find a GitHub URL */}}
                         {{- break -}}
