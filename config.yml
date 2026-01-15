@@ -24,11 +24,6 @@ outputformats:
   Compendium:
     baseName: compendium
     mediaType: application/json
-  frontmatterSchema:
-    baseName: frontmatter-schema
-    mediaType: application/json
-    isPlainText: true
-    notAlternative: true
   Embed:
     basename: embed
     mediaType: text/html
