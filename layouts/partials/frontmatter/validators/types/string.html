@@ -1,0 +1,42 @@
+{{/* String Validator - pure type validation logic */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Type check: must be string */}}
+{{- $valueType := printf "%T" $value -}}
+{{- if ne $valueType "string" -}}
+  {{- $errors = $errors | append (printf "%s must be a string" $fieldName) -}}
+{{- else -}}
+  {{/* Only validate constraints if type is correct */}}
+
+  {{/* Validate pattern (regex) */}}
+  {{- if $rules.pattern -}}
+    {{- $matches := findRE $rules.pattern $value -}}
+    {{- if not $matches -}}
+      {{- $errors = $errors | append (printf "%s does not match required pattern" $fieldName) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Validate min_length */}}
+  {{- if $rules.min_length -}}
+    {{- if lt (len $value) $rules.min_length -}}
+      {{- $errors = $errors | append (printf "%s must be at least %d characters" $fieldName $rules.min_length) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Validate max_length */}}
+  {{- if $rules.max_length -}}
+    {{- if gt (len $value) $rules.max_length -}}
+      {{- $errors = $errors | append (printf "%s must be no more than %d characters" $fieldName $rules.max_length) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}
