@@ -1,0 +1,2 @@
+{{- $completeSchema := partial "frontmatter/schema-generator.html" . -}}
+{{- $completeSchema | transform.Remarshal "yaml" -}}

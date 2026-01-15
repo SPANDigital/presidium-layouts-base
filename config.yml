@@ -33,11 +33,17 @@ outputformats:
     basename: pdf
     mediaType: text/html
     isHtml: true
+  frontmatterSchemaYaml:
+    baseName: frontmatter-schema
+    mediaType: text/yaml
+    isPlainText: true
+    notAlternative: true
 outputs:
   home:
     - Navigation
     - Compendium
     - Pdf
+    - frontmatterSchemaYaml
 params:
   _merge: shallow
   hugoVersion:
