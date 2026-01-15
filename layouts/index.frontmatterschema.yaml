@@ -1,2 +1,2 @@
 {{- $completeSchema := partial "frontmatter/schema-generator.html" . -}}
-{{- $completeSchema | jsonify (dict "indent" "  ") -}}
+{{- $completeSchema | transform.Remarshal "yaml" -}}

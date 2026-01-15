@@ -1,3 +1,8 @@
+mediatypes:
+  text/yaml:
+    suffixes:
+      - yaml
+      - yml
 module:
   mounts:
     - source: static
@@ -19,11 +24,6 @@ outputformats:
   Compendium:
     baseName: compendium
     mediaType: application/json
-  frontmatterSchema:
-    baseName: frontmatter-schema
-    mediaType: application/json
-    isPlainText: true
-    notAlternative: true
   Embed:
     basename: embed
     mediaType: text/html
@@ -33,11 +33,17 @@ outputformats:
     basename: pdf
     mediaType: text/html
     isHtml: true
+  frontmatterSchemaYaml:
+    baseName: frontmatter-schema
+    mediaType: text/yaml
+    isPlainText: true
+    notAlternative: true
 outputs:
   home:
     - Navigation
     - Compendium
     - Pdf
+    - frontmatterSchemaYaml
 params:
   _merge: shallow
   hugoVersion:
