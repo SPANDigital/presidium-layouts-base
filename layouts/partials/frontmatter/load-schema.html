@@ -12,7 +12,7 @@
 {{- $schemaData := index .Site.Data $namespace "frontmatter-schema" -}}
 
 {{- if not $schemaData -}}
-  {{- warnf "frontmatter-schema.json not found in data/%s/. Run schema generation first." $namespace -}}
+  {{- warnf "frontmatter-schema.yaml not found in data/%s/. Run schema generation first." $namespace -}}
   {{- $schema = dict -}}
 {{- else -}}
   {{- $schema = $schemaData -}}
