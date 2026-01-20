@@ -62,11 +62,11 @@
     {{- partial $validatorPath (dict "value" $value "rules" $rules "fieldName" $fieldName "context" $ctx) -}}
     {{- $validationResult := $ctx.Scratch.Get "type_validation_result" -}}
 
-    {{/* Step 5: Format errors using validation_message if needed */}}
+    {{/* Step 5: Format errors using error_message override if provided */}}
     {{- if not $validationResult.valid -}}
-      {{- if $rules.validation_message -}}
-        {{/* Use custom validation message if provided */}}
-        {{- $errors = $errors | append $rules.validation_message -}}
+      {{- if $rules.error_message -}}
+        {{/* Use custom error message to override type validator errors */}}
+        {{- $errors = $errors | append $rules.error_message -}}
       {{- else -}}
         {{/* Use errors from type validator */}}
         {{- $errors = $validationResult.errors -}}
