@@ -1,79 +1,113 @@
 # =============================================================================
-# DATA TYPES SCHEMA
+# FRONTMATTER TYPE DEFINITIONS
 # =============================================================================
-# Core validation types for frontmatter fields.
-# Each type extends 'root' and adds type-specific constraints.
+# Flat, self-contained type definitions for frontmatter field validation.
+# No inheritance - each type defines all its attributes with defaults.
+#
+# Categories:
+#   - Base types: string, number, boolean, array, object
+#   - Presets: date, datetime, email (string presets with pattern preconfigured)
+#
+# Legend:
+#   [Mandatory] - User must provide a value
+#   [Optional]  - Has default value, user can override
+#   [Preset]    - Explicitly set by the preset definition
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# STRING TYPE
+# BASE TYPES
 # -----------------------------------------------------------------------------
-# Text validation with optional pattern matching and length constraints.
+
+# STRING TYPE
+# Text validation with optional pattern matching and constrained options.
 # -----------------------------------------------------------------------------
 string:
-  extends: root
-  pattern: string                 # [Optional] Regex pattern for validation
-  min_length: number              # [Default: 0] Minimum character length
-  max_length: number              # [Optional] Maximum character length
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: ""                         # [Optional]
+  display_rows: 1                     # [Optional]
 
-# -----------------------------------------------------------------------------
 # NUMBER TYPE
-# -----------------------------------------------------------------------------
-# Numeric validation with range and integer constraints.
+# Numeric validation with optional constrained options.
 # -----------------------------------------------------------------------------
 number:
-  extends: root
-  minimum: number                 # [Optional] Minimum value (inclusive)
-  maximum: number                 # [Optional] Maximum value (inclusive)
-  integer: boolean                # [Default: false] Require integer values
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
 
-# -----------------------------------------------------------------------------
 # BOOLEAN TYPE
-# -----------------------------------------------------------------------------
-# True/false validation with no additional constraints.
+# True/false validation.
 # -----------------------------------------------------------------------------
 boolean:
-  extends: root
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
 
-# -----------------------------------------------------------------------------
-# ENUM TYPE
-# -----------------------------------------------------------------------------
-# Fixed list of allowed values. Use for dropdowns and constrained choices.
-# -----------------------------------------------------------------------------
-enum:
-  extends: root
-  items: array                    # [Required] List of allowed values
-
-# -----------------------------------------------------------------------------
 # ARRAY TYPE
-# -----------------------------------------------------------------------------
-# Collection validation for multiple values of same type.
+# Collection of items defined by `field` attribute.
 # -----------------------------------------------------------------------------
 array:
-  extends: root
-  items_type: string              # [Required] Type of array elements
-  min_items: number               # [Default: 0] Minimum number of items
-  max_items: number               # [Optional] Maximum number of items
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  field: object                       # [Mandatory]
 
-  # TODO(`object`): Planned future work (not in current scope)
-  # items_properties:             # [Required | items_type: object] Object element schema
-  #   key:                        # Property name
-  #     type: string              # Property type
-  #     required: boolean         # Whether property is required
-  #     placeholder_message: string
-  #     validation_message: string
-
-# TODO(`object`): Planned future work (not in current scope)
-# -----------------------------------------------------------------------------
 # OBJECT TYPE
+# Nested structure with named fields defined by `fields` attribute.
 # -----------------------------------------------------------------------------
-# Complex nested object validation with defined properties.
+object:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  fields: array                       # [Mandatory]
+
 # -----------------------------------------------------------------------------
-# object:
-#   extends: root
-#   properties:                   # [Required] Object property definitions
-#     key:                        # Property name
-#       type: string              # Property type
-#       required: boolean         # Whether property is required
-#       placeholder_message: string
-#       validation_message: string
+# PRESETS (type presets with pattern preconfigured)
+# -----------------------------------------------------------------------------
+
+# DATE PRESET
+# ISO 8601 date format (YYYY-MM-DD).
+# Inherits all string attributes with defaults.
+# -----------------------------------------------------------------------------
+date:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: '^\d{4}-\d{2}-\d{2}$'      # [Preset]
+  display_rows: 1                     # [Optional]
+
+# DATETIME PRESET
+# ISO 8601 datetime format (YYYY-MM-DDTHH:MM:SS with timezone).
+# Inherits all string attributes with defaults.
+# -----------------------------------------------------------------------------
+datetime:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$'  # [Preset]
+  display_rows: 1                     # [Optional]
+
+# EMAIL PRESET
+# Standard email address format.
+# Inherits all string attributes with defaults.
+# -----------------------------------------------------------------------------
+email:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'  # [Preset]
+  display_rows: 1                     # [Optional]
