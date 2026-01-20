@@ -1,4 +1,4 @@
-{{/* Number Type Validator - pure number type validation logic */}}
+{{/* Number Type Validator - validates number type only */}}
 {{/* Assumes: value exists (root validator already checked required/null) */}}
 
 {{- $value := .value -}}
@@ -15,29 +15,6 @@
 
 {{- if not $isNumber -}}
   {{- $errors = $errors | append (printf "%s must be a number" $fieldName) -}}
-{{- else -}}
-  {{/* Integer constraint - if integer: true, reject floats */}}
-  {{- if isset $rules "integer" -}}
-    {{- if $rules.integer -}}
-      {{- if not $isInt -}}
-        {{- $errors = $errors | append (printf "%s must be an integer" $fieldName) -}}
-      {{- end -}}
-    {{- end -}}
-  {{- end -}}
-
-  {{/* Minimum value constraint */}}
-  {{- if isset $rules "minimum" -}}
-    {{- if lt $value $rules.minimum -}}
-      {{- $errors = $errors | append (printf "%s must be at least %v" $fieldName $rules.minimum) -}}
-    {{- end -}}
-  {{- end -}}
-
-  {{/* Maximum value constraint */}}
-  {{- if isset $rules "maximum" -}}
-    {{- if gt $value $rules.maximum -}}
-      {{- $errors = $errors | append (printf "%s must be no more than %v" $fieldName $rules.maximum) -}}
-    {{- end -}}
-  {{- end -}}
 {{- end -}}
 
 {{/* Store result in scratch */}}
