@@ -47,16 +47,20 @@
 {{/* Steps 4-6: Only execute if we haven't already determined result */}}
 {{- if not $result.valid -}}
   {{- if and (eq (len $errors) 0) $fieldExists -}}
-    {{/* Step 3: Determine validator path based on type */}}
+    {{/* Step 3: Determine validator path - resolve presets to base types */}}
     {{- $fieldType := $rules.type -}}
-    {{- $validatorPath := "" -}}
 
-    {{- $formatTypes := slice "text" "email" "date" "datetime" "option" -}}
-    {{- if in $formatTypes $fieldType -}}
-      {{- $validatorPath = printf "frontmatter/validators/formats/%s.html" $fieldType -}}
-    {{- else -}}
-      {{- $validatorPath = printf "frontmatter/validators/types/%s.html" $fieldType -}}
+    {{/* Preset-to-base-type mapping (date/datetime/email are string presets) */}}
+    {{- $presetMapping := dict "email" "string" "date" "string" "datetime" "string" -}}
+
+    {{/* Resolve preset types to their base types (type-agnostic routing) */}}
+    {{- $resolvedType := $fieldType -}}
+    {{- if isset $presetMapping $fieldType -}}
+      {{- $resolvedType = index $presetMapping $fieldType -}}
     {{- end -}}
+
+    {{/* Route to base type validator */}}
+    {{- $validatorPath := printf "frontmatter/validators/types/%s.html" $resolvedType -}}
 
     {{/* Step 4: Delegate to type-specific validator */}}
     {{- partial $validatorPath (dict "value" $value "rules" $rules "fieldName" $fieldName "context" $ctx) -}}
