@@ -21,6 +21,24 @@
   {{- end -}}
 {{- end -}}
 
+{{/* Step 2a: Check options (common field validation) */}}
+{{- if and $fieldExists (eq (len $errors) 0) -}}
+  {{- if and $rules.options (gt (len $rules.options) 0) -}}
+    {{- $validOption := false -}}
+    {{- range $rules.options -}}
+      {{- if eq . $value -}}
+        {{- $validOption = true -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if not $validOption -}}
+      {{- $optionsList := delimit $rules.options ", " -}}
+      {{- $message := printf "%s must be one of: %s" $fieldName $optionsList -}}
+      {{- $errors = $errors | append $message -}}
+      {{- $result = dict "valid" false "errors" $errors -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{/* Step 3: Skip validation if field not present and not required */}}
 {{- if and (not $fieldExists) (eq (len $errors) 0) -}}
   {{- $result = dict "valid" true "errors" slice -}}
