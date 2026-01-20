@@ -1,4 +1,4 @@
-{{/* String Validator - pure type validation logic */}}
+{{/* String Validator - validates string type and pattern */}}
 {{/* Assumes: value exists (root validator already checked required/null) */}}
 
 {{- $value := .value -}}
@@ -19,20 +19,6 @@
     {{- $matches := findRE $rules.pattern $value -}}
     {{- if not $matches -}}
       {{- $errors = $errors | append (printf "%s does not match required pattern" $fieldName) -}}
-    {{- end -}}
-  {{- end -}}
-
-  {{/* Validate min_length */}}
-  {{- if $rules.min_length -}}
-    {{- if lt (len $value) $rules.min_length -}}
-      {{- $errors = $errors | append (printf "%s must be at least %d characters" $fieldName $rules.min_length) -}}
-    {{- end -}}
-  {{- end -}}
-
-  {{/* Validate max_length */}}
-  {{- if $rules.max_length -}}
-    {{- if gt (len $value) $rules.max_length -}}
-      {{- $errors = $errors | append (printf "%s must be no more than %d characters" $fieldName $rules.max_length) -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
