@@ -12,27 +12,40 @@ Runtime validation of Hugo page frontmatter against a JSON schema. Invalid front
 
 ---
 
-## Validators
+## Schema Type System
 
-### Types
+The frontmatter system uses a flat type model with 8 types: 5 base types and 3 presets.
 
-| Type | Location | Constraints |
-|------|----------|-------------|
-| `string` | `validators/types/string.html` | `pattern`, `min_length`, `max_length` |
-| `number` | `validators/types/number.html` | `minimum`, `maximum`, `integer` |
-| `array` | `validators/types/array.html` | `min_items`, `max_items` |
-| `enum` | `validators/types/enum.html` | `items` (list) |
+### Base Types
 
-### Formats
+| Type | Mandatory Attributes | Optional Attributes |
+|------|---------------------|---------------------|
+| `string` | `type`, `error_message`, `placeholder_message` | `required` (false), `options` ([]), `pattern` (""), `display_rows` (1) |
+| `number` | `type`, `error_message`, `placeholder_message` | `required` (false), `options` ([]) |
+| `boolean` | `type`, `error_message`, `placeholder_message` | `required` (false) |
+| `array` | `type`, `error_message`, `placeholder_message`, `field` | `required` (false) |
+| `object` | `type`, `error_message`, `placeholder_message`, `fields` | `required` (false) |
 
-| Format | Location | Extends |
-|--------|----------|---------|
-| `email` | `validators/formats/email.html` | `string` |
-| `date` | `validators/formats/date.html` | `string` |
-| `text` | `validators/formats/text.html` | `string` |
-| `option` | `validators/formats/option.html` | `enum` |
+### Preset Types (String-based)
 
-Format validators delegate to their base type, inheriting all validation logic.
+| Type | Pattern | Attributes |
+|------|---------|------------|
+| `date` | `^\d{4}-\d{2}-\d{2}$` | All `string` attributes + preconfigured `pattern` |
+| `datetime` | `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z\|[+-]\d{2}:\d{2})$` | All `string` attributes + preconfigured `pattern` |
+| `email` | `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$` | All `string` attributes + preconfigured `pattern` |
+
+**Note**: Presets are self-contained type definitions with all string attributes explicitly defined.
+
+### Validators
+
+Runtime validators in `layouts/partials/frontmatter/validators/` perform constraint checking:
+
+| Type | Validator Location | Validates |
+|------|-------------------|-----------|
+| `string` | `validators/types/string.html` | Pattern, length constraints |
+| `number` | `validators/types/number.html` | Min/max, integer constraints |
+| `array` | `validators/types/array.html` | Item count constraints |
+| `enum` | `validators/types/enum.html` | Valid options |
 
 ---
 
@@ -139,6 +152,93 @@ params:
 
 ---
 
+## Schema Generation
+
+The schema generator ([schema-generator.html](layouts/partials/frontmatter/schema-generator.html)) produces complete, self-contained schemas from Hugo configuration and type definitions.
+
+### Two-Level Merge Architecture
+
+Schema generation happens in two phases:
+
+**Level 1: Hugo Config Merge (Automatic)**
+```
+base theme params  →  client theme params  →  module imports
+         ↓                    ↓                      ↓
+              Hugo Deep Merge (automatic)
+                        ↓
+                  Merged Config
+```
+
+Hugo automatically deep-merges `.Site.Params.frontmatter` from all sources (base theme, client theme, module imports). Nested maps are merged, not replaced.
+
+**Level 2: Type Defaults Application (Schema Generator)**
+```
+For each field in merged config:
+  1. Look up type definition from types.yaml
+  2. Apply optional attribute defaults
+  3. Override with explicit config values
+  4. Recursively process nested structures (array.field, object.fields)
+  5. Return complete field schema
+```
+
+### Mandatory vs Optional Attributes
+
+**Mandatory attributes** (must be provided in config):
+- Type declarations: `type`, `error_message`, `placeholder_message`
+- Nested structures: `field` (for arrays), `fields` (for objects)
+- Build fails with `errorf` if missing
+
+**Optional attributes** (use defaults from type definition):
+- `required` (default: `false`)
+- `options` (default: `[]`)
+- `pattern` (default: `""`)
+- `display_rows` (default: `1`, string types only)
+
+### Recursive Processing
+
+**Critical**: Generated schemas are **complete and self-contained** with all nested structures fully resolved.
+
+**Rationale**: External consumers (UI generators, validators) lack awareness of type definitions. They require complete schemas with ALL defaults applied at every nesting level.
+
+**Example**:
+
+```yaml
+# User Config (Partial - Only Mandatory Attributes)
+tags:
+  type: array
+  error_message: "Tags must be a list"
+  placeholder_message: "Add tags"
+  field:
+    type: string
+    error_message: "Tag must be text"
+    placeholder_message: "Enter tag"
+
+# Generated Schema (Complete with Recursive Defaults)
+tags:
+  type: array
+  error_message: "Tags must be a list"
+  placeholder_message: "Add tags"
+  required: false              # Applied from array type
+  field:
+    type: string
+    error_message: "Tag must be text"
+    placeholder_message: "Enter tag"
+    required: false            # Applied recursively from string type
+    options: []                # Applied recursively
+    pattern: ""                # Applied recursively
+    display_rows: 1            # Applied recursively
+```
+
+### Schema Files
+
+| File | Purpose |
+|------|---------|
+| `data/schemas/frontmatter/types.yaml` | Type definitions (5 base + 3 presets) |
+| `layouts/partials/frontmatter/schema-generator.html` | Main generator (calls processField) |
+| `layouts/partials/frontmatter/processField.html` | Recursive field processor |
+
+---
+
 ## Extending
 
 ### Add a Type Validator
@@ -179,9 +279,25 @@ frontmatter:
     required: true
 ```
 
-### Add a Format Validator
+### Add a Preset Type
 
-**1. Create** `validators/formats/<format>.html`:
+Presets are self-contained type definitions (typically string-based) with preconfigured patterns.
+
+**1. Add to** `data/schemas/frontmatter/types.yaml`:
+
+```yaml
+# Preset types include ALL attributes from their base type
+phone:
+  type: string                          # Mandatory
+  error_message: string                 # Mandatory
+  placeholder_message: string           # Mandatory
+  required: false                       # Optional (default)
+  options: []                           # Optional (default)
+  pattern: '^\+?[1-9]\d{1,14}$'        # Preconfigured pattern
+  display_rows: 1                       # Optional (default)
+```
+
+**2. Create validator** `validators/types/phone.html` (delegates to string validator):
 
 ```go-html-template
 {{- $value := .value -}}
@@ -189,22 +305,22 @@ frontmatter:
 {{- $fieldName := .fieldName -}}
 {{- $ctx := .context -}}
 
-{{/* Delegate to base type */}}
-{{- partial "frontmatter/validators/types/string.html" (dict 
+{{/* Delegate to string validator */}}
+{{- partial "frontmatter/validators/types/string.html" (dict
     "value" $value "rules" $rules "fieldName" $fieldName "context" $ctx) -}}
-
-{{/* Pass through result */}}
-{{- $result := $ctx.Scratch.Get "type_validation_result" -}}
-{{- $ctx.Scratch.Set "type_validation_result" $result -}}
 ```
 
-**2. Add to** `data/schemas/frontmatter/formats.yaml`:
+**3. Use in config**:
 
 ```yaml
-url:
-  extends: string
-  pattern: '^https?://[^\s/$.?#].[^\s]*$'
+frontmatter:
+  contact_number:
+    type: phone
+    error_message: "Invalid phone number"
+    placeholder_message: "Enter phone number"
 ```
+
+Schema generator will recursively apply all defaults (required, options, display_rows) and merge the preconfigured pattern.
 
 ### Validator Checklist
 
