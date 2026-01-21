@@ -33,7 +33,7 @@ outputformats:
     basename: pdf
     mediaType: text/html
     isHtml: true
-  frontmatterSchemaYaml:
+  FrontmatterSchema:
     baseName: frontmatter-schema
     mediaType: text/yaml
     isPlainText: true
@@ -43,7 +43,7 @@ outputs:
     - Navigation
     - Compendium
     - Pdf
-    - frontmatterSchemaYaml
+    # - frontmatterSchemaYaml
 params:
   _merge: shallow
   data:
