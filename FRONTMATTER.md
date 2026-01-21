@@ -38,14 +38,20 @@ The frontmatter system uses a flat type model with 8 types: 5 base types and 3 p
 
 ### Validators
 
-Runtime validators in `layouts/partials/frontmatter/validators/` perform constraint checking:
+Runtime validators in `layouts/partials/frontmatter/validators/` perform type checking and constraint validation:
 
 | Type | Validator Location | Validates |
 |------|-------------------|-----------|
-| `string` | `validators/types/string.html` | Pattern, length constraints |
-| `number` | `validators/types/number.html` | Min/max, integer constraints |
-| `array` | `validators/types/array.html` | Item count constraints |
-| `enum` | `validators/types/enum.html` | Valid options |
+| `string` | `validators/types/string.html` | Type check + pattern matching |
+| `number` | `validators/types/number.html` | Type check (int/float detection) |
+| `boolean` | `validators/types/boolean.html` | Type check (bool validation) |
+| `array` | `validators/types/array.html` | Type check (array validation) |
+| `object` | `validators/types/object.html` | Type check (map/dict validation) |
+
+**Common Field Validation**: The root validator (`validators/root.html`) handles common attributes for all types:
+- `required`: Missing field validation
+- `options`: Value-in-list validation
+- `error_message`: Custom error message override
 
 ---
 
@@ -71,20 +77,31 @@ Type/Format Validator
 Root aggregates errors → Hugo warnf
 ```
 
-### Root Validator Pattern
+### Two-Tier Validation Architecture
 
-**Root Validator** handles lifecycle:
-- Required field checking
-- Null/empty value handling
-- Routing to appropriate validator
-- Error message formatting
+The validation system uses a two-tier architecture separating common field validation from type-specific validation:
 
-**Type/Format Validators** handle business logic:
-- Constraint validation only
-- Assume value exists (root checked already)
-- Store results in `.Scratch`
+**Tier 1: Common Field Validation** (`validators/root.html`)
+- Validates attributes common to all types:
+  - `required`: Checks if field exists when mandatory
+  - `options`: Validates value is in allowed list (applies to string, number types)
+  - `error_message`: Overrides default error with custom message
+- Handles lifecycle: null/empty value handling, routing to type validators
+- Runs BEFORE type-specific validation
 
-**Benefits**: DRY, extensible, maintainable (~30% less code per validator)
+**Tier 2: Type-Specific Validation** (`validators/types/*.html`)
+- Validates type-exclusive constraints:
+  - `string`: Type check + pattern matching (regex validation)
+  - `number`: Type check (int/float detection)
+  - `boolean`: Type check (bool validation)
+  - `array`: Type check (array validation)
+  - `object`: Type check (map/dict validation)
+- Assumes value exists (root validator already checked)
+- Stores results in `.Scratch` for root validator retrieval
+
+**Preset Types**: Types like `email`, `date`, `datetime` are string-based presets with preconfigured patterns. They route to `validators/types/string.html` which handles pattern validation.
+
+**Benefits**: DRY architecture, extensible, maintainable (~40% less code per validator)
 
 ### .Scratch Pattern
 
@@ -115,14 +132,29 @@ frontmatter:
   title:
     type: string
     required: true
-    min_length: 5
-    max_length: 100
-    
-  status:
-    type: enum
+    pattern: "^.{5,}$"  # Minimum 5 characters via regex
+    error_message: "Title must be at least 5 characters"
+    placeholder_message: "Enter article title"
+
+  email:
+    type: email  # Preset type with built-in pattern
     required: true
-    items: [draft, published, archived]
-    validation_message: "Status must be draft, published, or archived"
+    error_message: "Valid email required"
+    placeholder_message: "user@example.com"
+
+  status:
+    type: string
+    required: true
+    options: [draft, published, archived]  # Value-in-list validation
+    error_message: "Status must be draft, published, or archived"
+    placeholder_message: "Select status"
+
+  priority:
+    type: number
+    required: false
+    options: [1, 2, 3, 4, 5]
+    error_message: "Priority must be 1-5"
+    placeholder_message: "Enter priority level"
 ```
 
 **2. Generate schema** (automatic in build):
@@ -134,7 +166,9 @@ hugo --config=config.yml,config-gen.yaml --destination data/presidium
 **3. Validation runs automatically**. Invalid frontmatter shows warnings:
 
 ```
-WARN  [Frontmatter Validation] post.md: title must be at least 5 characters
+WARN  [Frontmatter Validation] post.md: Title must be at least 5 characters
+WARN  [Frontmatter Validation] post.md: Status must be draft, published, or archived
+WARN  [Frontmatter Validation] post.md: Valid email required
 ```
 
 ### Configuration
