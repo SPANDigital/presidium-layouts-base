@@ -43,7 +43,6 @@ outputs:
     - Navigation
     - Compendium
     - Pdf
-    # - frontmatterSchemaYaml
 params:
   _merge: shallow
   data:
