@@ -52,39 +52,20 @@ Usage:
 
 {{/*
 =============================================================================
-Helper: Check if source contributed ANY attribute to merged config
-=============================================================================
-*/}}
-{{- define "hasContribution" -}}
-  {{- $sourceField := .sourceField -}}
-  {{- $mergedField := .mergedField -}}
-  {{- $contributed := false -}}
-
-  {{/* Check each attribute in source field */}}
-  {{- range $attrName, $attrValue := $sourceField -}}
-    {{/* Get corresponding value in merged config */}}
-    {{- $mergedValue := index $mergedField $attrName -}}
-
-    {{/* If values match, source contributed this attribute */}}
-    {{- if eq $mergedValue $attrValue -}}
-      {{- $contributed = true -}}
-    {{- end -}}
-  {{- end -}}
-
-  {{- return $contributed -}}
-{{- end -}}
-
-{{/*
-=============================================================================
 Check Module Contribution (Highest Priority)
 =============================================================================
 */}}
 {{- if $modulePath -}}
   {{- if isset $moduleConfig $fieldName -}}
     {{- $moduleField := index $moduleConfig $fieldName -}}
-    {{- $contributed := partial "hasContribution"
-        (dict "sourceField" $moduleField
-              "mergedField" $mergedFieldConfig) -}}
+    {{- $contributed := false -}}
+    {{/* Check each attribute in module field */}}
+    {{- range $attrName, $attrValue := $moduleField -}}
+      {{- $mergedValue := index $mergedFieldConfig $attrName -}}
+      {{- if eq $mergedValue $attrValue -}}
+        {{- $contributed = true -}}
+      {{- end -}}
+    {{- end -}}
 
     {{- if $contributed -}}
       {{- $sources = $sources | append (printf "%s/config.yml" $modulePath) -}}
@@ -100,9 +81,14 @@ Check Client Contribution (Middle Priority)
 {{- if $clientPath -}}
   {{- if isset $clientConfig $fieldName -}}
     {{- $clientField := index $clientConfig $fieldName -}}
-    {{- $contributed := partial "hasContribution"
-        (dict "sourceField" $clientField
-              "mergedField" $mergedFieldConfig) -}}
+    {{- $contributed := false -}}
+    {{/* Check each attribute in client field */}}
+    {{- range $attrName, $attrValue := $clientField -}}
+      {{- $mergedValue := index $mergedFieldConfig $attrName -}}
+      {{- if eq $mergedValue $attrValue -}}
+        {{- $contributed = true -}}
+      {{- end -}}
+    {{- end -}}
 
     {{- if $contributed -}}
       {{- $sources = $sources | append
@@ -118,9 +104,14 @@ Check Base Contribution (Lowest Priority)
 */}}
 {{- if isset $baseConfig $fieldName -}}
   {{- $baseField := index $baseConfig $fieldName -}}
-  {{- $contributed := partial "hasContribution"
-      (dict "sourceField" $baseField
-            "mergedField" $mergedFieldConfig) -}}
+  {{- $contributed := false -}}
+  {{/* Check each attribute in base field */}}
+  {{- range $attrName, $attrValue := $baseField -}}
+    {{- $mergedValue := index $mergedFieldConfig $attrName -}}
+    {{- if eq $mergedValue $attrValue -}}
+      {{- $contributed = true -}}
+    {{- end -}}
+  {{- end -}}
 
   {{- if $contributed -}}
     {{- $sources = $sources | append

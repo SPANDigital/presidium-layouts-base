@@ -30,8 +30,8 @@ Implementation:
 
 {{- $completeSchema := dict -}}
 
-{{/* Get merged frontmatter config from Hugo (base → client → module) */}}
-{{- $mergedConfig := .Site.Params.frontmatter -}}
+{{/* Initialize merged config (will be populated after loading all sources) */}}
+{{- $mergedConfig := dict -}}
 
 {{/* Load flat type definitions from data directory */}}
 {{- $dataTypes := .Site.Data.schemas.frontmatter.types -}}
@@ -48,7 +48,8 @@ Detect Config Source Paths
 {{- if fileExists $configPath -}}
   {{- $configContent := os.ReadFile $configPath -}}
   {{- if $configContent -}}
-    {{- $configData := transform.Unmarshal $configContent -}}
+    {{- $resource := resources.FromString "config.yml" $configContent -}}
+    {{- $configData := $resource | transform.Unmarshal -}}
     {{- with $configData.module -}}
       {{- with .imports -}}
         {{- range . -}}
@@ -67,7 +68,8 @@ Detect Config Source Paths
 {{- if fileExists $configPath -}}
   {{- $configContent := os.ReadFile $configPath -}}
   {{- if $configContent -}}
-    {{- $configData := transform.Unmarshal $configContent -}}
+    {{- $resource := resources.FromString "config.yml" $configContent -}}
+    {{- $configData := $resource | transform.Unmarshal -}}
     {{- with $configData.module -}}
       {{- with .imports -}}
         {{- range . -}}
@@ -101,12 +103,16 @@ Load Config Sources
 
 {{/* Load Base Config */}}
 {{- $baseConfig := dict -}}
-{{- $baseConfigPath := printf "%s/config/_default/frontmatter/params.yaml" $basePath -}}
+{{/* For Hugo modules, mounted config is accessible via virtual filesystem at config/ */}}
+{{- $baseConfigPath := "config/_default/frontmatter/params.yaml" -}}
 {{- if fileExists $baseConfigPath -}}
   {{- $baseContent := os.ReadFile $baseConfigPath -}}
   {{- if $baseContent -}}
-    {{- $parsed := transform.Unmarshal $baseContent -}}
-    {{- $baseConfig = index $parsed "frontmatter" | default dict -}}
+    {{- $resource := resources.FromString "params.yaml" $baseContent -}}
+    {{- $parsed := $resource | transform.Unmarshal -}}
+    {{- if $parsed -}}
+      {{- $baseConfig = index $parsed "frontmatter" | default dict -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 
@@ -117,8 +123,11 @@ Load Config Sources
   {{- if fileExists $clientConfigPath -}}
     {{- $clientContent := os.ReadFile $clientConfigPath -}}
     {{- if $clientContent -}}
-      {{- $parsed := transform.Unmarshal $clientContent -}}
-      {{- $clientConfig = index $parsed "frontmatter" | default dict -}}
+      {{- $resource := resources.FromString "params.yaml" $clientContent -}}
+      {{- $parsed := $resource | transform.Unmarshal -}}
+      {{- if $parsed -}}
+        {{- $clientConfig = index $parsed "frontmatter" | default dict -}}
+      {{- end -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -128,11 +137,35 @@ Load Config Sources
 {{- if fileExists $configPath -}}
   {{- $configContent := os.ReadFile $configPath -}}
   {{- if $configContent -}}
-    {{- $configData := transform.Unmarshal $configContent -}}
+    {{- $resource := resources.FromString "config.yml" $configContent -}}
+    {{- $configData := $resource | transform.Unmarshal -}}
     {{- with $configData.params -}}
       {{- $moduleConfig = .frontmatter | default dict -}}
     {{- end -}}
   {{- end -}}
+{{- end -}}
+
+{{/*
+=============================================================================
+Manually Merge Configs (Module → Client → Base priority)
+=============================================================================
+Hugo's merge does SHALLOW merge only. We need DEEP merge at field level.
+Strategy: Start with base, overlay client, overlay module.
+*/}}
+{{- $mergedConfig = $baseConfig -}}
+
+{{/* Overlay client config (field-level deep merge) */}}
+{{/* Hugo merge: SECOND arg wins. So: merge base client to prefer client */}}
+{{- range $fieldName, $clientField := $clientConfig -}}
+  {{- $baseField := index $mergedConfig $fieldName | default dict -}}
+  {{- $mergedConfig = merge $mergedConfig (dict $fieldName (merge $baseField $clientField)) -}}
+{{- end -}}
+
+{{/* Overlay module config (field-level deep merge) */}}
+{{/* Hugo merge: SECOND arg wins. So: merge current module to prefer module */}}
+{{- range $fieldName, $moduleField := $moduleConfig -}}
+  {{- $currentField := index $mergedConfig $fieldName | default dict -}}
+  {{- $mergedConfig = merge $mergedConfig (dict $fieldName (merge $currentField $moduleField)) -}}
 {{- end -}}
 
 {{/* Iterate through each configured field */}}
