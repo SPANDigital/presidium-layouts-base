@@ -1,0 +1,131 @@
+{{/*
+=============================================================================
+Detect Config Sources Partial
+=============================================================================
+Detects which configuration sources (module/client/base) contributed to a
+frontmatter field's final schema by comparing source configs with merged config.
+
+Input (dict):
+  - fieldName: Field key (e.g., "title", "author")
+  - mergedFieldConfig: Final field config from .Site.Params.frontmatter
+  - baseConfig: Raw base theme frontmatter config (from params.yaml)
+  - clientConfig: Raw client theme frontmatter config (from params.yaml)
+  - moduleConfig: Raw module frontmatter config (from config.yml)
+  - basePath: Base theme repository path
+  - clientPath: Client theme repository path (empty if not used)
+  - modulePath: Module repository path (empty if not used)
+
+Output: Array of config source paths in priority order (highest → lowest)
+
+Contribution Rule: A source "contributes" if ANY of its attribute values
+match the corresponding attribute in the merged field config.
+
+Example Output:
+  ["github.com/org/module/config.yml",
+   "github.com/org/client/config/_default/frontmatter/params.yaml",
+   "github.com/org/base/config/_default/frontmatter/params.yaml"]
+
+Usage:
+  {{ $sources := partial "frontmatter/detect-config-sources"
+      (dict "fieldName" $fieldKey
+            "mergedFieldConfig" $fieldConfig
+            "baseConfig" $baseConfig
+            "clientConfig" $clientConfig
+            "moduleConfig" $moduleConfig
+            "basePath" $basePath
+            "clientPath" $clientPath
+            "modulePath" $modulePath) }}
+=============================================================================
+*/}}
+
+{{- $fieldName := .fieldName -}}
+{{- $mergedFieldConfig := .mergedFieldConfig -}}
+{{- $baseConfig := .baseConfig -}}
+{{- $clientConfig := .clientConfig -}}
+{{- $moduleConfig := .moduleConfig -}}
+{{- $basePath := .basePath -}}
+{{- $clientPath := .clientPath -}}
+{{- $modulePath := .modulePath -}}
+
+{{/* Initialize sources array */}}
+{{- $sources := slice -}}
+
+{{/*
+=============================================================================
+Helper: Check if source contributed ANY attribute to merged config
+=============================================================================
+*/}}
+{{- define "hasContribution" -}}
+  {{- $sourceField := .sourceField -}}
+  {{- $mergedField := .mergedField -}}
+  {{- $contributed := false -}}
+
+  {{/* Check each attribute in source field */}}
+  {{- range $attrName, $attrValue := $sourceField -}}
+    {{/* Get corresponding value in merged config */}}
+    {{- $mergedValue := index $mergedField $attrName -}}
+
+    {{/* If values match, source contributed this attribute */}}
+    {{- if eq $mergedValue $attrValue -}}
+      {{- $contributed = true -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- return $contributed -}}
+{{- end -}}
+
+{{/*
+=============================================================================
+Check Module Contribution (Highest Priority)
+=============================================================================
+*/}}
+{{- if $modulePath -}}
+  {{- if isset $moduleConfig $fieldName -}}
+    {{- $moduleField := index $moduleConfig $fieldName -}}
+    {{- $contributed := partial "hasContribution"
+        (dict "sourceField" $moduleField
+              "mergedField" $mergedFieldConfig) -}}
+
+    {{- if $contributed -}}
+      {{- $sources = $sources | append (printf "%s/config.yml" $modulePath) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+=============================================================================
+Check Client Contribution (Middle Priority)
+=============================================================================
+*/}}
+{{- if $clientPath -}}
+  {{- if isset $clientConfig $fieldName -}}
+    {{- $clientField := index $clientConfig $fieldName -}}
+    {{- $contributed := partial "hasContribution"
+        (dict "sourceField" $clientField
+              "mergedField" $mergedFieldConfig) -}}
+
+    {{- if $contributed -}}
+      {{- $sources = $sources | append
+          (printf "%s/config/_default/frontmatter/params.yaml" $clientPath) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+=============================================================================
+Check Base Contribution (Lowest Priority)
+=============================================================================
+*/}}
+{{- if isset $baseConfig $fieldName -}}
+  {{- $baseField := index $baseConfig $fieldName -}}
+  {{- $contributed := partial "hasContribution"
+      (dict "sourceField" $baseField
+            "mergedField" $mergedFieldConfig) -}}
+
+  {{- if $contributed -}}
+    {{- $sources = $sources | append
+        (printf "%s/config/_default/frontmatter/params.yaml" $basePath) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $sources -}}
