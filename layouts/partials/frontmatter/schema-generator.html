@@ -137,10 +137,28 @@ Load Config Sources
 
 {{/* Iterate through each configured field */}}
 {{- range $fieldKey, $fieldConfig := $mergedConfig -}}
+  {{/* Generate enriched field schema */}}
   {{- $fieldSchema := partial "frontmatter/processField"
       (dict "fieldConfig" $fieldConfig
             "dataTypes" $dataTypes
             "fieldKey" $fieldKey) -}}
+
+  {{/* Detect config sources for this field */}}
+  {{- $configSources := partial "frontmatter/detect-config-sources"
+      (dict "fieldName" $fieldKey
+            "mergedFieldConfig" $fieldConfig
+            "baseConfig" $baseConfig
+            "clientConfig" $clientConfig
+            "moduleConfig" $moduleConfig
+            "basePath" $basePath
+            "clientPath" $clientPath
+            "modulePath" $modulePath) -}}
+
+  {{/* Add _config_location meta-attribute */}}
+  {{- if $configSources -}}
+    {{- $fieldSchema = merge $fieldSchema (dict "_config_location" $configSources) -}}
+  {{- end -}}
+
   {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}
 {{- end -}}
 
