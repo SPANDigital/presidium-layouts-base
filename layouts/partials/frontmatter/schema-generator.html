@@ -36,6 +36,105 @@ Implementation:
 {{/* Load flat type definitions from data directory */}}
 {{- $dataTypes := .Site.Data.schemas.frontmatter.types -}}
 
+{{/*
+=============================================================================
+Detect Config Source Paths
+=============================================================================
+*/}}
+
+{{/* Detect Base Theme Path */}}
+{{- $basePath := "github.com/SPANDigital/presidium-layouts-base" -}}
+{{- $configPath := "config.yml" -}}
+{{- if fileExists $configPath -}}
+  {{- $configContent := os.ReadFile $configPath -}}
+  {{- if $configContent -}}
+    {{- $configData := transform.Unmarshal $configContent -}}
+    {{- with $configData.module -}}
+      {{- with .imports -}}
+        {{- range . -}}
+          {{- $importPath := .path | default "" -}}
+          {{- if in $importPath "presidium-layouts-base" -}}
+            {{- $basePath = $importPath -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Detect Client Theme Path (optional) */}}
+{{- $clientPath := "" -}}
+{{- if fileExists $configPath -}}
+  {{- $configContent := os.ReadFile $configPath -}}
+  {{- if $configContent -}}
+    {{- $configData := transform.Unmarshal $configContent -}}
+    {{- with $configData.module -}}
+      {{- with .imports -}}
+        {{- range . -}}
+          {{- $importPath := .path | default "" -}}
+          {{/* Client is a theme import that's NOT the base theme */}}
+          {{- if and (in $importPath "theme") (not (in $importPath "presidium-layouts-base")) -}}
+            {{- $clientPath = $importPath -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Detect Module Path from BaseURL */}}
+{{- $modulePath := "" -}}
+{{- with .Site.BaseURL -}}
+  {{- $urlParts := split . "/" -}}
+  {{- if ge (len $urlParts) 4 -}}
+    {{- $org := index $urlParts (sub (len $urlParts) 2) -}}
+    {{- $repo := index $urlParts (sub (len $urlParts) 1) -}}
+    {{- $modulePath = printf "github.com/%s/%s" $org $repo -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+=============================================================================
+Load Config Sources
+=============================================================================
+*/}}
+
+{{/* Load Base Config */}}
+{{- $baseConfig := dict -}}
+{{- $baseConfigPath := printf "%s/config/_default/frontmatter/params.yaml" $basePath -}}
+{{- if fileExists $baseConfigPath -}}
+  {{- $baseContent := os.ReadFile $baseConfigPath -}}
+  {{- if $baseContent -}}
+    {{- $parsed := transform.Unmarshal $baseContent -}}
+    {{- $baseConfig = index $parsed "frontmatter" | default dict -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Load Client Config (optional) */}}
+{{- $clientConfig := dict -}}
+{{- if $clientPath -}}
+  {{- $clientConfigPath := printf "%s/config/_default/frontmatter/params.yaml" $clientPath -}}
+  {{- if fileExists $clientConfigPath -}}
+    {{- $clientContent := os.ReadFile $clientConfigPath -}}
+    {{- if $clientContent -}}
+      {{- $parsed := transform.Unmarshal $clientContent -}}
+      {{- $clientConfig = index $parsed "frontmatter" | default dict -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Load Module Config */}}
+{{- $moduleConfig := dict -}}
+{{- if fileExists $configPath -}}
+  {{- $configContent := os.ReadFile $configPath -}}
+  {{- if $configContent -}}
+    {{- $configData := transform.Unmarshal $configContent -}}
+    {{- with $configData.params -}}
+      {{- $moduleConfig = .frontmatter | default dict -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{/* Iterate through each configured field */}}
 {{- range $fieldKey, $fieldConfig := $mergedConfig -}}
   {{- $fieldSchema := partial "frontmatter/processField"
