@@ -87,7 +87,9 @@ Detect Config Source Paths
 {{/* Detect Module Path from BaseURL */}}
 {{- $modulePath := "" -}}
 {{- with .Site.BaseURL -}}
-  {{- $urlParts := split . "/" -}}
+  {{/* Trim trailing slash to avoid empty string in split */}}
+  {{- $cleanURL := strings.TrimSuffix "/" . -}}
+  {{- $urlParts := split $cleanURL "/" -}}
   {{- if ge (len $urlParts) 4 -}}
     {{- $org := index $urlParts (sub (len $urlParts) 2) -}}
     {{- $repo := index $urlParts (sub (len $urlParts) 1) -}}
