@@ -166,6 +166,8 @@ cp public/frontmatter-schema.yaml data/presidium/frontmatter-schema.yaml
 rm -rf public
 ```
 
+> **Note**: See [Technical Deep Dive: dependencies.config.yml](#technical-deep-dive-dependenciesconfigyml) for details on the overlay config file.
+
 **What happens**:
 - Hugo reads base theme config: `config/_default/frontmatter/params.yaml`
 - Hugo reads module config: `config.yml` → `params.frontmatter`
@@ -391,6 +393,177 @@ frontmatter:
 | Normal build | `hugo --gc` |
 | Check schema exists | `ls data/presidium/frontmatter-schema.yaml` |
 | View schema | `cat data/presidium/frontmatter-schema.yaml` |
+
+> For details on `dependencies.config.yml`, see [Technical Deep Dive](#technical-deep-dive-dependenciesconfigyml) below.
+
+---
+
+## Technical Deep Dive: dependencies.config.yml
+
+### Purpose
+
+The `dependencies.config.yml` file is a **build overlay** that optimizes Stage 1 (schema generation) by excluding all unnecessary Hugo processing. This reduces build time from minutes to seconds when generating only the schema.
+
+### File Location
+
+**Expected location**: `dependencies.config.yml` (repository root)
+
+### How It Works
+
+Hugo supports **layered configuration** using multiple config files:
+
+```bash
+hugo --config config.yml,dependencies.config.yml
+```
+
+**Processing order**:
+1. Load `config.yml` (includes `config/_default/` directory)
+2. Deep merge `dependencies.config.yml` on top
+3. Later values override earlier values
+4. Arrays are merged, not replaced
+
+### File Contents
+
+```yaml
+# =============================================================================
+# Stage 1: Dependencies Config Overlay
+# =============================================================================
+# Minimal overlay config for schema generation.
+# Used with: hugo --config=config.yml,dependencies.config.yml
+#
+# This overlay approach allows Hugo to:
+#   1. Load config.yml (with config/_default/ including params)
+#   2. Overlay these schema-generation-specific settings
+#
+# USAGE:
+#   hugo --gc --config config.yml,dependencies.config.yml
+# =============================================================================
+
+# Module configuration - exclude content/static/assets, minimal mounts
+module:
+  mounts:
+    # Exclude all content/static/assets to prevent processing
+    - excludeFiles: "**"
+      source: content
+      target: content
+    - excludeFiles: "**"
+      source: static
+      target: static
+    - excludeFiles: "**"
+      source: assets
+      target: assets
+
+  imports:
+    - path: github.com/spandigital/presidium-styling-base
+      noMounts: true  # Don't need styling for schema generation
+    - path: github.com/spandigital/presidium-layouts-base
+      mounts:
+        - source: layouts
+          target: layouts
+        - source: data
+          target: data
+
+# Disable all page kinds to prevent HTML generation
+disableKinds:
+  - "page"
+  - "section"
+  - "taxonomy"
+  - "term"
+  - "RSS"
+  - "sitemap"
+  - "robotsTXT"
+  - "404"
+
+# Output ONLY schema (override config.yml outputs)
+outputs:
+  home:
+    - FrontmatterSchema
+```
+
+### Key Optimizations
+
+| Optimization | Impact |
+|--------------|--------|
+| `excludeFiles: "**"` for content/static/assets | Skips all content processing |
+| `noMounts: true` for styling module | Excludes unnecessary CSS/SCSS |
+| `disableKinds: [...]` | Prevents all page generation |
+| `outputs: [FrontmatterSchema]` | Only generates schema file |
+
+**Result**: Build time reduced from ~2 minutes → ~5 seconds
+
+### What Gets Generated
+
+**Stage 1 output**: `public/frontmatter-schema.yaml`
+
+This file contains:
+- Merged frontmatter configuration (base + module)
+- All type defaults applied recursively
+- Complete, self-contained schema
+
+**Stage 2 requirement**: Copy to `data/presidium/frontmatter-schema.yaml`
+
+Hugo can only load schemas from the `data/` directory during builds, but can only generate outputs to `public/`. This is why the copy step is necessary.
+
+### Integration with CI/CD
+
+**Automated workflow**:
+
+```yaml
+# .github/workflows/build.yml example
+- name: Generate Schema
+  run: |
+    hugo --gc --config config.yml,dependencies.config.yml
+    mkdir -p data/presidium
+    cp public/frontmatter-schema.yaml data/presidium/frontmatter-schema.yaml
+    chmod 444 data/presidium/frontmatter-schema.yaml
+    rm -rf public
+
+- name: Build Site
+  run: hugo --gc
+```
+
+**Benefits**:
+- ✅ Schema regeneration automated
+- ✅ No manual coordination required
+- ✅ Consistent schema across builds
+- ✅ Reduces developer cognitive load
+
+### Troubleshooting
+
+**Problem**: `dependencies.config.yml` not found
+
+**Solution**: Ensure file exists at repository root:
+```bash
+ls dependencies.config.yml
+```
+
+**Problem**: Schema not generated
+
+**Check**: Output configuration
+```bash
+# Verify outputs includes FrontmatterSchema
+grep -A 2 "outputs:" dependencies.config.yml
+```
+
+**Problem**: Build too slow even with dependencies.config.yml
+
+**Check**: File exclusions working
+```bash
+# Should show excludeFiles for content/static/assets
+grep -A 5 "mounts:" dependencies.config.yml
+```
+
+### Maintenance Notes
+
+**When to update**:
+- Adding new Hugo module imports → Update `module.imports`
+- Changing output formats → Update `outputs`
+- Adding new page kinds → Update `disableKinds`
+
+**When NOT to change**:
+- Frontmatter configuration → Edit `config.yml` or `params.yaml` instead
+- Content structure → This file excludes content
+- Styling → This file excludes styling module
 
 ---
 
