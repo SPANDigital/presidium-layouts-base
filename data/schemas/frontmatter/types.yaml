@@ -59,6 +59,7 @@ array:
   required: false                     # [Optional]
   field: object                       # [Mandatory]
 
+
 # OBJECT TYPE
 # Nested structure with named fields defined by `fields` attribute.
 # -----------------------------------------------------------------------------
@@ -67,7 +68,7 @@ object:
   error_message: string               # [Mandatory]
   placeholder_message: string         # [Mandatory]
   required: false                     # [Optional]
-  fields: array                       # [Mandatory]
+  fields: object                      # [Mandatory] - Key-value mapping of nested fields
 
 # -----------------------------------------------------------------------------
 # PRESETS (type presets with pattern preconfigured)
