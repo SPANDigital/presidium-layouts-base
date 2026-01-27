@@ -2,7 +2,7 @@
 
 ## Overview
 
-Runtime validation of Hugo page frontmatter against a JSON schema. Invalid frontmatter generates build warnings with specific error messages.
+Build-time validation of Hugo page frontmatter against a YAML schema. Invalid frontmatter generates build errors with specific error messages.
 
 **Key Features**:
 - Schema-driven configuration
@@ -63,18 +63,18 @@ Runtime validators in `layouts/partials/frontmatter/validators/` perform type ch
 single.html
   ↓
 validate.html (orchestrator)
-  ↓ Loads schema from data/presidium/frontmatter-schema.json
+  ↓ Loads schema from data/presidium/frontmatter-schema.yaml
   ↓ Iterates fields
   ↓
 validators/root.html
   ↓ Checks required/null
-  ↓ Routes to type/format validator
+  ↓ Routes to type validator
   ↓
-Type/Format Validator
-  ↓ Validates constraints
+Type Validator (types/*.html)
+  ↓ Validates type + constraints
   ↓ Stores result in .Scratch
   ↓
-Root aggregates errors → Hugo warnf
+Root aggregates errors → Hugo errorf
 ```
 
 ### Two-Tier Validation Architecture
@@ -157,18 +157,25 @@ frontmatter:
     placeholder_message: "Enter priority level"
 ```
 
-**2. Generate schema** (automatic in build):
+**2. Generate schema** (Stage 1 build):
 
 ```bash
-hugo --config=config.yml,config-gen.yaml --destination data/presidium
+hugo --gc --config config.yml,dependencies.config.yml
+cp public/frontmatter-schema.yaml data/presidium/frontmatter-schema.yaml
 ```
 
-**3. Validation runs automatically**. Invalid frontmatter shows warnings:
+**3. Run build with validation** (Stage 2):
+
+```bash
+hugo --gc
+```
+
+Invalid frontmatter generates build errors:
 
 ```
-WARN  [Frontmatter Validation] post.md: Title must be at least 5 characters
-WARN  [Frontmatter Validation] post.md: Status must be draft, published, or archived
-WARN  [Frontmatter Validation] post.md: Valid email required
+Error: Frontmatter validation failed for field 'title': required field is missing
+Error: Frontmatter validation failed for field 'status': value 'invalid' is not in allowed options
+Error: Frontmatter validation failed for field 'email': value does not match pattern
 ```
 
 ### Configuration
@@ -177,12 +184,59 @@ WARN  [Frontmatter Validation] post.md: Valid email required
 ```yaml
 params:
   data:
-    namespace: "presidium"  # → data/presidium/frontmatter-schema.json
+    namespace: "presidium"  # → data/presidium/frontmatter-schema.yaml
 ```
 
 **Error messages**:
 - Missing required field: `"fieldName is required"` (not customizable)
-- Invalid value: Specific error OR custom `validation_message` from config
+- Invalid value: Specific error OR custom `error_message` from config
+
+---
+
+## Two-Stage Build Workflow
+
+The validation system requires a **2-stage build** because Hugo processes data files **before** generating outputs.
+
+### Why Two Stages?
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Stage 1: Schema Generation                                  │
+│   hugo --gc --config config.yml,dependencies.config.yml     │
+│   Output: public/frontmatter-schema.yaml                    │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+              cp public/frontmatter-schema.yaml
+                 data/presidium/frontmatter-schema.yaml
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Stage 2: Build with Validation                              │
+│   hugo --gc                                                 │
+│   Validates content against schema in data/                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Stage 1: Generate Schema
+
+```bash
+hugo --gc --config config.yml,dependencies.config.yml
+```
+
+The `dependencies.config.yml` overlay:
+- Disables all page kinds (no HTML generation)
+- Outputs only `FrontmatterSchema`
+- Excludes content/static/assets processing
+
+### Stage 2: Build with Validation
+
+```bash
+mkdir -p data/presidium
+cp public/frontmatter-schema.yaml data/presidium/frontmatter-schema.yaml
+rm -rf public
+hugo --gc
+```
+
+Validation runs automatically, failing the build for invalid frontmatter.
 
 ---
 
@@ -270,6 +324,99 @@ tags:
 | `data/schemas/frontmatter/types.yaml` | Type definitions (5 base + 3 presets) |
 | `layouts/partials/frontmatter/schema-generator.html` | Main generator (calls processField) |
 | `layouts/partials/frontmatter/processField.html` | Recursive field processor |
+
+### Object Type Example
+
+Object fields use a **dict structure** (key-value mapping) for nested fields:
+
+**Configuration**:
+```yaml
+frontmatter:
+  metadata:
+    type: object
+    required: true
+    description: "Document metadata"
+    error_message: "Metadata is required"
+    placeholder_message: "Enter metadata"
+    fields:                           # Dict structure (not array)
+      document_version:
+        type: string
+        required: true
+        pattern: '^\d+\.\d+\.\d+$'
+        description: "Semantic version"
+        placeholder_message: "e.g., 1.0.0"
+        error_message: "Version must follow X.Y.Z format"
+      created_date:
+        type: date
+        required: true
+        description: "Creation date"
+        placeholder_message: "YYYY-MM-DD"
+        error_message: "Creation date required"
+      tags:
+        type: array
+        description: "Document tags"
+        placeholder_message: "Add tags"
+        error_message: "Invalid tags"
+        field:
+          type: string
+          placeholder_message: "Enter tag"
+          error_message: "Invalid tag"
+```
+
+**Generated Schema** (with all defaults applied):
+```yaml
+metadata:
+  type: object
+  required: true
+  description: "Document metadata"
+  error_message: "Metadata is required"
+  placeholder_message: "Enter metadata"
+  fields:
+    document_version:
+      type: string
+      required: true
+      pattern: '^\d+\.\d+\.\d+$'
+      description: "Semantic version"
+      error_message: "Version must follow X.Y.Z format"
+      placeholder_message: "e.g., 1.0.0"
+      options: []
+      display_rows: 1
+    created_date:
+      type: date
+      required: true
+      description: "Creation date"
+      error_message: "Creation date required"
+      placeholder_message: "YYYY-MM-DD"
+      options: []
+      pattern: '^\d{4}-\d{2}-\d{2}$'    # Applied from date preset
+      display_rows: 1
+    tags:
+      type: array
+      required: false
+      description: "Document tags"
+      error_message: "Invalid tags"
+      placeholder_message: "Add tags"
+      field:
+        type: string
+        required: false
+        error_message: "Invalid tag"
+        placeholder_message: "Enter tag"
+        options: []
+        pattern: ""
+        display_rows: 1
+```
+
+**Valid Content**:
+```yaml
+---
+metadata:
+  document_version: "1.2.3"
+  created_date: 2025-01-20
+  tags:
+    - documentation
+    - guide
+---
+```
 
 ---
 
@@ -371,22 +518,20 @@ Schema generator will recursively apply all defaults (required, options, display
 ```
 layouts/partials/frontmatter/
 ├── load-schema.html              # Schema loader
-├── validate.html                 # Orchestrator
+├── validate.html                 # Validation orchestrator
+├── schema-generator.html         # Schema generation orchestrator
+├── processField.html             # Recursive field processor
 └── validators/
-    ├── root.html                 # Lifecycle handler
-    ├── types/
-    │   ├── string.html
-    │   ├── number.html
-    │   ├── array.html
-    │   └── enum.html
-    └── formats/
-        ├── email.html
-        ├── date.html
-        ├── text.html
-        └── option.html
+    ├── root.html                 # Common validation + type routing
+    └── types/
+        ├── string.html           # String + pattern validation
+        ├── number.html           # Number type validation
+        ├── boolean.html          # Boolean type validation
+        ├── array.html            # Array type validation
+        └── object.html           # Object type validation
 ```
 
-**Total**: ~329 lines across 12 files
+**Note**: Preset types (date, datetime, email) route to string.html for pattern validation.
 
 ---
 
@@ -394,6 +539,7 @@ layouts/partials/frontmatter/
 
 | Issue | Solution |
 |-------|----------|
-| Schema not found | Regenerate: `hugo --config=config.yml,config-gen.yaml --destination data/presidium` |
-| Validation not running | Check build integration in `single.html` includes validation call |
-| Wrong error messages | Verify field exists in frontmatter; check `validation_message` override |
+| Schema not found | Run Stage 1: `hugo --gc --config config.yml,dependencies.config.yml` then copy to `data/presidium/` |
+| Validation not running | Ensure schema exists at `data/presidium/frontmatter-schema.yaml` |
+| Wrong error messages | Check `error_message` attribute in field config |
+| Module overrides not applied | Verify module config is under `params.frontmatter` |
