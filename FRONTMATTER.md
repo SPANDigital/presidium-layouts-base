@@ -10,6 +10,8 @@ Build-time validation of Hugo page frontmatter against a YAML schema. Invalid fr
 - Extensible validator architecture
 - Custom error messages
 
+> **For Module Developers**: See [FRONTMATTER_COORDINATION.md](FRONTMATTER_COORDINATION.md) for scenario-based guidance on when and how to regenerate the validation schema.
+
 ---
 
 ## Schema Type System
@@ -196,6 +198,8 @@ params:
 ## Two-Stage Build Workflow
 
 The validation system requires a **2-stage build** because Hugo processes data files **before** generating outputs.
+
+> **See Also**: [FRONTMATTER_COORDINATION.md](FRONTMATTER_COORDINATION.md) provides scenario-based guidance on when schema regeneration is needed.
 
 ### Why Two Stages?
 
