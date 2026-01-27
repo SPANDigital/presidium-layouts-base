@@ -3,7 +3,7 @@ Checks if the current page/content is from an imported content module.
 Returns: dict with isImported and githubUrl
 */}}
 {{- $result := dict "isImported" false "githubUrl" "" -}}
-{{- $defaultRef := .Site.Params.githubRef | default "main" -}}
+{{- $defaultRef := .Site.Params.branches.current | default "main" -}}
 
 {{- with .File -}}
   {{- $filename := .Filename -}}
