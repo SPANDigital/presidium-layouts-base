@@ -7,6 +7,10 @@
 {{- partial "frontmatter/validate.html" . -}}
 {{- $validation := .Scratch.Get "frontmatter_validation" -}}
 {{- if not $validation.valid -}}
+  {{- $namespace := .Site.Params.data.namespace | default "presidium" -}}
+  {{- $schemaLocation := printf "data/%s/frontmatter-schema.yaml" $namespace -}}
+  {{ warnf "[Frontmatter Validation] There are errors in the frontmatter of one or more articles - see below." }}
+  {{ warnf "[Frontmatter Validation] Review the schema for frontmatter located at %s." $schemaLocation }}
   {{- range $error := $validation.errors -}}
     {{- warnf "[Frontmatter Validation] %s: %s" $.File.Path $error -}}
   {{- end -}}
