@@ -66,15 +66,13 @@ Output: Complete field schema with all defaults applied
     {{- end -}}
   {{- else if eq $fieldType "object" -}}
     {{- if isset $fieldSchema "fields" -}}
-      {{- $processedFields := slice -}}
-      {{- range $fieldSchema.fields -}}
-        {{- range $key, $nestedConfig := . -}}
-          {{- $nestedField := partial "frontmatter/processField"
-              (dict "fieldConfig" $nestedConfig
-                    "dataTypes" $dataTypes
-                    "fieldKey" (printf "%s.fields.%s" $fieldKey $key)) -}}
-          {{- $processedFields = $processedFields | append (dict $key $nestedField) -}}
-        {{- end -}}
+      {{- $processedFields := dict -}}
+      {{- range $nestedKey, $nestedConfig := $fieldSchema.fields -}}
+        {{- $nestedField := partial "frontmatter/processField"
+            (dict "fieldConfig" $nestedConfig
+                  "dataTypes" $dataTypes
+                  "fieldKey" (printf "%s.fields.%s" $fieldKey $nestedKey)) -}}
+        {{- $processedFields = merge $processedFields (dict $nestedKey $nestedField) -}}
       {{- end -}}
       {{- $fieldSchema = merge $fieldSchema (dict "fields" $processedFields) -}}
     {{- end -}}
