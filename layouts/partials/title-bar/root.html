@@ -1,0 +1,14 @@
+<div class="module-title-bar">
+    <div class="module-title-bar-brand">
+        {{ partial "title-bar/brand.html" . }}
+    </div>
+    {{ if $.Site.Params.enterprise_enabled }}
+    <div class="module-title-bar-actions">
+        <div
+          id="module-title-bar-actions"
+          data-page-path="{{ .Path }}"
+          data-page-title="{{ .Title }}"
+        ></div>
+    </div>
+    {{ end }}
+</div>

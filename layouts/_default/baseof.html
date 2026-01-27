@@ -57,6 +57,10 @@
     {{ end }}
     {{ end }}
 
+    {{ block "title-bar" . }}
+      {{ partial "title-bar/root" . }}
+    {{ end }}
+
     <div class="content-wrapper {{ partial "type/typeclass" . }}">
       {{ block "left-sidebar" . }}
       <div id="presidium-navigation">
