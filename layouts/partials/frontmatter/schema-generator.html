@@ -36,13 +36,38 @@ Implementation:
 {{/* Load flat type definitions from data directory */}}
 {{- $dataTypes := .Site.Data.schemas.frontmatter.types -}}
 
-{{/* Iterate through each configured field */}}
-{{- range $fieldKey, $fieldConfig := $mergedConfig -}}
-  {{- $fieldSchema := partial "frontmatter/processField"
-      (dict "fieldConfig" $fieldConfig
-            "dataTypes" $dataTypes
-            "fieldKey" $fieldKey) -}}
-  {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}
+{{/* Validate that data types are loaded */}}
+{{- if not $dataTypes -}}
+  {{- errorf "frontmatter schema generator: data types not found at .Site.Data.schemas.frontmatter.types. Ensure data/schemas/frontmatter/types.yaml exists and is mounted from the module." -}}
+{{- end -}}
+
+{{/* Iterate through each configured field - handle both list and map formats */}}
+{{- if reflect.IsSlice $mergedConfig -}}
+  {{/* List format: [{field1: {...}}, {field2: {...}}] */}}
+  {{- range $item := $mergedConfig -}}
+    {{- range $fieldKey, $fieldConfig := $item -}}
+      {{- if not $fieldConfig.type -}}
+        {{- errorf "frontmatter schema generator: field '%s' missing required 'type' attribute" $fieldKey -}}
+      {{- end -}}
+      {{- $fieldSchema := partial "frontmatter/processField"
+          (dict "fieldConfig" $fieldConfig
+                "dataTypes" $dataTypes
+                "fieldKey" $fieldKey) -}}
+      {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}
+    {{- end -}}
+  {{- end -}}
+{{- else -}}
+  {{/* Map format: {field1: {...}, field2: {...}} */}}
+  {{- range $fieldKey, $fieldConfig := $mergedConfig -}}
+    {{- if not $fieldConfig.type -}}
+      {{- errorf "frontmatter schema generator: field '%s' missing required 'type' attribute" $fieldKey -}}
+    {{- end -}}
+    {{- $fieldSchema := partial "frontmatter/processField"
+        (dict "fieldConfig" $fieldConfig
+              "dataTypes" $dataTypes
+              "fieldKey" $fieldKey) -}}
+    {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}
+  {{- end -}}
 {{- end -}}
 
 {{- return $completeSchema -}}

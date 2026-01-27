@@ -5,9 +5,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ site.Title }}</title>
-  {{ $style := resources.Get "presidium.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
-  {{ $styleSrc := strings.TrimPrefix "/" $style.RelPermalink}}
-  <link rel="stylesheet" href="{{ $styleSrc }}">
+  {{ if resources.Get "presidium.scss" }}
+    {{ with resources.Get "presidium.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
+      {{ $styleSrc := strings.TrimPrefix "/" .RelPermalink}}
+      <link rel="stylesheet" href="{{ $styleSrc }}">
+    {{ end }}
+  {{ end }}
   <link rel="stylesheet" href="">
 </head>
 

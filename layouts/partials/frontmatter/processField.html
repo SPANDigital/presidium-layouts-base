@@ -19,6 +19,11 @@ Output: Complete field schema with all defaults applied
 {{- $fieldKey := .fieldKey -}}
 {{- $fieldType := $fieldConfig.type -}}
 
+{{/* Validate field type is provided */}}
+{{- if not $fieldType -}}
+  {{- errorf "frontmatter processField: field '%s' missing required 'type' attribute" $fieldKey -}}
+{{- end -}}
+
 {{/* Start with empty field schema */}}
 {{- $fieldSchema := dict -}}
 

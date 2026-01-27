@@ -3,20 +3,6 @@ mediatypes:
     suffixes:
       - yaml
       - yml
-module:
-  mounts:
-    - source: static
-      target: static
-    - source: layouts
-      target: layouts
-    - source: data
-      target: data
-    - source: assets
-      target: assets
-    - source: i18n
-      target: i18n
-    - source: archetypes
-      target: archetypes
 outputformats:
   navigation:
     basename: navigation
@@ -33,11 +19,6 @@ outputformats:
     basename: pdf
     mediaType: text/html
     isHtml: true
-  FrontmatterSchema:
-    baseName: frontmatter-schema
-    mediaType: text/yaml
-    isPlainText: true
-    notAlternative: true
 outputs:
   home:
     - Navigation

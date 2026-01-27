@@ -1,0 +1,27 @@
+frontmatter:
+  title:
+    type: string
+    required: true
+    pattern: "^.{5,}$"  # Minimum 5 characters via regex
+    error_message: "Title must be at least 5 characters"
+    placeholder_message: "Enter article title"
+
+  email:
+    type: email  # Preset type with built-in pattern
+    required: true
+    error_message: "Valid email required"
+    placeholder_message: "user@example.com"
+
+  status:
+    type: string
+    required: true
+    options: [draft, published, archived]  # Value-in-list validation
+    error_message: "Status must be draft, published, or archived"
+    placeholder_message: "Select status"
+
+  priority:
+    type: number
+    required: false
+    options: [1, 2, 3, 4, 5]
+    error_message: "Priority must be 1-5"
+    placeholder_message: "Enter priority level"
