@@ -132,6 +132,18 @@ Sources are ordered by merge priority (highest first):
       (dict "fieldConfig" $fieldConfig
             "dataTypes" $dataTypes
             "fieldKey" $fieldKey) -}}
+
+  {{/* Attribution: detect contributing sources */}}
+  {{- $configSources := partial "frontmatter/detect-config-sources"
+      (dict "fieldName" $fieldKey
+            "mergedFieldConfig" $fieldConfig
+            "sources" $sources) -}}
+
+  {{/* Add _config_location to field schema */}}
+  {{- if $configSources -}}
+    {{- $fieldSchema = merge $fieldSchema (dict "_config_location" $configSources) -}}
+  {{- end -}}
+
   {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}
 {{- end -}}
 
