@@ -32,6 +32,7 @@ Usage:
 */}}
 
 {{- $fieldName := .fieldName -}}
+{{- $fieldNameLower := $fieldName | lower -}}
 {{- $mergedFieldConfig := .mergedFieldConfig -}}
 {{- $sources := .sources -}}
 
@@ -44,17 +45,20 @@ Usage:
   {{- $configFile := $source.configFile -}}
   {{- $sourceConfig := $source.config -}}
 
-  {{/* Check if source has config for this field */}}
-  {{- if isset $sourceConfig $fieldName -}}
-    {{- $sourceFieldConfig := index $sourceConfig $fieldName -}}
+  {{/* Check if source has config for this field (isset requires lowercase key) */}}
+  {{- if isset $sourceConfig $fieldNameLower -}}
+    {{- $sourceFieldConfig := index $sourceConfig $fieldNameLower -}}
     {{- $contributed := false -}}
 
     {{/* Check each attribute in source field config */}}
     {{- range $attrName, $attrValue := $sourceFieldConfig -}}
-      {{/* Skip nested structures for attribution (only compare scalar values) */}}
-      {{- $mergedValue := index $mergedFieldConfig $attrName -}}
-      {{- if eq $mergedValue $attrValue -}}
-        {{- $contributed = true -}}
+      {{/* Skip nested structures (maps/slices) - only compare scalar values */}}
+      {{- $isNested := or (reflect.IsMap $attrValue) (reflect.IsSlice $attrValue) -}}
+      {{- if not $isNested -}}
+        {{- $mergedValue := index $mergedFieldConfig $attrName -}}
+        {{- if eq $mergedValue $attrValue -}}
+          {{- $contributed = true -}}
+        {{- end -}}
       {{- end -}}
     {{- end -}}
 

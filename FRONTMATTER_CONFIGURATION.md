@@ -1,6 +1,6 @@
 # Frontmatter Configuration Guide
 
-## For Content Teams
+## For Content Developers
 
 This guide shows you how to configure frontmatter validation for your content. Configure fields once, and the system automatically validates all content against your rules.
 

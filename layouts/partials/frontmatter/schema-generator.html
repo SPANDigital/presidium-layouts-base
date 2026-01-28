@@ -57,7 +57,8 @@ Sources are ordered by merge priority (highest first):
   {{- $lines := split $goModContent "\n" -}}
   {{- range $lines -}}
     {{- if hasPrefix . "module " -}}
-      {{- $projectPath = strings.TrimPrefix . "module " | strings.TrimSpace -}}
+      {{/* strings.TrimPrefix expects PREFIX STRING order */}}
+      {{- $projectPath = strings.TrimPrefix "module " . | strings.TrimSpace -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -67,12 +68,33 @@ Sources are ordered by merge priority (highest first):
   {{- $projectPath = printf "[local]/%s" (path.Base site.WorkingDir) -}}
 {{- end -}}
 
-{{/* --- 2.2 Parse config.yml for Module Imports --- */}}
+{{/* --- 2.2 Parse project config for Module Imports --- */}}
 {{- $importPaths := slice -}}
-{{- $configPath := "config.yml" -}}
-{{- if fileExists $configPath -}}
+{{- $configPath := "" -}}
+{{- $configFormat := "" -}}
+{{/* Check for config files in order of preference */}}
+{{- if fileExists "config.yml" -}}
+  {{- $configPath = "config.yml" -}}
+  {{- $configFormat = "yaml" -}}
+{{- else if fileExists "config.yaml" -}}
+  {{- $configPath = "config.yaml" -}}
+  {{- $configFormat = "yaml" -}}
+{{- else if fileExists "hugo.yaml" -}}
+  {{- $configPath = "hugo.yaml" -}}
+  {{- $configFormat = "yaml" -}}
+{{- else if fileExists "hugo.toml" -}}
+  {{- $configPath = "hugo.toml" -}}
+  {{- $configFormat = "toml" -}}
+{{- end -}}
+{{/* Default to yaml if format not detected */}}
+{{- if not $configFormat -}}
+  {{- $configFormat = "yaml" -}}
+{{- end -}}
+{{- if $configPath -}}
   {{- $configContent := os.ReadFile $configPath -}}
-  {{- $configData := $configContent | transform.Unmarshal -}}
+  {{/* Create resource with .yaml extension to force YAML parsing */}}
+  {{- $configResource := resources.FromString "temp-config.yaml" $configContent -}}
+  {{- $configData := $configResource | transform.Unmarshal -}}
   {{- with $configData.module -}}
     {{- with .imports -}}
       {{- range . -}}
@@ -86,11 +108,12 @@ Sources are ordered by merge priority (highest first):
 {{- $sources := slice -}}
 {{- $priority := 0 -}}
 
-{{/* Source 0: Project self (from config.yml params.frontmatter) */}}
+{{/* Source 0: Project self (from project config params.frontmatter) */}}
 {{- $projectConfig := dict -}}
-{{- if fileExists $configPath -}}
+{{- if $configPath -}}
   {{- $configContent := os.ReadFile $configPath -}}
-  {{- $configData := $configContent | transform.Unmarshal -}}
+  {{- $configResource := resources.FromString "temp-params.yaml" $configContent -}}
+  {{- $configData := $configResource | transform.Unmarshal -}}
   {{- with $configData.params -}}
     {{- $projectConfig = .frontmatter | default dict -}}
   {{- end -}}
@@ -114,8 +137,8 @@ Sources are ordered by merge priority (highest first):
     {{- $importConfig = $parsed.frontmatter | default dict -}}
   {{- end -}}
 
-  {{/* Only add source if module provides frontmatter config */}}
-  {{- if $importConfig -}}
+  {{/* Only add source if module provides frontmatter config (empty dict is truthy, use len) */}}
+  {{- if gt (len $importConfig) 0 -}}
     {{- $sources = $sources | append (dict
         "path" $importPath
         "configFile" "config/_default/frontmatter/params.yaml"
