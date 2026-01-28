@@ -36,6 +36,96 @@ Implementation:
 {{/* Load flat type definitions from data directory */}}
 {{- $dataTypes := .Site.Data.schemas.frontmatter.types -}}
 
+{{/*
+=============================================================================
+Source Discovery for N-Source Attribution
+=============================================================================
+Discovers all configuration sources that may contribute to frontmatter fields.
+Sources are ordered by merge priority (highest first):
+  0: Project self (config.yml → params.frontmatter)
+  1: Import[0] (if provides frontmatter config)
+  2: Import[1] (if provides frontmatter config)
+  ... etc
+=============================================================================
+*/}}
+
+{{/* --- 2.1 Parse go.mod for Project Self-Identification --- */}}
+{{- $projectPath := "" -}}
+{{- $goModPath := "go.mod" -}}
+{{- if fileExists $goModPath -}}
+  {{- $goModContent := os.ReadFile $goModPath -}}
+  {{- $lines := split $goModContent "\n" -}}
+  {{- range $lines -}}
+    {{- if hasPrefix . "module " -}}
+      {{- $projectPath = strings.TrimPrefix . "module " | strings.TrimSpace -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Fallback if go.mod missing or malformed */}}
+{{- if not $projectPath -}}
+  {{- $projectPath = printf "[local]/%s" (path.Base site.WorkingDir) -}}
+{{- end -}}
+
+{{/* --- 2.2 Parse config.yml for Module Imports --- */}}
+{{- $importPaths := slice -}}
+{{- $configPath := "config.yml" -}}
+{{- if fileExists $configPath -}}
+  {{- $configContent := os.ReadFile $configPath -}}
+  {{- $configData := $configContent | transform.Unmarshal -}}
+  {{- with $configData.module -}}
+    {{- with .imports -}}
+      {{- range . -}}
+        {{- $importPaths = $importPaths | append .path -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* --- 2.3 Build Ordered Sources List --- */}}
+{{- $sources := slice -}}
+{{- $priority := 0 -}}
+
+{{/* Source 0: Project self (from config.yml params.frontmatter) */}}
+{{- $projectConfig := dict -}}
+{{- if fileExists $configPath -}}
+  {{- $configContent := os.ReadFile $configPath -}}
+  {{- $configData := $configContent | transform.Unmarshal -}}
+  {{- with $configData.params -}}
+    {{- $projectConfig = .frontmatter | default dict -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $sources = $sources | append (dict
+    "path" $projectPath
+    "configFile" "config.yml"
+    "config" $projectConfig
+    "priority" $priority
+) -}}
+{{- $priority = add $priority 1 -}}
+
+{{/* Sources 1..N: Imported modules (from mounted assets) */}}
+{{- range $importPath := $importPaths -}}
+  {{- $assetPath := printf "frontmatter-sources/%s/params.yaml" $importPath -}}
+  {{- $importConfig := dict -}}
+
+  {{- with resources.Get $assetPath -}}
+    {{- $parsed := . | transform.Unmarshal -}}
+    {{- $importConfig = $parsed.frontmatter | default dict -}}
+  {{- end -}}
+
+  {{/* Only add source if module provides frontmatter config */}}
+  {{- if $importConfig -}}
+    {{- $sources = $sources | append (dict
+        "path" $importPath
+        "configFile" "config/_default/frontmatter/params.yaml"
+        "config" $importConfig
+        "priority" $priority
+    ) -}}
+  {{- end -}}
+  {{- $priority = add $priority 1 -}}
+{{- end -}}
+
 {{/* Iterate through each configured field */}}
 {{- range $fieldKey, $fieldConfig := $mergedConfig -}}
   {{- $fieldSchema := partial "frontmatter/processField"
