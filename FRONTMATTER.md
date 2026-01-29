@@ -10,9 +10,9 @@ Build-time validation of Hugo page frontmatter against a YAML schema. Invalid fr
 - Extensible validator architecture
 - Custom error messages
 
-> **For Content Teams**: See [FRONTMATTER_CONFIGURATION.md](FRONTMATTER_CONFIGURATION.md) for user-friendly field configuration guide with examples.
+> **For Content Developers**: See [FRONTMATTER_CONFIGURATION.md](FRONTMATTER_CONFIGURATION.md) for user-friendly field configuration guide with examples.
 >
-> **For Module Developers**: See [FRONTMATTER_COORDINATION.md](FRONTMATTER_COORDINATION.md) for scenario-based guidance on when and how to regenerate the validation schema.
+> **For Module Developers/Maintainers**: See [FRONTMATTER_COORDINATION.md](FRONTMATTER_COORDINATION.md) for scenario-based guidance on when and how to regenerate the validation schema.
 
 ---
 
