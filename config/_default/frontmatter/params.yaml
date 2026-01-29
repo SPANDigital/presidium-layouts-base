@@ -9,26 +9,3 @@ frontmatter:
     required: true
     placeholder_message: "Enter author email"
     error_message: "Please ensure your article has an author email address"
-
-  # Example object type field (demonstrates dict structure)
-  metadata:
-    type: object
-    description: "Document metadata structure"
-    fields:
-      document_version:
-        type: string
-        required: true
-        pattern: '^\d+\.\d+\.\d+$'
-        description: "Semantic version (e.g., 1.0.0)"
-        placeholder_message: "e.g., 1.0.0"
-        error_message: "Version must follow semantic versioning (X.Y.Z)"
-      created_date:
-        type: date
-        required: true
-        description: "Document creation date"
-        placeholder_message: "YYYY-MM-DD"
-      tags:
-        type: array
-        description: "Document classification tags"
-        field:
-          type: string
