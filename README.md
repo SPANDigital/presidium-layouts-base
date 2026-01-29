@@ -114,4 +114,15 @@ outputs:
 
 ## Frontmatter Validation
 
-See [FRONTMATTER.md](FRONTMATTER.md) for documentation on the configurable frontmatter validation system. This system provides runtime validation of Hugo page frontmatter against a JSON schema, generating build warnings for invalid configurations.
+Build-time validation of Hugo page frontmatter against a YAML schema. Features include:
+- Schema-driven field configuration with type system
+- Multi-source config attribution (tracks which module contributed each field)
+- Automatic schema generation from Hugo params
+
+**Documentation**:
+
+| Doc | Audience | Purpose |
+|-----|----------|---------|
+| [FRONTMATTER.md](FRONTMATTER.md) | All | Type system, validators, architecture |
+| [FRONTMATTER_CONFIGURATION.md](FRONTMATTER_CONFIGURATION.md) | Content developers | Field configuration guide with examples |
+| [FRONTMATTER_COORDINATION.md](FRONTMATTER_COORDINATION.md) | Module developers | Schema regeneration guidance |
