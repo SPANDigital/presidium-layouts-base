@@ -11,9 +11,20 @@
 {{- $slug := (partial "common/slug" .) -}}
 {{- $noContent := (eq (len .Content) 0) -}}
 {{- $type := cond $noContent "page" "article" -}}
-{{- $isImported := partial "common/is-imported" . -}}
+{{- $importInfo := partial "common/is-imported" . -}}
+{{- $isImported := $importInfo.isImported -}}
+{{- $githubUrl := $importInfo.githubUrl -}}
 
-<div class="{{ $type }} index" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $pageLink }}" permalink="{{ .Page.RelPermalink }}" data-no-content="{{ $noContent }}" {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }} >
+<div class="{{ $type }} index"
+     data-roles="{{ $roles }}"
+     id="{{ $uid }}"
+     data-link="{{ $pageLink }}"
+     permalink="{{ .Page.RelPermalink }}"
+     data-no-content="{{ $noContent }}"
+     {{ if $.Site.Params.enterprise_enabled }}
+       data-imported="{{ $isImported }}"
+       {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }}
+     {{ end }}>
     <div class="presidium-article-wrapper">
         <span class="anchor" id="{{ $slug }}" data-id="{{ $articleId }}"></span>
         {{- partial "article/frontmatter" . -}}
