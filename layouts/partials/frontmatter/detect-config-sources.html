@@ -1,0 +1,73 @@
+{{/*
+=============================================================================
+Detect Config Sources Partial (N-Source Version)
+=============================================================================
+Detects which configuration sources contributed to a frontmatter field's
+final schema by comparing source configs with merged config.
+
+Input (dict):
+  - fieldName: Field key (e.g., "title", "author")
+  - mergedFieldConfig: Final field config from .Site.Params.frontmatter
+  - sources: Array of source objects, each with:
+      - path: Module import path
+      - configFile: Relative config file path
+      - config: Parsed frontmatter config (dict of field configs)
+
+Output: Array of config source paths in priority order (highest → lowest)
+
+Example Output:
+  ["github.com/org/module/config.yml",
+   "github.com/org/base/config/_default/frontmatter/params.yaml"]
+
+Attribution Rule (from CONFIG_LOCATION_SPEC.md):
+  A source CONTRIBUTES if ANY of its attribute values match the
+  corresponding attribute in the final merged field configuration.
+
+Usage:
+  {{ $sources := partial "frontmatter/detect-config-sources"
+      (dict "fieldName" $fieldKey
+            "mergedFieldConfig" $fieldConfig
+            "sources" $sourcesList) }}
+=============================================================================
+*/}}
+
+{{- $fieldName := .fieldName -}}
+{{- $fieldNameLower := $fieldName | lower -}}
+{{- $mergedFieldConfig := .mergedFieldConfig -}}
+{{- $sources := .sources -}}
+
+{{/* Initialize result array */}}
+{{- $contributingSources := slice -}}
+
+{{/* Check each source for contribution (in priority order) */}}
+{{- range $source := $sources -}}
+  {{- $sourcePath := $source.path -}}
+  {{- $configFile := $source.configFile -}}
+  {{- $sourceConfig := $source.config -}}
+
+  {{/* Check if source has config for this field (isset requires lowercase key) */}}
+  {{- if isset $sourceConfig $fieldNameLower -}}
+    {{- $sourceFieldConfig := index $sourceConfig $fieldNameLower -}}
+    {{- $contributed := false -}}
+
+    {{/* Check each attribute in source field config */}}
+    {{- range $attrName, $attrValue := $sourceFieldConfig -}}
+      {{/* Skip nested structures (maps/slices) - only compare scalar values */}}
+      {{- $isNested := or (reflect.IsMap $attrValue) (reflect.IsSlice $attrValue) -}}
+      {{- if not $isNested -}}
+        {{- $mergedValue := index $mergedFieldConfig $attrName -}}
+        {{- if eq $mergedValue $attrValue -}}
+          {{- $contributed = true -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* If source contributed, add full path to result */}}
+    {{- if $contributed -}}
+      {{- $fullPath := printf "%s/%s" $sourcePath $configFile -}}
+      {{- $contributingSources = $contributingSources | append $fullPath -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $contributingSources -}}

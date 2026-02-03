@@ -17,6 +17,9 @@ module:
       target: i18n
     - source: archetypes
       target: archetypes
+    # Attribution: expose frontmatter config to consuming modules
+    - source: config/_default/frontmatter
+      target: assets/frontmatter-sources/github.com/spandigital/presidium-layouts-base
 outputformats:
   navigation:
     basename: navigation
