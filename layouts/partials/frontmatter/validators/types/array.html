@@ -1,0 +1,20 @@
+{{/* Array Validator - validates array type only */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Type check: must be slice/array */}}
+{{- $valueType := printf "%T" $value -}}
+{{- if not (hasPrefix $valueType "[]") -}}
+  {{- $errors = $errors | append (printf "%s must be an array" $fieldName) -}}
+{{- else -}}
+  {{/* TODO: Validate each item against the nested field schema */}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

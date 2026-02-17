@@ -1,0 +1,22 @@
+{{/* Object Validator - validates object type */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Type check: must be map/dict */}}
+{{- $valueType := printf "%T" $value -}}
+{{/* Accept both map[...] and maps.Params (Hugo's type for YAML objects) */}}
+{{- $isMap := or (hasPrefix $valueType "map[") (eq $valueType "maps.Params") -}}
+{{- if not $isMap -}}
+  {{- $errors = $errors | append (printf "%s must be an object" $fieldName) -}}
+{{- else -}}
+  {{/* TODO: Validate nested fields against schema */}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

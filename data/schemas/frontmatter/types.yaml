@@ -1,0 +1,114 @@
+# =============================================================================
+# FRONTMATTER TYPE DEFINITIONS
+# =============================================================================
+# Flat, self-contained type definitions for frontmatter field validation.
+# No inheritance - each type defines all its attributes with defaults.
+#
+# Categories:
+#   - Base types: string, number, boolean, array, object
+#   - Presets: date, datetime, email (string presets with pattern preconfigured)
+#
+# Legend:
+#   [Mandatory] - User must provide a value
+#   [Optional]  - Has default value, user can override
+#   [Preset]    - Explicitly set by the preset definition
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# BASE TYPES
+# -----------------------------------------------------------------------------
+
+# STRING TYPE
+# Text validation with optional pattern matching and constrained options.
+# -----------------------------------------------------------------------------
+string:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: ""                         # [Optional]
+  display_rows: 1                     # [Optional]
+
+# NUMBER TYPE
+# Numeric validation with optional constrained options.
+# -----------------------------------------------------------------------------
+number:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+
+# BOOLEAN TYPE
+# True/false validation.
+# -----------------------------------------------------------------------------
+boolean:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+
+# ARRAY TYPE
+# Collection of items defined by `field` attribute.
+# -----------------------------------------------------------------------------
+array:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  field: object                       # [Mandatory]
+
+
+# OBJECT TYPE
+# Nested structure with named fields defined by `fields` attribute.
+# -----------------------------------------------------------------------------
+object:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  fields: object                      # [Mandatory] - Key-value mapping of nested fields
+
+# -----------------------------------------------------------------------------
+# PRESETS (type presets with pattern preconfigured)
+# -----------------------------------------------------------------------------
+
+# DATE PRESET
+# ISO 8601 date format (YYYY-MM-DD).
+# Inherits all string attributes with defaults.
+# -----------------------------------------------------------------------------
+date:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: '^\d{4}-\d{2}-\d{2}$'      # [Preset]
+  display_rows: 1                     # [Optional]
+
+# DATETIME PRESET
+# ISO 8601 datetime format (YYYY-MM-DDTHH:MM:SS with timezone).
+# Inherits all string attributes with defaults.
+# -----------------------------------------------------------------------------
+datetime:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$'  # [Preset]
+  display_rows: 1                     # [Optional]
+
+# EMAIL PRESET
+# Standard email address format.
+# Inherits all string attributes with defaults.
+# -----------------------------------------------------------------------------
+email:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'  # [Preset]
+  display_rows: 1                     # [Optional]
