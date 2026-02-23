@@ -184,35 +184,92 @@ Sources are ordered by merge priority (highest first):
 =============================================================================
 Autocomplete Support: Populate options from data files and content taxonomies
 =============================================================================
-For fields with type: autocomplete and no pre-defined options, automatically
-populate the options array from two sources:
-  1. Data files: Searches all site.Data files for collections matching field name
-  2. Taxonomies: Extracts terms from content taxonomies matching field name
+FEATURE: Auto-populate autocomplete field options from site data and content
 
-Example:
-  Field: technologies
+PURPOSE:
+Enable frontmatter fields to have self-maintaining autocomplete options that
+update automatically when data files change or content is added/modified.
+
+HOW IT WORKS:
+1. Fields with type: autocomplete (defined in config.yml params.frontmatter)
+2. If field has no manual options defined, populate automatically from:
+
+   SOURCE 1 - Data Files (site.Data):
+   - Searches ALL files in data/ directory
+   - Looks for collections matching field name (plural)
+   - Extracts all keys from matching collections
+   - Example: field "technologies" → data/techstack.yaml → techstack.technologies.*
+
+   SOURCE 2 - Content Taxonomies (site.Taxonomies):
+   - Searches Hugo taxonomies for matching field name
+   - Extracts unique terms from content frontmatter
+   - Example: field "territories" → content/*.md → territories: [ZA, USA]
+
+3. Combines both sources and removes duplicates
+4. Updates generated schema with populated options array
+
+EXAMPLES:
+
+Example 1 - Data File Based (span-handbook-docs):
+  Config:
+    params.frontmatter.technologies.type: autocomplete
+  Data Sources:
+    data/techstack.yaml → technologies: {python: {...}, node.js: {...}}
+    data/toolchain.yaml → technologies: {python: {...}, figma: {...}}
+  Result:
+    technologies.options: [python, node.js, figma, ...] (150 unique, deduplicated)
+
+Example 2 - Content Taxonomy Based (span-handbook-docs):
+  Config:
+    params.frontmatter.territories.type: autocomplete
+    taxonomies.territory: territories
+  Content:
+    content/team-timezones.md → territories: [ZA, USA, Mexico]
+  Result:
+    site.Taxonomies.territories → {za: [...], usa: [...], mexico: [...]}
+    territories.options: [za, usa, mexico]
+
+Example 3 - Hybrid (bitfocus-ai-offering):
+  Config:
+    params.frontmatter.testSuites.type: autocomplete
+    taxonomies.testSuite: testSuites
   Sources:
-    - data/techstack.yaml → techstack.technologies.* (keys)
-    - data/toolchain.yaml → toolchain.technologies.* (keys)
-    - site.Taxonomies.technologies (from content frontmatter)
-  Result: Combined, deduplicated array of all technology keys/terms
+    data/testsuite.yaml → testSuites: {unit: {...}, integration: {...}}
+    content/*.md → testSuites: [smoke, regression]
+  Result:
+    testSuites.options: [unit, integration, smoke, regression]
+
+TECHNICAL NOTES:
+- Options only auto-populated if field.options is empty/null
+- Manual options override (if specified in config, auto-population skipped)
+- Field name matching is case-insensitive for taxonomy lookup (lower())
+- Data file names can be anything (techstack, toolchain, etc.)
+- Deduplication prevents duplicate entries across sources
 =============================================================================
 */}}
+{{- $enrichedSchema := dict -}}
 {{- range $fieldKey, $fieldSchema := $completeSchema -}}
   {{- $fieldType := $fieldSchema.type | default "string" -}}
   {{- if and (eq $fieldType "autocomplete") (not $fieldSchema.options) -}}
     {{- $options := slice -}}
 
-    {{/* Source 1: Search through all data files for collections matching field key */}}
+    {{/*
+    SOURCE 1: DATA FILE EXTRACTION
+    Search all site.Data.* files for collections matching the autocomplete field name.
+
+    Example flow for field "technologies":
+      1. Iterate: site.Data.techstack, site.Data.toolchain, site.Data.employees, ...
+      2. For each data file, look for collection matching field name: techstack.technologies
+      3. If found AND it's a map: extract all keys (technology names)
+      4. Append to options: [python, node.js, c++, ...]
+
+    This enables: data/techstack.yaml → technologies.python → autocomplete option "python"
+    */}}
     {{- range $dataFileName, $dataFile := $.Site.Data -}}
-      {{- /* Only process if dataFile is a map (not an array) */ -}}
       {{- if reflect.IsMap $dataFile -}}
-        {{- /* Look for a collection within this data file matching field key */ -}}
         {{- $dataCollection := index $dataFile $fieldKey -}}
         {{- if $dataCollection -}}
-          {{- /* Only process if collection is a map */ -}}
           {{- if reflect.IsMap $dataCollection -}}
-            {{- /* Build options array from keys in this collection */ -}}
             {{- range $key, $value := $dataCollection -}}
               {{- $options = $options | append $key -}}
             {{- end -}}
@@ -221,19 +278,44 @@ Example:
       {{- end -}}
     {{- end -}}
 
-    {{/* Source 2: Extract from content-based taxonomies (lowercase field key for lookup) */}}
+    {{/*
+    SOURCE 2: CONTENT TAXONOMY EXTRACTION
+    Extract unique terms from Hugo taxonomies populated by content frontmatter.
+
+    Example flow for field "territories":
+      1. Lowercase field name: territories → territories
+      2. Look up: site.Taxonomies.territories
+      3. If taxonomy exists: extract term keys (Hugo lowercases taxonomy terms)
+      4. Append to options: [za, usa, mexico, ...]
+
+    This enables:
+      content/team-timezones.md → territories: [ZA, USA, Mexico]
+      → site.Taxonomies.territories.za, .usa, .mexico
+      → autocomplete options: [za, usa, mexico]
+
+    Note: Hugo automatically lowercases taxonomy terms, so "ZA" becomes "za"
+    */}}
     {{- $fieldKeyLower := lower $fieldKey -}}
     {{- $taxonomy := index $.Site.Taxonomies $fieldKeyLower -}}
     {{- if $taxonomy -}}
-      {{- /* Taxonomy exists - extract all term keys */ -}}
       {{- range $termKey, $termPages := $taxonomy -}}
         {{- $options = $options | append $termKey -}}
       {{- end -}}
     {{- end -}}
 
-    {{/* Update schema with collected options (from data files and/or taxonomies) */}}
+    {{/*
+    DEDUPLICATION AND SCHEMA UPDATE
+    Combine options from both sources and remove duplicates.
+
+    Example: technologies field gets options from both techstack and toolchain:
+      - techstack.yaml has: python, node.js, react
+      - toolchain.yaml has: python, figma, git
+      - Combined: [python, node.js, react, python, figma, git]
+      - Deduplicated: [python, node.js, react, figma, git]
+
+    Then merge the populated options into the field schema for output.
+    */}}
     {{- if $options -}}
-      {{- /* Remove duplicates by converting to unique set */ -}}
       {{- $uniqueOptions := slice -}}
       {{- range $options -}}
         {{- if not (in $uniqueOptions .) -}}
@@ -241,9 +323,14 @@ Example:
         {{- end -}}
       {{- end -}}
       {{- $updatedField := merge $fieldSchema (dict "options" $uniqueOptions) -}}
-      {{- $completeSchema = merge $completeSchema (dict $fieldKey $updatedField) -}}
+      {{- $enrichedSchema = merge $enrichedSchema (dict $fieldKey $updatedField) -}}
+    {{- else -}}
+      {{- $enrichedSchema = merge $enrichedSchema (dict $fieldKey $fieldSchema) -}}
     {{- end -}}
+  {{- else -}}
+    {{- /* Not autocomplete or has options, keep original field */ -}}
+    {{- $enrichedSchema = merge $enrichedSchema (dict $fieldKey $fieldSchema) -}}
   {{- end -}}
 {{- end -}}
 
-{{- return $completeSchema -}}
+{{- return $enrichedSchema -}}

@@ -1,12 +1,47 @@
+{{/*
+AUTOCOMPLETE TAXONOMY EXTRACTION - Conditional Rendering
+
+PURPOSE: Enable autocomplete fields to auto-populate from content taxonomies.
+
+BACKGROUND:
+- Autocomplete fields extract options from: (1) data files OR (2) content taxonomies
+- For taxonomy-based autocomplete (e.g., territories field):
+  * Hugo must process content to read frontmatter
+  * Hugo must extract taxonomy terms: territories: [ZA, USA, Mexico]
+  * Hugo must populate site.Taxonomies.territories
+  * Schema generator reads site.Taxonomies to populate autocomplete options
+
+THE PROBLEM:
+- During schema generation, content must be processed for taxonomy data
+- But full rendering fails without complete theme assets
+- Dependencies.config.yml mounts assets but pages need rendering disabled
+
+THE SOLUTION:
+- Check for scss/main.scss as proxy for "full build mode"
+- Assets missing (schema gen): Skip rendering, Hugo still processes content/taxonomies
+- Assets present (normal build): Full rendering with all partials
+
+EXAMPLE: territories autocomplete field
+  content/team-timezones.md → territories: [ZA, USA]
+  → site.Taxonomies.territories
+  → autocomplete options: [za, usa]
+*/}}
+
 {{ define "header" }}
-    {{ .Scratch.Set "scope" "list" }}
-    {{ partial "page/header" . }}
+    {{- with resources.Get "scss/main.scss" -}}
+        {{ $.Scratch.Set "scope" "list" }}
+        {{ partial "page/header" $ }}
+    {{- end -}}
 {{ end }}
 
 {{ define "content" }}
-    {{ partial "page/list" . }}
+    {{- with resources.Get "scss/main.scss" -}}
+        {{ partial "page/list" $ }}
+    {{- end -}}
 {{ end }}
 
 {{ define "footer" }}
-    {{ partial "page/footer" . }}
+    {{- with resources.Get "scss/main.scss" -}}
+        {{ partial "page/footer" $ }}
+    {{- end -}}
 {{ end }}

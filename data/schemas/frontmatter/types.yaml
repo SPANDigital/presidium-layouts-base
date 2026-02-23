@@ -114,17 +114,68 @@ email:
   display_rows: 1                     # [Optional]
 
 # AUTOCOMPLETE PRESET
-# Auto-populated options from data files and/or content taxonomies.
-# Options are automatically extracted during schema generation from:
-#   1. Data files: site.Data.*.{fieldname} collections
-#   2. Taxonomies: site.Taxonomies.{fieldname} terms
-# Inherits all string attributes with defaults.
+# Self-maintaining autocomplete field with options auto-populated from site data.
+#
+# PURPOSE:
+# Enable frontmatter fields to have autocomplete suggestions that automatically
+# update when data files or content changes, without manual maintenance.
+#
+# OPTIONS AUTO-POPULATION:
+# During schema generation (make frontmatter), options are extracted from:
+#
+#   Source 1 - Data Files (site.Data):
+#     - Searches all files in data/ directory
+#     - Looks for collections matching field name
+#     - Example: field "technologies" extracts keys from:
+#       * data/techstack.yaml → techstack.technologies.python
+#       * data/toolchain.yaml → toolchain.technologies.figma
+#     - Result: options: [python, figma, ...]
+#
+#   Source 2 - Content Taxonomies (site.Taxonomies):
+#     - Extracts unique terms from content frontmatter
+#     - Example: field "territories" with taxonomy config:
+#       * config.yml → taxonomies.territory: territories
+#       * content/page.md → territories: [ZA, USA]
+#       * site.Taxonomies.territories → {za: [...], usa: [...]}
+#     - Result: options: [za, usa, ...]
+#
+#   Both sources are combined and deduplicated automatically.
+#
+# USAGE EXAMPLES:
+#
+#   Example 1 - Data file autocomplete:
+#     config.yml:
+#       params.frontmatter.technologies:
+#         type: autocomplete
+#         error_message: "Select a technology"
+#     Result: Options from data/techstack.yaml and data/toolchain.yaml
+#
+#   Example 2 - Taxonomy autocomplete:
+#     config.yml:
+#       taxonomies.territory: territories
+#       params.frontmatter.territories:
+#         type: autocomplete
+#         error_message: "Select territories"
+#     Result: Options from content frontmatter territories: [...]
+#
+#   Example 3 - Manual override (skip auto-population):
+#     config.yml:
+#       params.frontmatter.technologies:
+#         type: autocomplete
+#         options: [python, javascript]  # Manually specified
+#     Result: Uses manual options, auto-population skipped
+#
+# TECHNICAL NOTES:
+# - Inherits all string type attributes
+# - Options only auto-populate if not manually specified
+# - Field name must match data collection or taxonomy name (case-insensitive)
+# - For taxonomy extraction, content must be processed during schema generation
 # -----------------------------------------------------------------------------
 autocomplete:
   type: string                        # [Mandatory]
   error_message: string               # [Mandatory]
   placeholder_message: string         # [Mandatory]
   required: false                     # [Optional]
-  options: []                         # [Optional] - Auto-populated during schema generation
+  options: []                         # [Optional] - Auto-populated during schema generation if empty
   pattern: ""                         # [Optional]
   display_rows: 1                     # [Optional]
