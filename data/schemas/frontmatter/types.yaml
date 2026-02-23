@@ -112,3 +112,19 @@ email:
   options: []                         # [Optional]
   pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'  # [Preset]
   display_rows: 1                     # [Optional]
+
+# AUTOCOMPLETE PRESET
+# Auto-populated options from data files and/or content taxonomies.
+# Options are automatically extracted during schema generation from:
+#   1. Data files: site.Data.*.{fieldname} collections
+#   2. Taxonomies: site.Taxonomies.{fieldname} terms
+# Inherits all string attributes with defaults.
+# -----------------------------------------------------------------------------
+autocomplete:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional] - Auto-populated during schema generation
+  pattern: ""                         # [Optional]
+  display_rows: 1                     # [Optional]

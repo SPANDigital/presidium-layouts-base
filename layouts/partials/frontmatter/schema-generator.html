@@ -115,7 +115,12 @@ Sources are ordered by merge priority (highest first):
   {{- $configResource := resources.FromString "temp-params.yaml" $configContent -}}
   {{- $configData := $configResource | transform.Unmarshal -}}
   {{- with $configData.params -}}
-    {{- $projectConfig = .frontmatter | default dict -}}
+    {{- $rawConfig := .frontmatter | default dict -}}
+    {{- /* Normalize keys to lowercase for case-insensitive comparison */ -}}
+    {{- range $key, $value := $rawConfig -}}
+      {{- $normalizedKey := lower $key -}}
+      {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 
@@ -134,7 +139,12 @@ Sources are ordered by merge priority (highest first):
 
   {{- with resources.Get $assetPath -}}
     {{- $parsed := . | transform.Unmarshal -}}
-    {{- $importConfig = $parsed.frontmatter | default dict -}}
+    {{- $rawConfig := $parsed.frontmatter | default dict -}}
+    {{- /* Normalize keys to lowercase for case-insensitive comparison */ -}}
+    {{- range $key, $value := $rawConfig -}}
+      {{- $normalizedKey := lower $key -}}
+      {{- $importConfig = merge $importConfig (dict $normalizedKey $value) -}}
+    {{- end -}}
   {{- end -}}
 
   {{/* Only add source if module provides frontmatter config (empty dict is truthy, use len) */}}
@@ -168,6 +178,72 @@ Sources are ordered by merge priority (highest first):
   {{- end -}}
 
   {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}
+{{- end -}}
+
+{{/*
+=============================================================================
+Autocomplete Support: Populate options from data files and content taxonomies
+=============================================================================
+For fields with type: autocomplete and no pre-defined options, automatically
+populate the options array from two sources:
+  1. Data files: Searches all site.Data files for collections matching field name
+  2. Taxonomies: Extracts terms from content taxonomies matching field name
+
+Example:
+  Field: technologies
+  Sources:
+    - data/techstack.yaml → techstack.technologies.* (keys)
+    - data/toolchain.yaml → toolchain.technologies.* (keys)
+    - site.Taxonomies.technologies (from content frontmatter)
+  Result: Combined, deduplicated array of all technology keys/terms
+=============================================================================
+*/}}
+{{- range $fieldKey, $fieldSchema := $completeSchema -}}
+  {{- $fieldType := $fieldSchema.type | default "string" -}}
+  {{- if and (eq $fieldType "autocomplete") (not $fieldSchema.options) -}}
+    {{- $options := slice -}}
+
+    {{/* Source 1: Search through all data files for collections matching field key */}}
+    {{- range $dataFileName, $dataFile := $.Site.Data -}}
+      {{- /* Only process if dataFile is a map (not an array) */ -}}
+      {{- if reflect.IsMap $dataFile -}}
+        {{- /* Look for a collection within this data file matching field key */ -}}
+        {{- $dataCollection := index $dataFile $fieldKey -}}
+        {{- if $dataCollection -}}
+          {{- /* Only process if collection is a map */ -}}
+          {{- if reflect.IsMap $dataCollection -}}
+            {{- /* Build options array from keys in this collection */ -}}
+            {{- range $key, $value := $dataCollection -}}
+              {{- $options = $options | append $key -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* Source 2: Extract from content-based taxonomies (lowercase field key for lookup) */}}
+    {{- $fieldKeyLower := lower $fieldKey -}}
+    {{- $taxonomy := index $.Site.Taxonomies $fieldKeyLower -}}
+    {{- if $taxonomy -}}
+      {{- /* Taxonomy exists - extract all term keys */ -}}
+      {{- range $termKey, $termPages := $taxonomy -}}
+        {{- $options = $options | append $termKey -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* Update schema with collected options (from data files and/or taxonomies) */}}
+    {{- if $options -}}
+      {{- /* Remove duplicates by converting to unique set */ -}}
+      {{- $uniqueOptions := slice -}}
+      {{- range $options -}}
+        {{- if not (in $uniqueOptions .) -}}
+          {{- $uniqueOptions = $uniqueOptions | append . -}}
+        {{- end -}}
+      {{- end -}}
+      {{- $updatedField := merge $fieldSchema (dict "options" $uniqueOptions) -}}
+      {{- $completeSchema = merge $completeSchema (dict $fieldKey $updatedField) -}}
+    {{- end -}}
+  {{- end -}}
 {{- end -}}
 
 {{- return $completeSchema -}}
