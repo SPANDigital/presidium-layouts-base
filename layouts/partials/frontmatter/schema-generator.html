@@ -322,7 +322,8 @@ TECHNICAL NOTES:
           {{- $uniqueOptions = $uniqueOptions | append . -}}
         {{- end -}}
       {{- end -}}
-      {{- $updatedField := merge $fieldSchema (dict "options" $uniqueOptions) -}}
+      {{- $sortedOptions := sort $uniqueOptions -}}
+      {{- $updatedField := merge $fieldSchema (dict "options" $sortedOptions) -}}
       {{- $enrichedSchema = merge $enrichedSchema (dict $fieldKey $updatedField) -}}
     {{- else -}}
       {{- $enrichedSchema = merge $enrichedSchema (dict $fieldKey $fieldSchema) -}}
