@@ -168,8 +168,8 @@ email:
 # TECHNICAL NOTES:
 # - Inherits all string type attributes
 # - Options only auto-populate if not manually specified
-# - Field name must match data collection or taxonomy name (case-insensitive)
-# - For taxonomy extraction, content must be processed during schema generation
+# - Field name must match the data collection name exactly (case-sensitive)
+# - Taxonomy lookups are resolved separately during schema generation; content must be processed for taxonomy extraction
 # -----------------------------------------------------------------------------
 autocomplete:
   type: string                        # [Mandatory]
