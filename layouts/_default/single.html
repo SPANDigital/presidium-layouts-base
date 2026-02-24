@@ -13,46 +13,51 @@ BACKGROUND:
 
 THE PROBLEM:
 - During schema generation, content must be processed for taxonomy data
-- But full rendering fails without complete theme assets
-- Dependencies.config.yml mounts assets but pages need rendering disabled
+- But full rendering should be skipped (only taxonomy extraction needed)
 
 THE SOLUTION:
-- Check for scss/main.scss as proxy for "full build mode"
-- Assets missing (schema gen): Skip rendering, Hugo still processes content/taxonomies
-- Assets present (normal build): Full rendering with validation and all partials
+- Use explicit schemaGenerationMode param (set in dependencies.config.yml)
+- If schemaGenerationMode=true: Skip rendering, Hugo still processes content/taxonomies
+- If schemaGenerationMode=false (or unset): Full normal rendering with validation
+
+This explicit flag:
+- Won't affect other projects using presidium-layouts-base (safe default)
+- Fails loudly if misconfigured (normal rendering unless explicitly disabled)
+- Self-documenting and maintainable
 
 EXAMPLE: territories autocomplete field
+  dependencies.config.yml → params.schemaGenerationMode: true
   content/team-timezones.md → territories: [ZA, USA]
   → site.Taxonomies.territories
   → autocomplete options: [za, usa]
 */}}
 
 {{ define "header" }}
-    {{- with resources.Get "scss/main.scss" -}}
-        {{ partial "page/parentheader" $ }}
+    {{- if not .Site.Params.schemaGenerationMode -}}
+        {{ partial "page/parentheader" . }}
     {{- end -}}
 {{ end }}
 
 {{ define "section" }}
-{{- with resources.Get "scss/main.scss" -}}
+{{- if not .Site.Params.schemaGenerationMode -}}
 {{/* Frontmatter Validation */}}
-{{- partial "frontmatter/validate.html" $ -}}
-{{- $validation := $.Scratch.Get "frontmatter_validation" -}}
+{{- partial "frontmatter/validate.html" . -}}
+{{- $validation := .Scratch.Get "frontmatter_validation" -}}
 {{- if not $validation.valid -}}
   {{- range $error := $validation.errors -}}
     {{- warnf "[Frontmatter Validation] %s: %s" $.File.Path $error -}}
   {{- end -}}
 {{- end -}}
 <section data-section="{{ strings.TrimPrefix "/" $.Parent.Path }}">
-{{ block "content" $ }}
-    {{ partial "page/single" $ }}
+{{ block "content" . }}
+    {{ partial "page/single" . }}
 {{ end }}
 </section>
 {{- end -}}
 {{ end }}
 
 {{ define "footer" }}
-    {{- with resources.Get "scss/main.scss" -}}
-        {{ partial "page/footer" $ }}
+    {{- if not .Site.Params.schemaGenerationMode -}}
+        {{ partial "page/footer" . }}
     {{- end -}}
 {{ end }}
