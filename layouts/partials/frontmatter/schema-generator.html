@@ -281,25 +281,44 @@ TECHNICAL NOTES:
     {{/*
     SOURCE 2: CONTENT TAXONOMY EXTRACTION
     Extract unique terms from Hugo taxonomies populated by content frontmatter.
+    IMPORTANT: Preserve original case from frontmatter.
+
+    Hugo Problem: Taxonomy keys are automatically lowercased
+      content/page.md → territories: [ZA, USA, Mexico]
+      → site.Taxonomies.territories → {za: [...], usa: [...], mexico: [...]}
+
+    Solution: Extract original values from page frontmatter instead of taxonomy keys
+      1. Iterate through pages in each taxonomy term
+      2. Read original frontmatter value from page.Params
+      3. Collect unique values preserving original case
 
     Example flow for field "territories":
-      1. Lowercase field name: territories → territories
-      2. Look up: site.Taxonomies.territories
-      3. If taxonomy exists: extract term keys (Hugo lowercases taxonomy terms)
-      4. Append to options: [za, usa, mexico, ...]
-
-    This enables:
       content/team-timezones.md → territories: [ZA, USA, Mexico]
-      → site.Taxonomies.territories.za, .usa, .mexico
-      → autocomplete options: [za, usa, mexico]
-
-    Note: Hugo automatically lowercases taxonomy terms, so "ZA" becomes "za"
+      → Read page.Params.territories → ["ZA", "USA", "Mexico"]
+      → autocomplete options: [ZA, USA, Mexico] (case preserved)
     */}}
     {{- $fieldKeyLower := lower $fieldKey -}}
     {{- $taxonomy := index $.Site.Taxonomies $fieldKeyLower -}}
     {{- if $taxonomy -}}
       {{- range $termKey, $termPages := $taxonomy -}}
-        {{- $options = $options | append $termKey -}}
+        {{- /* Extract original case from first page's frontmatter */ -}}
+        {{- range first 1 $termPages -}}
+          {{- $frontmatterValue := index .Params $fieldKeyLower -}}
+          {{- if $frontmatterValue -}}
+            {{- /* Handle both single value and array of values */ -}}
+            {{- if reflect.IsSlice $frontmatterValue -}}
+              {{- range $frontmatterValue -}}
+                {{- if eq (lower .) $termKey -}}
+                  {{- $options = $options | append . -}}
+                {{- end -}}
+              {{- end -}}
+            {{- else -}}
+              {{- if eq (lower $frontmatterValue) $termKey -}}
+                {{- $options = $options | append $frontmatterValue -}}
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
       {{- end -}}
     {{- end -}}
 
