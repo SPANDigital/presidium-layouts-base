@@ -1,0 +1,85 @@
+{{/*
+=============================================================================
+Process Field Partial (Recursive)
+=============================================================================
+Recursively processes a single field configuration, applying type defaults
+and validating mandatory attributes.
+
+Input (dict):
+  - fieldConfig: Field configuration from Hugo params
+  - dataTypes: Type definitions from types.yaml
+  - fieldKey: Field path for error messages (e.g., "tags", "tags.field")
+
+Output: Complete field schema with all defaults applied
+=============================================================================
+*/}}
+
+{{- $fieldConfig := .fieldConfig -}}
+{{- $dataTypes := .dataTypes -}}
+{{- $fieldKey := .fieldKey -}}
+{{- $fieldType := $fieldConfig.type -}}
+
+{{/* Start with empty field schema */}}
+{{- $fieldSchema := dict -}}
+
+{{/* Lookup type definition directly (no inheritance) */}}
+{{- $typeDef := index $dataTypes $fieldType -}}
+
+{{- if $typeDef -}}
+  {{/* Step 1: Validate mandatory attrs + Apply optional defaults */}}
+  {{- range $attrKey, $attrValue := $typeDef -}}
+
+    {{/* Is this a mandatory attribute? (value is a type declaration) */}}
+    {{- $isMandatory := or
+        (eq $attrValue "string")
+        (eq $attrValue "boolean")
+        (eq $attrValue "number")
+        (eq $attrValue "array")
+        (eq $attrValue "object") -}}
+
+    {{- if $isMandatory -}}
+      {{/* Validate: user config must provide mandatory attributes */}}
+      {{- if not (isset $fieldConfig $attrKey) -}}
+        {{- errorf "Field '%s' (type: %s) missing mandatory attribute '%s'"
+            $fieldKey $fieldType $attrKey -}}
+      {{- end -}}
+    {{- else -}}
+      {{/* Apply default value for optional attribute */}}
+      {{- $fieldSchema = merge $fieldSchema (dict $attrKey $attrValue) -}}
+    {{- end -}}
+
+  {{- end -}}
+
+  {{/* Step 2: Override with explicit config values */}}
+  {{- range $configKey, $configValue := $fieldConfig -}}
+    {{- $fieldSchema = merge $fieldSchema (dict $configKey $configValue) -}}
+  {{- end -}}
+
+  {{/* Step 3: RECURSIVELY process nested structures */}}
+  {{- if eq $fieldType "array" -}}
+    {{- if isset $fieldSchema "field" -}}
+      {{- $nestedField := partial "frontmatter/processField"
+          (dict "fieldConfig" $fieldSchema.field
+                "dataTypes" $dataTypes
+                "fieldKey" (printf "%s.field" $fieldKey)) -}}
+      {{- $fieldSchema = merge $fieldSchema (dict "field" $nestedField) -}}
+    {{- end -}}
+  {{- else if eq $fieldType "object" -}}
+    {{- if isset $fieldSchema "fields" -}}
+      {{- $processedFields := dict -}}
+      {{- range $nestedKey, $nestedConfig := $fieldSchema.fields -}}
+        {{- $nestedField := partial "frontmatter/processField"
+            (dict "fieldConfig" $nestedConfig
+                  "dataTypes" $dataTypes
+                  "fieldKey" (printf "%s.fields.%s" $fieldKey $nestedKey)) -}}
+        {{- $processedFields = merge $processedFields (dict $nestedKey $nestedField) -}}
+      {{- end -}}
+      {{- $fieldSchema = merge $fieldSchema (dict "fields" $processedFields) -}}
+    {{- end -}}
+  {{- end -}}
+
+{{- else -}}
+  {{- errorf "Field '%s' has unknown type '%s'" $fieldKey $fieldType -}}
+{{- end -}}
+
+{{- return $fieldSchema -}}

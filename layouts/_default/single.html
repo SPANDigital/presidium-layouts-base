@@ -1,15 +1,63 @@
+{{/*
+AUTOCOMPLETE TAXONOMY EXTRACTION - Conditional Rendering
+
+PURPOSE: Enable autocomplete fields to auto-populate from content taxonomies.
+
+BACKGROUND:
+- Autocomplete fields extract options from: (1) data files OR (2) content taxonomies
+- For taxonomy-based autocomplete (e.g., territories field):
+  * Hugo must process content to read frontmatter
+  * Hugo must extract taxonomy terms: territories: [ZA, USA, Mexico]
+  * Hugo must populate site.Taxonomies.territories
+  * Schema generator reads site.Taxonomies to populate autocomplete options
+
+THE PROBLEM:
+- During schema generation, content must be processed for taxonomy data
+- But full rendering should be skipped (only taxonomy extraction needed)
+
+THE SOLUTION:
+- Use explicit schemaGenerationMode param (set in dependencies.config.yml)
+- If schemaGenerationMode=true: Skip rendering, Hugo still processes content/taxonomies
+- If schemaGenerationMode=false (or unset): Full normal rendering with validation
+
+This explicit flag:
+- Won't affect other projects using presidium-layouts-base (safe default)
+- Fails loudly if misconfigured (normal rendering unless explicitly disabled)
+- Self-documenting and maintainable
+
+EXAMPLE: territories autocomplete field
+  dependencies.config.yml → params.schemaGenerationMode: true
+  content/team-timezones.md → territories: [ZA, USA]
+  → site.Taxonomies.territories
+  → autocomplete options: [za, usa]
+*/}}
+
 {{ define "header" }}
-    {{ partial "page/parentheader" . }}
+    {{- if not .Site.Params.schemaGenerationMode -}}
+        {{ partial "page/parentheader" . }}
+    {{- end -}}
 {{ end }}
 
 {{ define "section" }}
-<section data-section="{{ strings.TrimPrefix "/" .Parent.Path }}">
+{{- if not .Site.Params.schemaGenerationMode -}}
+{{/* Frontmatter Validation */}}
+{{- partial "frontmatter/validate.html" . -}}
+{{- $validation := .Scratch.Get "frontmatter_validation" -}}
+{{- if not $validation.valid -}}
+  {{- range $error := $validation.errors -}}
+    {{- warnf "[Frontmatter Validation] %s: %s" $.File.Path $error -}}
+  {{- end -}}
+{{- end -}}
+<section data-section="{{ strings.TrimPrefix "/" $.Parent.Path }}">
 {{ block "content" . }}
     {{ partial "page/single" . }}
 {{ end }}
 </section>
+{{- end -}}
 {{ end }}
 
 {{ define "footer" }}
-    {{ partial "page/footer" . }}
+    {{- if not .Site.Params.schemaGenerationMode -}}
+        {{ partial "page/footer" . }}
+    {{- end -}}
 {{ end }}
