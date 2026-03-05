@@ -104,7 +104,20 @@ Sources are ordered by merge priority (highest first):
   {{- end -}}
 {{- end -}}
 
-{{/* --- 2.3 Build Ordered Sources List --- */}}
+{{/* --- 2.3 Extract Field Order from Raw Config --- */}}
+{{/*
+Since Go maps don't preserve insertion order, we need to extract the original
+field order from the raw config file. This includes nested fields within
+objects and arrays.
+*/}}
+{{- $fieldOrders := dict -}}
+{{- if $configPath -}}
+  {{- $configContent := os.ReadFile $configPath -}}
+  {{- $fieldOrders = partial "frontmatter/extract-field-order"
+      (dict "configContent" $configContent) -}}
+{{- end -}}
+
+{{/* --- 2.4 Build Ordered Sources List --- */}}
 {{- $sources := slice -}}
 {{- $priority := 0 -}}
 
@@ -154,7 +167,8 @@ Sources are ordered by merge priority (highest first):
   {{- $fieldSchema := partial "frontmatter/processField"
       (dict "fieldConfig" $fieldConfig
             "dataTypes" $dataTypes
-            "fieldKey" $fieldKey) -}}
+            "fieldKey" $fieldKey
+            "fieldOrders" $fieldOrders) -}}
 
   {{/* Attribution: detect contributing sources */}}
   {{- $configSources := partial "frontmatter/detect-config-sources"
@@ -165,6 +179,15 @@ Sources are ordered by merge priority (highest first):
   {{/* Add _config_location to field schema */}}
   {{- if $configSources -}}
     {{- $fieldSchema = merge $fieldSchema (dict "_config_location" $configSources) -}}
+  {{- end -}}
+
+  {{/* Add _order to preserve original field order from config */}}
+  {{- if isset $fieldOrders $fieldKey -}}
+    {{- $order := index $fieldOrders $fieldKey -}}
+    {{- $fieldSchema = merge $fieldSchema (dict "_order" $order) -}}
+  {{- else -}}
+    {{/* Fields not found in project config get high order value (from imported modules) */}}
+    {{- $fieldSchema = merge $fieldSchema (dict "_order" 9999) -}}
   {{- end -}}
 
   {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}

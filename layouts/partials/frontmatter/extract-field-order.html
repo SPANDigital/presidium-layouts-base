@@ -1,0 +1,127 @@
+{{/*
+=============================================================================
+Extract Field Order Partial
+=============================================================================
+Extracts the order of fields from raw YAML config text by parsing indentation
+and tracking the hierarchy. Returns a dict mapping field paths to order indices.
+
+This is necessary because Go maps don't preserve insertion order, so we need
+to parse the raw config file to determine the original order of fields.
+
+Input (dict):
+  - configContent: Raw config file content as string
+
+Output: Dict mapping field paths to order indices
+  Example: {
+    "xyz": 0,
+    "author": 1,
+    "persona": 2,
+    "persona.fields.name": 0,
+    "persona.fields.role": 1,
+    "contributors.field.fields.name": 0,
+    ...
+  }
+
+Usage:
+  {{ $fieldOrders := partial "frontmatter/extract-field-order"
+      (dict "configContent" $configContent) }}
+=============================================================================
+*/}}
+
+{{- $configContent := .configContent -}}
+{{- $lines := split $configContent "\n" -}}
+
+{{- $orders := dict -}}
+
+{{/* Track our position in the hierarchy using a stack-like approach */}}
+{{/* We'll track: indent level -> (path prefix, order counter) */}}
+{{- $inFrontmatter := false -}}
+{{- $frontmatterIndent := -1 -}}
+
+{{/* We need to track the current path at each indentation level */}}
+{{/* Since Hugo doesn't have arrays we can mutate, we'll use a different approach */}}
+{{/* Track indent levels and their corresponding paths */}}
+{{- $indentPaths := dict -}}
+{{- $indentOrders := dict -}}
+
+{{- range $lineNum, $line := $lines -}}
+  {{- $trimmed := strings.TrimLeft " " $line -}}
+  {{- $currentIndent := sub (len $line) (len $trimmed) -}}
+
+  {{/* Skip empty lines and comments */}}
+  {{- if and (gt (len $trimmed) 0) (not (hasPrefix $trimmed "#")) -}}
+
+    {{/* Detect when we enter params.frontmatter section */}}
+    {{- if and (not $inFrontmatter) (findRE "^frontmatter:\\s*$" $trimmed) -}}
+      {{- $inFrontmatter = true -}}
+      {{- $frontmatterIndent = $currentIndent -}}
+      {{/* Initialize the path at frontmatter level */}}
+      {{- $indentPaths = merge $indentPaths (dict (string $currentIndent) "") -}}
+      {{- $indentOrders = merge $indentOrders (dict (string $currentIndent) 0) -}}
+
+    {{- else if $inFrontmatter -}}
+
+      {{/* Check if we've exited the frontmatter section */}}
+      {{- if le $currentIndent $frontmatterIndent -}}
+        {{- $inFrontmatter = false -}}
+
+      {{- else -}}
+        {{/* We're inside frontmatter - process this line */}}
+        {{- $fieldName := "" -}}
+        {{- $isFieldsKeyword := false -}}
+        {{- $isFieldKeyword := false -}}
+
+        {{/* Check if this is a 'fields:' or 'field:' keyword */}}
+        {{- if findRE "^fields:\\s*$" $trimmed -}}
+          {{- $isFieldsKeyword = true -}}
+        {{- else if findRE "^field:\\s*$" $trimmed -}}
+          {{- $isFieldKeyword = true -}}
+        {{- else -}}
+          {{/* Extract field name (text before colon) */}}
+          {{- $fieldName = replaceRE "^([^:]+):.*$" "$1" $trimmed -}}
+        {{- end -}}
+
+        {{/* Find the parent indent level (current - 2) */}}
+        {{- $parentIndent := sub $currentIndent 2 -}}
+        {{- $parentPath := index $indentPaths (string $parentIndent) | default "" -}}
+
+        {{- if $isFieldsKeyword -}}
+          {{/* 'fields:' keyword - update path for children to include '.fields' */}}
+          {{- $newPath := printf "%s.fields" $parentPath -}}
+          {{- $indentPaths = merge $indentPaths (dict (string $currentIndent) $newPath) -}}
+          {{- $indentOrders = merge $indentOrders (dict (string $currentIndent) 0) -}}
+
+        {{- else if $isFieldKeyword -}}
+          {{/* 'field:' keyword - update path for children to include '.field' */}}
+          {{- $newPath := printf "%s.field" $parentPath -}}
+          {{- $indentPaths = merge $indentPaths (dict (string $currentIndent) $newPath) -}}
+          {{- $indentOrders = merge $indentOrders (dict (string $currentIndent) 0) -}}
+
+        {{- else if $fieldName -}}
+          {{/* This is a regular field - record its order */}}
+          {{/* Lowercase the field name to match Hugo's behavior */}}
+          {{- $fieldNameLower := lower $fieldName -}}
+          {{- $fullPath := $fieldNameLower -}}
+          {{- if $parentPath -}}
+            {{- $fullPath = printf "%s.%s" $parentPath $fieldNameLower -}}
+          {{- end -}}
+
+          {{/* Get the current order for this indent level */}}
+          {{- $currentOrder := index $indentOrders (string $parentIndent) | default 0 -}}
+          {{- $orders = merge $orders (dict $fullPath $currentOrder) -}}
+
+          {{/* Increment the order counter for this indent level */}}
+          {{- $indentOrders = merge $indentOrders (dict (string $parentIndent) (add $currentOrder 1)) -}}
+
+          {{/* Set this field as the path for its indent level (for potential children) */}}
+          {{/* Use the lowercase field name for path consistency */}}
+          {{- $indentPaths = merge $indentPaths (dict (string $currentIndent) $fullPath) -}}
+          {{/* Reset order counter for children of this field */}}
+          {{- $indentOrders = merge $indentOrders (dict (string $currentIndent) 0) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $orders -}}
