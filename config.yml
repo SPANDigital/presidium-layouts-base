@@ -38,7 +38,7 @@ outputformats:
     isHtml: true
   FrontmatterSchema:
     baseName: frontmatter-schema
-    mediaType: text/yaml
+    mediaType: application/yaml
     isPlainText: true
     notAlternative: true
 outputs:
@@ -46,6 +46,7 @@ outputs:
     - Navigation
     - Compendium
     - Pdf
+    - FrontmatterSchema
 params:
   _merge: shallow
   data:
