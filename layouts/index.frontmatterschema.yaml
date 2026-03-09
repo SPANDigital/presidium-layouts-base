@@ -28,4 +28,18 @@
 ################################################################################
 
 {{ $completeSchema := partial "frontmatter/schema-generator.html" . }}
-{{ $completeSchema | transform.Remarshal "yaml" -}}
+{{- /* Normalize empty arrays to null to avoid Hugo YAML marshaller bug (issue #14596) */ -}}
+{{- $normalized := dict -}}
+{{- range $fieldKey, $fieldSchema := $completeSchema -}}
+  {{- $cleanField := dict -}}
+  {{- range $k, $v := $fieldSchema -}}
+    {{- if and (reflect.IsSlice $v) (eq (len $v) 0) -}}
+      {{- /* Replace empty array with null to avoid invalid YAML anchors */ -}}
+      {{- $cleanField = merge $cleanField (dict $k nil) -}}
+    {{- else -}}
+      {{- $cleanField = merge $cleanField (dict $k $v) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $normalized = merge $normalized (dict $fieldKey $cleanField) -}}
+{{- end -}}
+{{ $normalized | transform.Remarshal "yaml" -}}
