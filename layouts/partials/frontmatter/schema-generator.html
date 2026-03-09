@@ -70,6 +70,7 @@ Sources are ordered by merge priority (highest first):
 
 {{/* --- 2.2 Parse project config for Module Imports --- */}}
 {{- $importPaths := slice -}}
+{{- $importPathsVersioned := dict -}}
 {{- $configPath := "" -}}
 {{- $configFormat := "" -}}
 {{/* Check for config files in order of preference */}}
@@ -99,6 +100,27 @@ Sources are ordered by merge priority (highest first):
     {{- with .imports -}}
       {{- range . -}}
         {{- $importPaths = $importPaths | append .path -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* --- 2.2.1 Get versioned module paths from go.mod --- */}}
+{{- if fileExists "go.mod" -}}
+  {{- $goModContent := os.ReadFile "go.mod" -}}
+  {{- $lines := split $goModContent "\n" -}}
+  {{- range $lines -}}
+    {{- $line := strings.TrimSpace . -}}
+    {{- if and (hasPrefix $line "github.com/") (not (hasPrefix $line "module ")) -}}
+      {{- /* Extract versioned module path from go.mod lines like: */}}
+      {{- /* github.com/spandigital/presidium-layouts-base v0.13.0-configurable-frontmatter-5 */}}
+      {{- $parts := split $line " " -}}
+      {{- if ge (len $parts) 2 -}}
+        {{- $modulePath := index $parts 0 -}}
+        {{- $moduleVersion := index $parts 1 -}}
+        {{- $versionedPath := printf "%s@%s" $modulePath $moduleVersion -}}
+        {{- /* Store mapping: base path -> versioned path */}}
+        {{- $importPathsVersioned = merge $importPathsVersioned (dict $modulePath $versionedPath) -}}
       {{- end -}}
     {{- end -}}
   {{- end -}}
@@ -134,7 +156,9 @@ Sources are ordered by merge priority (highest first):
 
 {{/* Sources 1..N: Imported modules (from mounted assets) */}}
 {{- range $importPath := $importPaths -}}
-  {{- $assetPath := printf "frontmatter-sources/%s/params.yaml" $importPath -}}
+  {{- /* Use versioned path if available from go.mod, otherwise fall back to base path */ -}}
+  {{- $resolvedPath := index $importPathsVersioned $importPath | default $importPath -}}
+  {{- $assetPath := printf "frontmatter-sources/%s/params.yaml" $resolvedPath -}}
   {{- $importConfig := dict -}}
 
   {{- with resources.Get $assetPath -}}
