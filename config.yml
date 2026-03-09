@@ -38,7 +38,7 @@ params:
   hugoVersion:
     enabled: true
     min: "0.147.7"
-    max: "0.155.0"
+    max: "0.158.0"
     extended: true
   attributes:
     website: 2.15.0
@@ -49,10 +49,8 @@ params:
     - key: title
       type: text
       strict: true
-  # not yet implemented
-  docset-logo: images/logo.png # recommend minimum size of 250px x 250px. Is used on the landing page.
-  left-nav-logo: images/logo.png # if the left nav logo is different from the main logo, specify it here.
-  default-logo: images/default-logo.png # if no file exists for the docset-logo path, then this logo will be used.
-  enterprise-header-logo: images/default-enterprise-header-logo.png # this logo is used in the enterprise header across all docsets in the deployment.
-  enterprise-header-logo-mobile: images/default-enterprise-header-logo-mobile.png # this logo is used in the enterprise header across all docsets in the deployment for mobile devices.
-
+permalinks:
+  page:
+    "**": /:sectionslugs/:slug/
+  section:
+    "**": /:sectionslugs/
