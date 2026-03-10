@@ -40,7 +40,6 @@ outputs:
   section:
     - HTML
     - Embed
-    - Markdown
 params:
   _merge: shallow
   hugoVersion:
