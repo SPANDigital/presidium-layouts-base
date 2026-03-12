@@ -2,17 +2,27 @@
 {{/* This should be called once at the end of the build (e.g., in index.html or baseof) */}}
 
 {{- $totalValidationMs := .Site.Store.Get "total_validation_ms" | default 0 -}}
-{{- $pageCount := .Site.Store.Get "validated_page_count" | default 0 -}}
+{{- $validatedPageCount := .Site.Store.Get "validated_page_count" | default 0 -}}
 
-{{- if gt $pageCount 0 -}}
+{{/* Only output once when most pages have been validated */}}
+{{- $alreadyShown := .Site.Store.Get "validation_summary_shown" | default false -}}
+{{- $totalPages := len .Site.RegularPages -}}
+
+{{/* Output when we've validated at least 98% of pages and haven't shown yet */}}
+{{- $threshold := div (mul $totalPages 98) 100 -}}
+{{- if and (ge $validatedPageCount $threshold) (not $alreadyShown) -}}
+  {{- .Site.Store.Set "validation_summary_shown" true -}}
   {{- $totalValidationSec := div (float $totalValidationMs) 1000.0 -}}
-  {{- $avgValidationMs := div (float $totalValidationMs) (float $pageCount) -}}
+  {{- $avgValidationMs := 0.0 -}}
+  {{- if gt $validatedPageCount 0 -}}
+    {{- $avgValidationMs = div (float $totalValidationMs) (float $validatedPageCount) -}}
+  {{- end -}}
 
   {{/* Write to console */}}
   {{- warnf "\n╔════════════════════════════════════════════════════════════════╗" -}}
   {{- warnf "║       FRONTMATTER VALIDATION PERFORMANCE SUMMARY               ║" -}}
   {{- warnf "╠════════════════════════════════════════════════════════════════╣" -}}
-  {{- warnf "║ Pages Validated:       %-39d ║" $pageCount -}}
+  {{- warnf "║ Pages Validated:       %-39d ║" $validatedPageCount -}}
   {{- warnf "║ Total Validation Time: %-34.3f sec ║" $totalValidationSec -}}
   {{- warnf "║ Average per Page:      %-34.2f ms  ║" $avgValidationMs -}}
   {{- warnf "╠════════════════════════════════════════════════════════════════╣" -}}
@@ -23,7 +33,7 @@
   {{/* Also write to HTML comment for easy grep */}}
   <!--
   FRONTMATTER VALIDATION SUMMARY:
-  Pages: {{- $pageCount -}}
+  Pages: {{- $validatedPageCount -}}
   Total Time: {{- printf "%.3f" $totalValidationSec -}} sec
   Average: {{- printf "%.2f" $avgValidationMs -}} ms/page
   -->

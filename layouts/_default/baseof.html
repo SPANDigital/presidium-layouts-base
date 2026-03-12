@@ -112,9 +112,7 @@
       {{ partialCached "analytics.html"  . }}
     {{ end }}
 
-    {{/* Output validation summary only once (on home page) */}}
-    {{- if .IsHome -}}
-      {{- partial "frontmatter/validation-summary.html" . -}}
-    {{- end -}}
+    {{/* Output validation summary at the very end of page rendering */}}
+    {{- partial "frontmatter/validation-summary.html" . -}}
 </body>
 </html>
