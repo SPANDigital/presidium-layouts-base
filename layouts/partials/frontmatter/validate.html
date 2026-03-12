@@ -2,6 +2,9 @@
 {{/* Usage: {{ partial "frontmatter/validate.html" . }} */}}
 {{/* Returns: dict with "errors" (array) and "valid" (boolean) */}}
 
+{{/* ========== TIMING START ========== */}}
+{{- $startTime := now -}}
+
 {{/* Step 1: Load schema */}}
 {{- partial "frontmatter/load-schema.html" . -}}
 {{- $schema := .Scratch.Get "frontmatter_schema" -}}
@@ -42,3 +45,21 @@
     "valid" (eq (len $allErrors) 0) -}}
 
 {{- .Scratch.Set "frontmatter_validation" $validationResult -}}
+
+{{/* ========== TIMING END ========== */}}
+{{- $endTime := now -}}
+{{- $durationNano := $endTime.Sub $startTime -}}
+{{- $durationMs := div (int (mul (float $durationNano) 1e-6)) 1 -}}
+
+{{/* Store validation time in site store for aggregation */}}
+{{- $currentTimes := .Site.Store.Get "validation_times" | default slice -}}
+{{- $pageTime := dict "path" .File.Path "duration_ms" $durationMs -}}
+{{- .Site.Store.Set "validation_times" ($currentTimes | append $pageTime) -}}
+
+{{/* Increment total validation time counter */}}
+{{- $totalMs := .Site.Store.Get "total_validation_ms" | default 0 -}}
+{{- .Site.Store.Set "total_validation_ms" (add $totalMs $durationMs) -}}
+
+{{/* Increment page count */}}
+{{- $pageCount := .Site.Store.Get "validated_page_count" | default 0 -}}
+{{- .Site.Store.Set "validated_page_count" (add $pageCount 1) -}}

@@ -1,0 +1,25 @@
+{{/* Frontmatter Validation Performance Summary */}}
+{{/* This should be called once at the end of the build (e.g., in index.html or baseof) */}}
+
+{{- $totalValidationMs := .Site.Store.Get "total_validation_ms" | default 0 -}}
+{{- $pageCount := .Site.Store.Get "validated_page_count" | default 0 -}}
+
+{{- if gt $pageCount 0 -}}
+  {{- $totalValidationSec := div (float $totalValidationMs) 1000.0 -}}
+  {{- $avgValidationMs := div (float $totalValidationMs) (float $pageCount) -}}
+
+  {{- warnf "" -}}
+  {{- warnf "╔════════════════════════════════════════════════════════════════╗" -}}
+  {{- warnf "║       FRONTMATTER VALIDATION PERFORMANCE SUMMARY               ║" -}}
+  {{- warnf "╠════════════════════════════════════════════════════════════════╣" -}}
+  {{- warnf "║ Pages Validated:      %-40d ║" $pageCount -}}
+  {{- warnf "║ Total Validation Time: %-35.3f sec ║" $totalValidationSec -}}
+  {{- warnf "║ Average per Page:      %-35.2f ms  ║" $avgValidationMs -}}
+  {{- warnf "╠════════════════════════════════════════════════════════════════╣" -}}
+  {{- warnf "║ NOTE: Compare 'Total Validation Time' to Hugo's 'build:        ║" -}}
+  {{- warnf "║       duration' shown in INFO output to calculate overhead.    ║" -}}
+  {{- warnf "║                                                                ║" -}}
+  {{- warnf "║ Formula: (Validation / Build) × 100 = Overhead %%               ║" -}}
+  {{- warnf "╚════════════════════════════════════════════════════════════════╝" -}}
+  {{- warnf "" -}}
+{{- end -}}

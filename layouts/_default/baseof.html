@@ -111,5 +111,10 @@
     {{ if $.Site.Params.analyticsToken }}
       {{ partialCached "analytics.html"  . }}
     {{ end }}
+
+    {{/* Output validation summary only once (on home page) */}}
+    {{- if .IsHome -}}
+      {{- partial "frontmatter/validation-summary.html" . -}}
+    {{- end -}}
 </body>
 </html>
