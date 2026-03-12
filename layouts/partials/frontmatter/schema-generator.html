@@ -151,8 +151,8 @@ Sources are ordered by merge priority (highest first):
           {{- $normalizedKey := lower $key -}}
           {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
         {{- end -}}
-        {{- break -}}
       {{- end -}}
+      {{- break -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
