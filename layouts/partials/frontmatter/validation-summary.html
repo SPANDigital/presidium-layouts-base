@@ -8,18 +8,23 @@
   {{- $totalValidationSec := div (float $totalValidationMs) 1000.0 -}}
   {{- $avgValidationMs := div (float $totalValidationMs) (float $pageCount) -}}
 
-  {{- warnf "" -}}
-  {{- warnf "╔════════════════════════════════════════════════════════════════╗" -}}
+  {{/* Write to console */}}
+  {{- warnf "\n╔════════════════════════════════════════════════════════════════╗" -}}
   {{- warnf "║       FRONTMATTER VALIDATION PERFORMANCE SUMMARY               ║" -}}
   {{- warnf "╠════════════════════════════════════════════════════════════════╣" -}}
-  {{- warnf "║ Pages Validated:      %-40d ║" $pageCount -}}
-  {{- warnf "║ Total Validation Time: %-35.3f sec ║" $totalValidationSec -}}
-  {{- warnf "║ Average per Page:      %-35.2f ms  ║" $avgValidationMs -}}
+  {{- warnf "║ Pages Validated:       %-39d ║" $pageCount -}}
+  {{- warnf "║ Total Validation Time: %-34.3f sec ║" $totalValidationSec -}}
+  {{- warnf "║ Average per Page:      %-34.2f ms  ║" $avgValidationMs -}}
   {{- warnf "╠════════════════════════════════════════════════════════════════╣" -}}
-  {{- warnf "║ NOTE: Compare 'Total Validation Time' to Hugo's 'build:        ║" -}}
-  {{- warnf "║       duration' shown in INFO output to calculate overhead.    ║" -}}
-  {{- warnf "║                                                                ║" -}}
-  {{- warnf "║ Formula: (Validation / Build) × 100 = Overhead %%               ║" -}}
-  {{- warnf "╚════════════════════════════════════════════════════════════════╝" -}}
-  {{- warnf "" -}}
+  {{- warnf "║ NOTE: Compare to Hugo's 'Total in Xms' shown above to          ║" -}}
+  {{- warnf "║       calculate validation overhead percentage.                ║" -}}
+  {{- warnf "╚════════════════════════════════════════════════════════════════╝\n" -}}
+
+  {{/* Also write to HTML comment for easy grep */}}
+  <!--
+  FRONTMATTER VALIDATION SUMMARY:
+  Pages: {{- $pageCount -}}
+  Total Time: {{- printf "%.3f" $totalValidationSec -}} sec
+  Average: {{- printf "%.2f" $avgValidationMs -}} ms/page
+  -->
 {{- end -}}
