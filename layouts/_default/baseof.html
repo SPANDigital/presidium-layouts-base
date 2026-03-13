@@ -112,6 +112,7 @@
       {{ partialCached "analytics.html"  . }}
     {{ end }}
 
+    {{/* TODO(PRSDM-10393) - remove instrumentation (next two lines) */}}
     {{/* Output validation summary at the very end of page rendering */}}
     {{- partial "frontmatter/validation-summary.html" . -}}
 </body>
