@@ -110,23 +110,61 @@ Sources are ordered by merge priority (highest first):
 
 {{/* Source 0: Project self (from project config params.frontmatter) */}}
 {{- $projectConfig := dict -}}
+{{- $projectConfigFile := "" -}}
+
+{{/* First, check for frontmatter config in config.yml params.frontmatter */}}
 {{- if $configPath -}}
   {{- $configContent := os.ReadFile $configPath -}}
   {{- $configResource := resources.FromString "temp-params.yaml" $configContent -}}
   {{- $configData := $configResource | transform.Unmarshal -}}
   {{- with $configData.params -}}
     {{- $rawConfig := .frontmatter | default dict -}}
-    {{- /* Normalize keys to lowercase for case-insensitive comparison */ -}}
-    {{- range $key, $value := $rawConfig -}}
-      {{- $normalizedKey := lower $key -}}
-      {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
+    {{- if gt (len $rawConfig) 0 -}}
+      {{- $projectConfigFile = $configPath -}}
+      {{- /* Normalize keys to lowercase for case-insensitive comparison */ -}}
+      {{- range $key, $value := $rawConfig -}}
+        {{- $normalizedKey := lower $key -}}
+        {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
+      {{- end -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
 
+{{/* If not found in config.yml, check Hugo's config directory structure */}}
+{{- if eq (len $projectConfig) 0 -}}
+  {{- $configDirPaths := slice
+      "config/_default/presidium/params.yaml"
+      "config/_default/params.yaml"
+      "config/presidium/params.yaml"
+      "config/params.yaml"
+  -}}
+  {{- range $configDirPath := $configDirPaths -}}
+    {{- if and (eq (len $projectConfig) 0) (fileExists $configDirPath) -}}
+      {{- $configContent := os.ReadFile $configDirPath -}}
+      {{- $configResource := resources.FromString "temp-configdir-params.yaml" $configContent -}}
+      {{- $configData := $configResource | transform.Unmarshal -}}
+      {{- $rawConfig := $configData.frontmatter | default dict -}}
+      {{- if gt (len $rawConfig) 0 -}}
+        {{- $projectConfigFile = $configDirPath -}}
+        {{- /* Normalize keys to lowercase for case-insensitive comparison */ -}}
+        {{- range $key, $value := $rawConfig -}}
+          {{- $normalizedKey := lower $key -}}
+          {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
+        {{- end -}}
+      {{- end -}}
+      {{- break -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Fallback to config.yml if no config file was found */}}
+{{- if not $projectConfigFile -}}
+  {{- $projectConfigFile = "config.yml" -}}
+{{- end -}}
+
 {{- $sources = $sources | append (dict
     "path" $projectPath
-    "configFile" "config.yml"
+    "configFile" $projectConfigFile
     "config" $projectConfig
     "priority" $priority
 ) -}}
