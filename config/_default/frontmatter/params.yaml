@@ -9,3 +9,4 @@ frontmatter:
     required: true
     placeholder_message: "Enter author email"
     error_message: "Please ensure your article has an author email address"
+    
