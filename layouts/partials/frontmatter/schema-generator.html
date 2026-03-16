@@ -31,7 +31,50 @@ Implementation:
 {{- $completeSchema := dict -}}
 
 {{/* Get merged frontmatter config from Hugo (base → client → module) */}}
-{{- $mergedConfig := .Site.Params.frontmatter -}}
+{{- $mergedConfigRaw := .Site.Params.frontmatter -}}
+
+{{/*
+=============================================================================
+List to Map Conversion with Order Preservation
+=============================================================================
+Converts list-format frontmatter config to map format while preserving order.
+Each field gets an _order attribute based on its position in the list.
+
+Input (list format):
+  frontmatter:
+    - name: title
+      type: string
+    - name: author
+      type: email
+
+Output (map format with _order):
+  frontmatter:
+    title:
+      type: string
+      _order: 0
+    author:
+      type: email
+      _order: 1
+=============================================================================
+*/}}
+{{- $mergedConfig := dict -}}
+{{- if reflect.IsSlice $mergedConfigRaw -}}
+  {{- range $index, $field := $mergedConfigRaw -}}
+    {{- $fieldName := $field.name -}}
+    {{- if $fieldName -}}
+      {{- $fieldConfig := dict "_order" $index -}}
+      {{- range $key, $value := $field -}}
+        {{- if ne $key "name" -}}
+          {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
+        {{- end -}}
+      {{- end -}}
+      {{- $mergedConfig = merge $mergedConfig (dict $fieldName $fieldConfig) -}}
+    {{- end -}}
+  {{- end -}}
+{{- else -}}
+  {{/* Fallback: if already a map, use as-is (backward compatibility) */}}
+  {{- $mergedConfig = $mergedConfigRaw -}}
+{{- end -}}
 
 {{/* Load flat type definitions from data directory */}}
 {{- $dataTypes := .Site.Data.schemas.frontmatter.types -}}
@@ -104,7 +147,38 @@ Sources are ordered by merge priority (highest first):
   {{- end -}}
 {{- end -}}
 
-{{/* --- 2.3 Build Ordered Sources List --- */}}
+{{/* --- 2.3 Extract Field Order from Raw Config --- */}}
+{{/*
+Since Go maps don't preserve insertion order, we need to extract the original
+field order from the raw config file. This includes nested fields within
+objects and arrays.
+*/}}
+{{- $fieldOrders := dict -}}
+{{- $projectParamsPath := "" -}}
+
+{{/* Check for frontmatter config in Hugo's config directory structure */}}
+{{- $configDirPaths := slice
+    "config/_default/presidium/params.yaml"
+    "config/_default/params.yaml"
+    "config/presidium/params.yaml"
+    "config/params.yaml"
+-}}
+{{- range $configDirPath := $configDirPaths -}}
+  {{- $exists := fileExists $configDirPath -}}
+  {{- warnf "Checking path: %s exists: %v" $configDirPath $exists -}}
+  {{- if and (not $projectParamsPath) $exists -}}
+    {{- $projectParamsPath = $configDirPath -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Extract field order from the params file */}}
+{{- if $projectParamsPath -}}
+  {{- $paramsContent := os.ReadFile $projectParamsPath -}}
+  {{- $fieldOrders = partial "frontmatter/extract-field-order"
+      (dict "configContent" $paramsContent) -}}
+{{- end -}}
+
+{{/* --- 2.4 Build Ordered Sources List --- */}}
 {{- $sources := slice -}}
 {{- $priority := 0 -}}
 
@@ -121,10 +195,27 @@ Sources are ordered by merge priority (highest first):
     {{- $rawConfig := .frontmatter | default dict -}}
     {{- if gt (len $rawConfig) 0 -}}
       {{- $projectConfigFile = $configPath -}}
-      {{- /* Normalize keys to lowercase for case-insensitive comparison */ -}}
-      {{- range $key, $value := $rawConfig -}}
-        {{- $normalizedKey := lower $key -}}
-        {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
+      {{- /* Convert list format to map format with _order attribute */ -}}
+      {{- if reflect.IsSlice $rawConfig -}}
+        {{- range $index, $field := $rawConfig -}}
+          {{- $fieldName := $field.name -}}
+          {{- if $fieldName -}}
+            {{- $normalizedKey := lower $fieldName -}}
+            {{- $fieldConfig := dict "_order" $index -}}
+            {{- range $key, $value := $field -}}
+              {{- if ne $key "name" -}}
+                {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
+              {{- end -}}
+            {{- end -}}
+            {{- $projectConfig = merge $projectConfig (dict $normalizedKey $fieldConfig) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- else -}}
+        {{- /* Fallback: map format (backward compatibility) */ -}}
+        {{- range $key, $value := $rawConfig -}}
+          {{- $normalizedKey := lower $key -}}
+          {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
+        {{- end -}}
       {{- end -}}
     {{- end -}}
   {{- end -}}
@@ -146,10 +237,27 @@ Sources are ordered by merge priority (highest first):
       {{- $rawConfig := $configData.frontmatter | default dict -}}
       {{- if gt (len $rawConfig) 0 -}}
         {{- $projectConfigFile = $configDirPath -}}
-        {{- /* Normalize keys to lowercase for case-insensitive comparison */ -}}
-        {{- range $key, $value := $rawConfig -}}
-          {{- $normalizedKey := lower $key -}}
-          {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
+        {{- /* Convert list format to map format with _order attribute */ -}}
+        {{- if reflect.IsSlice $rawConfig -}}
+          {{- range $index, $field := $rawConfig -}}
+            {{- $fieldName := $field.name -}}
+            {{- if $fieldName -}}
+              {{- $normalizedKey := lower $fieldName -}}
+              {{- $fieldConfig := dict "_order" $index -}}
+              {{- range $key, $value := $field -}}
+                {{- if ne $key "name" -}}
+                  {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
+                {{- end -}}
+              {{- end -}}
+              {{- $projectConfig = merge $projectConfig (dict $normalizedKey $fieldConfig) -}}
+            {{- end -}}
+          {{- end -}}
+        {{- else -}}
+          {{- /* Fallback: map format (backward compatibility) */ -}}
+          {{- range $key, $value := $rawConfig -}}
+            {{- $normalizedKey := lower $key -}}
+            {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
+          {{- end -}}
         {{- end -}}
       {{- end -}}
       {{- break -}}
@@ -178,10 +286,27 @@ Sources are ordered by merge priority (highest first):
   {{- with resources.Get $assetPath -}}
     {{- $parsed := . | transform.Unmarshal -}}
     {{- $rawConfig := $parsed.frontmatter | default dict -}}
-    {{- /* Normalize keys to lowercase for case-insensitive comparison */ -}}
-    {{- range $key, $value := $rawConfig -}}
-      {{- $normalizedKey := lower $key -}}
-      {{- $importConfig = merge $importConfig (dict $normalizedKey $value) -}}
+    {{- /* Convert list format to map format with _order attribute */ -}}
+    {{- if reflect.IsSlice $rawConfig -}}
+      {{- range $index, $field := $rawConfig -}}
+        {{- $fieldName := $field.name -}}
+        {{- if $fieldName -}}
+          {{- $normalizedKey := lower $fieldName -}}
+          {{- $fieldConfig := dict "_order" $index -}}
+          {{- range $key, $value := $field -}}
+            {{- if ne $key "name" -}}
+              {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
+            {{- end -}}
+          {{- end -}}
+          {{- $importConfig = merge $importConfig (dict $normalizedKey $fieldConfig) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- else -}}
+      {{- /* Fallback: map format (backward compatibility) */ -}}
+      {{- range $key, $value := $rawConfig -}}
+        {{- $normalizedKey := lower $key -}}
+        {{- $importConfig = merge $importConfig (dict $normalizedKey $value) -}}
+      {{- end -}}
     {{- end -}}
   {{- end -}}
 
@@ -197,12 +322,79 @@ Sources are ordered by merge priority (highest first):
   {{- $priority = add $priority 1 -}}
 {{- end -}}
 
+{{/*
+=============================================================================
+Merge All Sources into Final Config with Global Ordering
+=============================================================================
+Hugo's Site.Params.frontmatter doesn't merge lists from multiple levels.
+We need to manually merge configs from all sources.
+
+Ordering strategy:
+- Lower priority sources (i.e. layouts-base) come first in the global order
+- Higher priority sources (i.e. modules) can override layouts-base field configs AND positions
+- When a field exists in both, module config AND position override layouts-base's
+- layouts-base-only fields keep their layouts-base position
+- Global _order values are assigned sequentially across all sources
+
+Example with module (priority 1) and layouts-base (priority 0):
+  layouts-base fields (title:0, author:1, description:2) → initial global _order 0, 1, 2
+  Module has description at position 4 → description moves to modules's position
+  Final: title:0, author:1, status:2, url:3, slug:4, object input:5, array:6, description:7
+=============================================================================
+*/}}
+{{- $mergedConfig = dict -}}
+{{- $globalOrder := 0 -}}
+
+{{/* Track which fields are overridden by module (to skip in layouts-base pass) */}}
+{{- $projectFieldKeys := dict -}}
+
+{{/* First pass: identify all fields defined in layouts-base (priority 0) */}}
+{{- range $source := $sources -}}
+  {{- if eq $source.priority 0 -}}
+    {{- range $fieldKey, $fieldConfig := $source.config -}}
+      {{- $projectFieldKeys = merge $projectFieldKeys (dict $fieldKey true) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Process sources in descending priority order (layouts-base first, module last) */}}
+{{- $sortedSources := sort $sources "priority" "desc" -}}
+{{- range $source := $sortedSources -}}
+  {{/* Sort fields within this source by their local _order */}}
+  {{- $fieldsWithOrder := slice -}}
+  {{- range $fieldKey, $fieldConfig := $source.config -}}
+    {{- $localOrder := $fieldConfig._order | default 0 -}}
+    {{- $fieldsWithOrder = $fieldsWithOrder | append (dict "key" $fieldKey "config" $fieldConfig "localOrder" $localOrder) -}}
+  {{- end -}}
+  {{- $sortedFields := sort $fieldsWithOrder "localOrder" "asc" -}}
+
+  {{/* Add fields */}}
+  {{- range $field := $sortedFields -}}
+    {{- $isProjectSource := eq $source.priority 0 -}}
+    {{- $isOverriddenByProject := index $projectFieldKeys $field.key -}}
+
+    {{- if $isProjectSource -}}
+      {{/* Project source: always add/update with new global order */}}
+      {{- $updatedConfig := merge $field.config (dict "_order" $globalOrder) -}}
+      {{- $mergedConfig = merge $mergedConfig (dict $field.key $updatedConfig) -}}
+      {{- $globalOrder = add $globalOrder 1 -}}
+    {{- else if not $isOverriddenByProject -}}
+      {{/* layouts-base source AND not overridden by module: add with global order */}}
+      {{- $updatedConfig := merge $field.config (dict "_order" $globalOrder) -}}
+      {{- $mergedConfig = merge $mergedConfig (dict $field.key $updatedConfig) -}}
+      {{- $globalOrder = add $globalOrder 1 -}}
+    {{- end -}}
+    {{/* Skip layouts-base fields that are overridden by module - they'll be added in module pass */}}
+  {{- end -}}
+{{- end -}}
+
 {{/* Iterate through each configured field */}}
 {{- range $fieldKey, $fieldConfig := $mergedConfig -}}
   {{- $fieldSchema := partial "frontmatter/processField"
       (dict "fieldConfig" $fieldConfig
             "dataTypes" $dataTypes
-            "fieldKey" $fieldKey) -}}
+            "fieldKey" $fieldKey
+            "fieldOrders" $fieldOrders) -}}
 
   {{/* Attribution: detect contributing sources */}}
   {{- $configSources := partial "frontmatter/detect-config-sources"
@@ -213,6 +405,11 @@ Sources are ordered by merge priority (highest first):
   {{/* Add _config_location to field schema */}}
   {{- if $configSources -}}
     {{- $fieldSchema = merge $fieldSchema (dict "_config_location" $configSources) -}}
+  {{- end -}}
+
+  {{/* Preserve global _order from mergedConfig (assigned during source merging) */}}
+  {{- if isset $fieldConfig "_order" -}}
+    {{- $fieldSchema = merge $fieldSchema (dict "_order" $fieldConfig._order) -}}
   {{- end -}}
 
   {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}

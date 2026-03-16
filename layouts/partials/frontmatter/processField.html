@@ -9,6 +9,7 @@ Input (dict):
   - fieldConfig: Field configuration from Hugo params
   - dataTypes: Type definitions from types.yaml
   - fieldKey: Field path for error messages (e.g., "tags", "tags.field")
+  - fieldOrders: (optional) Dict mapping field paths to order indices
 
 Output: Complete field schema with all defaults applied
 =============================================================================
@@ -17,6 +18,7 @@ Output: Complete field schema with all defaults applied
 {{- $fieldConfig := .fieldConfig -}}
 {{- $dataTypes := .dataTypes -}}
 {{- $fieldKey := .fieldKey -}}
+{{- $fieldOrders := .fieldOrders | default dict -}}
 {{- $fieldType := $fieldConfig.type -}}
 
 {{/* Start with empty field schema */}}
@@ -58,20 +60,31 @@ Output: Complete field schema with all defaults applied
   {{/* Step 3: RECURSIVELY process nested structures */}}
   {{- if eq $fieldType "array" -}}
     {{- if isset $fieldSchema "field" -}}
+      {{- $nestedFieldKey := printf "%s.field" $fieldKey -}}
       {{- $nestedField := partial "frontmatter/processField"
           (dict "fieldConfig" $fieldSchema.field
                 "dataTypes" $dataTypes
-                "fieldKey" (printf "%s.field" $fieldKey)) -}}
+                "fieldKey" $nestedFieldKey
+                "fieldOrders" $fieldOrders) -}}
       {{- $fieldSchema = merge $fieldSchema (dict "field" $nestedField) -}}
     {{- end -}}
   {{- else if eq $fieldType "object" -}}
     {{- if isset $fieldSchema "fields" -}}
       {{- $processedFields := dict -}}
       {{- range $nestedKey, $nestedConfig := $fieldSchema.fields -}}
+        {{- $nestedFieldKey := printf "%s.fields.%s" $fieldKey $nestedKey -}}
         {{- $nestedField := partial "frontmatter/processField"
             (dict "fieldConfig" $nestedConfig
                   "dataTypes" $dataTypes
-                  "fieldKey" (printf "%s.fields.%s" $fieldKey $nestedKey)) -}}
+                  "fieldKey" $nestedFieldKey
+                  "fieldOrders" $fieldOrders) -}}
+
+        {{/* Add _order to nested field if available */}}
+        {{- if isset $fieldOrders $nestedFieldKey -}}
+          {{- $nestedOrder := index $fieldOrders $nestedFieldKey -}}
+          {{- $nestedField = merge $nestedField (dict "_order" $nestedOrder) -}}
+        {{- end -}}
+
         {{- $processedFields = merge $processedFields (dict $nestedKey $nestedField) -}}
       {{- end -}}
       {{- $fieldSchema = merge $fieldSchema (dict "fields" $processedFields) -}}
