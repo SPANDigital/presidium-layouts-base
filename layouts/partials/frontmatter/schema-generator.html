@@ -250,9 +250,20 @@ Sources are ordered by merge priority (highest first):
 
 {{/* Sources 1..N: Imported modules (from mounted assets) */}}
 {{- range $importPath := $importPaths -}}
-  {{- /* Use versioned path if available from go.mod, otherwise fall back to base path */ -}}
-  {{- $resolvedPath := index $importPathsVersioned $importPath | default $importPath -}}
+  {{- /* Try versioned path first, fall back to base path if not found */ -}}
+  {{- $versionedPath := index $importPathsVersioned $importPath -}}
+  {{- $resolvedPath := $importPath -}}
   {{- $assetPath := printf "frontmatter-sources/%s/params.yaml" $resolvedPath -}}
+
+  {{- /* Try versioned path if available */ -}}
+  {{- if $versionedPath -}}
+    {{- $versionedAssetPath := printf "frontmatter-sources/%s/params.yaml" $versionedPath -}}
+    {{- if resources.Get $versionedAssetPath -}}
+      {{- $resolvedPath = $versionedPath -}}
+      {{- $assetPath = $versionedAssetPath -}}
+    {{- end -}}
+  {{- end -}}
+
   {{- $importConfig := dict -}}
 
   {{- with resources.Get $assetPath -}}
