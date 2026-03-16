@@ -1,0 +1,39 @@
+{{/* Taxonomy Term Lookup Validator - validates taxonomy term values */}}
+{{/* Accepts either string (single value) or array (multiple values) */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Type check: must be string or array */}}
+{{- $valueType := printf "%T" $value -}}
+{{- $isString := eq $valueType "string" -}}
+{{- $isArray := hasPrefix $valueType "[]" -}}
+
+{{- if not (or $isString $isArray) -}}
+  {{- $errors = $errors | append (printf "%s must be a string or array" $fieldName) -}}
+{{- else -}}
+  {{/* Normalize to array for validation */}}
+  {{- $values := slice -}}
+  {{- if $isString -}}
+    {{- $values = slice $value -}}
+  {{- else -}}
+    {{- $values = $value -}}
+  {{- end -}}
+
+  {{/* Validate against options if provided */}}
+  {{- if $rules.options -}}
+    {{- range $val := $values -}}
+      {{- if not (in $rules.options $val) -}}
+        {{- $errors = $errors | append (printf "%s contains invalid value: %s" $fieldName $val) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

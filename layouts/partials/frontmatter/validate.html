@@ -2,6 +2,10 @@
 {{/* Usage: {{ partial "frontmatter/validate.html" . }} */}}
 {{/* Returns: dict with "errors" (array) and "valid" (boolean) */}}
 
+{{/* TODO(PRSDM-10393) - remove instrumentation  */}}
+{{/* ========== TIMING START ========== */}}
+{{- $startTime := now.UnixMilli -}}
+
 {{/* Step 1: Load schema */}}
 {{- partial "frontmatter/load-schema.html" . -}}
 {{- $schema := .Scratch.Get "frontmatter_schema" -}}
@@ -42,3 +46,26 @@
     "valid" (eq (len $allErrors) 0) -}}
 
 {{- .Scratch.Set "frontmatter_validation" $validationResult -}}
+
+{{/* TODO(PRSDM-10393) - remove instrumentation (next 3 lines)  */}}
+{{/* ========== TIMING END ========== */}}
+{{- $endTime := now.UnixMilli -}}
+{{- $durationMs := sub $endTime $startTime -}}
+
+{{/* TODO(PRSDM-10393) - remove instrumentation (next 4 lines) */}}
+{{/* Store validation time in site store for aggregation */}}
+{{- $currentTimes := .Site.Store.Get "validation_times" | default slice -}}
+{{- $pageTime := dict "path" .File.Path "duration_ms" $durationMs -}}
+{{- .Site.Store.Set "validation_times" ($currentTimes | append $pageTime) -}}
+
+{{/* TODO(PRSDM-10393) - remove instrumentation (next 4 lines) */}}
+{{/* Increment total validation time counter */}}
+{{- $totalMs := .Site.Store.Get "total_validation_ms" | default 0 -}}
+{{- $newTotalMs := add $totalMs $durationMs -}}
+{{- .Site.Store.Set "total_validation_ms" $newTotalMs -}}
+
+{{/* TODO(PRSDM-10393) - remove instrumentation (next 4 lines) */}}
+{{/* Increment page count */}}
+{{- $pageCount := .Site.Store.Get "validated_page_count" | default 0 -}}
+{{- $newPageCount := add $pageCount 1 -}}
+{{- .Site.Store.Set "validated_page_count" $newPageCount -}}
