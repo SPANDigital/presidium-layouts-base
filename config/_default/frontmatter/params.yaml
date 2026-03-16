@@ -1,12 +1,11 @@
 frontmatter:
-  - key: title
+  title:
     type: string
     required: true
     placeholder_message: "Enter a title"
     error_message: "Please ensure your article has a title"
-  - key: author
+  author:
     type: email
     required: true
     placeholder_message: "Enter author email"
     error_message: "Please ensure your article has an author email address"
-    
