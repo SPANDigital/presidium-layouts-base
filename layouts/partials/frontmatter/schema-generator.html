@@ -147,38 +147,7 @@ Sources are ordered by merge priority (highest first):
   {{- end -}}
 {{- end -}}
 
-{{/* --- 2.3 Extract Field Order from Raw Config --- */}}
-{{/*
-Since Go maps don't preserve insertion order, we need to extract the original
-field order from the raw config file. This includes nested fields within
-objects and arrays.
-*/}}
-{{- $fieldOrders := dict -}}
-{{- $projectParamsPath := "" -}}
-
-{{/* Check for frontmatter config in Hugo's config directory structure */}}
-{{- $configDirPaths := slice
-    "config/_default/presidium/params.yaml"
-    "config/_default/params.yaml"
-    "config/presidium/params.yaml"
-    "config/params.yaml"
--}}
-{{- range $configDirPath := $configDirPaths -}}
-  {{- $exists := fileExists $configDirPath -}}
-  {{- warnf "Checking path: %s exists: %v" $configDirPath $exists -}}
-  {{- if and (not $projectParamsPath) $exists -}}
-    {{- $projectParamsPath = $configDirPath -}}
-  {{- end -}}
-{{- end -}}
-
-{{/* Extract field order from the params file */}}
-{{- if $projectParamsPath -}}
-  {{- $paramsContent := os.ReadFile $projectParamsPath -}}
-  {{- $fieldOrders = partial "frontmatter/extract-field-order"
-      (dict "configContent" $paramsContent) -}}
-{{- end -}}
-
-{{/* --- 2.4 Build Ordered Sources List --- */}}
+{{/* --- 2.3 Build Ordered Sources List --- */}}
 {{- $sources := slice -}}
 {{- $priority := 0 -}}
 
@@ -393,8 +362,7 @@ Example with module (priority 1) and layouts-base (priority 0):
   {{- $fieldSchema := partial "frontmatter/processField"
       (dict "fieldConfig" $fieldConfig
             "dataTypes" $dataTypes
-            "fieldKey" $fieldKey
-            "fieldOrders" $fieldOrders) -}}
+            "fieldKey" $fieldKey) -}}
 
   {{/* Attribution: detect contributing sources */}}
   {{- $configSources := partial "frontmatter/detect-config-sources"
