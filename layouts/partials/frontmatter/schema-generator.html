@@ -42,9 +42,9 @@ Each field gets an _order attribute based on its position in the list.
 
 Input (list format):
   frontmatter:
-    - name: title
+    - key: title
       type: string
-    - name: author
+    - key: author
       type: email
 
 Output (map format with _order):
@@ -60,11 +60,11 @@ Output (map format with _order):
 {{- $mergedConfig := dict -}}
 {{- if reflect.IsSlice $mergedConfigRaw -}}
   {{- range $index, $field := $mergedConfigRaw -}}
-    {{- $fieldName := $field.name -}}
+    {{- $fieldName := $field.key -}}
     {{- if $fieldName -}}
       {{- $fieldConfig := dict "_order" $index -}}
       {{- range $key, $value := $field -}}
-        {{- if ne $key "name" -}}
+        {{- if ne $key "key" -}}
           {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
         {{- end -}}
       {{- end -}}
@@ -198,12 +198,12 @@ objects and arrays.
       {{- /* Convert list format to map format with _order attribute */ -}}
       {{- if reflect.IsSlice $rawConfig -}}
         {{- range $index, $field := $rawConfig -}}
-          {{- $fieldName := $field.name -}}
+          {{- $fieldName := $field.key -}}
           {{- if $fieldName -}}
             {{- $normalizedKey := lower $fieldName -}}
             {{- $fieldConfig := dict "_order" $index -}}
             {{- range $key, $value := $field -}}
-              {{- if ne $key "name" -}}
+              {{- if ne $key "key" -}}
                 {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
               {{- end -}}
             {{- end -}}
@@ -240,12 +240,12 @@ objects and arrays.
         {{- /* Convert list format to map format with _order attribute */ -}}
         {{- if reflect.IsSlice $rawConfig -}}
           {{- range $index, $field := $rawConfig -}}
-            {{- $fieldName := $field.name -}}
+            {{- $fieldName := $field.key -}}
             {{- if $fieldName -}}
               {{- $normalizedKey := lower $fieldName -}}
               {{- $fieldConfig := dict "_order" $index -}}
               {{- range $key, $value := $field -}}
-                {{- if ne $key "name" -}}
+                {{- if ne $key "key" -}}
                   {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
                 {{- end -}}
               {{- end -}}
@@ -289,12 +289,12 @@ objects and arrays.
     {{- /* Convert list format to map format with _order attribute */ -}}
     {{- if reflect.IsSlice $rawConfig -}}
       {{- range $index, $field := $rawConfig -}}
-        {{- $fieldName := $field.name -}}
+        {{- $fieldName := $field.key -}}
         {{- if $fieldName -}}
           {{- $normalizedKey := lower $fieldName -}}
           {{- $fieldConfig := dict "_order" $index -}}
           {{- range $key, $value := $field -}}
-            {{- if ne $key "name" -}}
+            {{- if ne $key "key" -}}
               {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
             {{- end -}}
           {{- end -}}

@@ -9,7 +9,7 @@ This is necessary because Go maps don't preserve insertion order, so we need
 to parse the raw config file to determine the original order of fields.
 
 Handles both list format (for top-level fields) and map format (for nested fields):
-- List format: `- name: fieldName` followed by properties
+- List format: `- key: fieldName` followed by properties
 - Map format: `fieldName:` followed by properties
 
 Input (dict):
@@ -96,10 +96,10 @@ Usage:
           {{- $isFieldsKeyword = true -}}
         {{- else if findRE "^field:\\s*$" $trimmed -}}
           {{- $isFieldKeyword = true -}}
-        {{- else if findRE "^- name:" $trimmed -}}
-          {{/* List format entry: `- name: fieldName` */}}
+        {{- else if findRE "^- key:" $trimmed -}}
+          {{/* List format entry: `- key: fieldName` */}}
           {{- $isListItem = true -}}
-          {{- $fieldName = replaceRE "^- name:\\s*(.+?)\\s*$" "$1" $trimmed -}}
+          {{- $fieldName = replaceRE "^- key:\\s*(.+?)\\s*$" "$1" $trimmed -}}
         {{- else if and (ge $listItemIndent 0) (gt $currentIndent $listItemIndent) (lt $fieldsKeywordIndent 0) -}}
           {{/* Inside a list item's properties but NOT in a fields: block - skip regular properties */}}
           {{/* (fields:/field: already handled above, so only skip other properties) */}}
