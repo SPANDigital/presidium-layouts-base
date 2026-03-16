@@ -279,7 +279,7 @@ Ordering strategy:
 Example with module (priority 1) and layouts-base (priority 0):
   layouts-base fields (title:0, author:1, description:2) → initial global _order 0, 1, 2
   Module has description at position 4 → description moves to modules's position
-  Final: title:0, author:1, status:2, url:3, slug:4, object input:5, array:6, description:7
+  Final: title:0, author:1, ... , description:6 (after module fields with _order 2,3,4,5)
 =============================================================================
 */}}
 {{- $mergedConfig = dict -}}
