@@ -70,36 +70,24 @@ Output: Complete field schema with all defaults applied
       {{- $processedFields := dict -}}
       {{- $objectFields := $fieldSchema.fields -}}
 
-      {{/* Handle list format: convert to map with _order */}}
-      {{- if reflect.IsSlice $objectFields -}}
-        {{- range $index, $field := $objectFields -}}
-          {{- $nestedKey := $field.key -}}
-          {{- if $nestedKey -}}
-            {{/* Build config without 'key', add _order */}}
-            {{- $nestedConfig := dict "_order" $index -}}
-            {{- range $attrKey, $attrValue := $field -}}
-              {{- if ne $attrKey "key" -}}
-                {{- $nestedConfig = merge $nestedConfig (dict $attrKey $attrValue) -}}
-              {{- end -}}
+      {{/* Convert list format to map with _order */}}
+      {{- range $index, $field := $objectFields -}}
+        {{- $nestedKey := $field.key -}}
+        {{- if $nestedKey -}}
+          {{/* Build config without 'key', add _order */}}
+          {{- $nestedConfig := dict "_order" $index -}}
+          {{- range $attrKey, $attrValue := $field -}}
+            {{- if ne $attrKey "key" -}}
+              {{- $nestedConfig = merge $nestedConfig (dict $attrKey $attrValue) -}}
             {{- end -}}
-            {{- $nestedFieldKey := printf "%s.fields.%s" $fieldKey $nestedKey -}}
-            {{- $nestedField := partial "frontmatter/processField"
-                (dict "fieldConfig" $nestedConfig
-                      "dataTypes" $dataTypes
-                      "fieldKey" $nestedFieldKey) -}}
-            {{/* Preserve _order in processed field */}}
-            {{- $nestedField = merge $nestedField (dict "_order" $index) -}}
-            {{- $processedFields = merge $processedFields (dict $nestedKey $nestedField) -}}
           {{- end -}}
-        {{- end -}}
-      {{- else -}}
-        {{/* Map format: existing behavior (backward compatibility) */}}
-        {{- range $nestedKey, $nestedConfig := $objectFields -}}
           {{- $nestedFieldKey := printf "%s.fields.%s" $fieldKey $nestedKey -}}
           {{- $nestedField := partial "frontmatter/processField"
               (dict "fieldConfig" $nestedConfig
                     "dataTypes" $dataTypes
                     "fieldKey" $nestedFieldKey) -}}
+          {{/* Preserve _order in processed field */}}
+          {{- $nestedField = merge $nestedField (dict "_order" $index) -}}
           {{- $processedFields = merge $processedFields (dict $nestedKey $nestedField) -}}
         {{- end -}}
       {{- end -}}

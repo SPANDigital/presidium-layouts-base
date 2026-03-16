@@ -58,22 +58,17 @@ Output (map format with _order):
 =============================================================================
 */}}
 {{- $mergedConfig := dict -}}
-{{- if reflect.IsSlice $mergedConfigRaw -}}
-  {{- range $index, $field := $mergedConfigRaw -}}
-    {{- $fieldName := $field.key -}}
-    {{- if $fieldName -}}
-      {{- $fieldConfig := dict "_order" $index -}}
-      {{- range $key, $value := $field -}}
-        {{- if ne $key "key" -}}
-          {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
-        {{- end -}}
+{{- range $index, $field := $mergedConfigRaw -}}
+  {{- $fieldName := $field.key -}}
+  {{- if $fieldName -}}
+    {{- $fieldConfig := dict "_order" $index -}}
+    {{- range $key, $value := $field -}}
+      {{- if ne $key "key" -}}
+        {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
       {{- end -}}
-      {{- $mergedConfig = merge $mergedConfig (dict $fieldName $fieldConfig) -}}
     {{- end -}}
+    {{- $mergedConfig = merge $mergedConfig (dict $fieldName $fieldConfig) -}}
   {{- end -}}
-{{- else -}}
-  {{/* Fallback: if already a map, use as-is (backward compatibility) */}}
-  {{- $mergedConfig = $mergedConfigRaw -}}
 {{- end -}}
 
 {{/* Load flat type definitions from data directory */}}
@@ -165,25 +160,17 @@ Sources are ordered by merge priority (highest first):
     {{- if gt (len $rawConfig) 0 -}}
       {{- $projectConfigFile = $configPath -}}
       {{- /* Convert list format to map format with _order attribute */ -}}
-      {{- if reflect.IsSlice $rawConfig -}}
-        {{- range $index, $field := $rawConfig -}}
-          {{- $fieldName := $field.key -}}
-          {{- if $fieldName -}}
-            {{- $normalizedKey := lower $fieldName -}}
-            {{- $fieldConfig := dict "_order" $index -}}
-            {{- range $key, $value := $field -}}
-              {{- if ne $key "key" -}}
-                {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
-              {{- end -}}
+      {{- range $index, $field := $rawConfig -}}
+        {{- $fieldName := $field.key -}}
+        {{- if $fieldName -}}
+          {{- $normalizedKey := lower $fieldName -}}
+          {{- $fieldConfig := dict "_order" $index -}}
+          {{- range $key, $value := $field -}}
+            {{- if ne $key "key" -}}
+              {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
             {{- end -}}
-            {{- $projectConfig = merge $projectConfig (dict $normalizedKey $fieldConfig) -}}
           {{- end -}}
-        {{- end -}}
-      {{- else -}}
-        {{- /* Fallback: map format (backward compatibility) */ -}}
-        {{- range $key, $value := $rawConfig -}}
-          {{- $normalizedKey := lower $key -}}
-          {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
+          {{- $projectConfig = merge $projectConfig (dict $normalizedKey $fieldConfig) -}}
         {{- end -}}
       {{- end -}}
     {{- end -}}
@@ -207,25 +194,17 @@ Sources are ordered by merge priority (highest first):
       {{- if gt (len $rawConfig) 0 -}}
         {{- $projectConfigFile = $configDirPath -}}
         {{- /* Convert list format to map format with _order attribute */ -}}
-        {{- if reflect.IsSlice $rawConfig -}}
-          {{- range $index, $field := $rawConfig -}}
-            {{- $fieldName := $field.key -}}
-            {{- if $fieldName -}}
-              {{- $normalizedKey := lower $fieldName -}}
-              {{- $fieldConfig := dict "_order" $index -}}
-              {{- range $key, $value := $field -}}
-                {{- if ne $key "key" -}}
-                  {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
-                {{- end -}}
+        {{- range $index, $field := $rawConfig -}}
+          {{- $fieldName := $field.key -}}
+          {{- if $fieldName -}}
+            {{- $normalizedKey := lower $fieldName -}}
+            {{- $fieldConfig := dict "_order" $index -}}
+            {{- range $key, $value := $field -}}
+              {{- if ne $key "key" -}}
+                {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
               {{- end -}}
-              {{- $projectConfig = merge $projectConfig (dict $normalizedKey $fieldConfig) -}}
             {{- end -}}
-          {{- end -}}
-        {{- else -}}
-          {{- /* Fallback: map format (backward compatibility) */ -}}
-          {{- range $key, $value := $rawConfig -}}
-            {{- $normalizedKey := lower $key -}}
-            {{- $projectConfig = merge $projectConfig (dict $normalizedKey $value) -}}
+            {{- $projectConfig = merge $projectConfig (dict $normalizedKey $fieldConfig) -}}
           {{- end -}}
         {{- end -}}
       {{- end -}}
@@ -256,25 +235,17 @@ Sources are ordered by merge priority (highest first):
     {{- $parsed := . | transform.Unmarshal -}}
     {{- $rawConfig := $parsed.frontmatter | default dict -}}
     {{- /* Convert list format to map format with _order attribute */ -}}
-    {{- if reflect.IsSlice $rawConfig -}}
-      {{- range $index, $field := $rawConfig -}}
-        {{- $fieldName := $field.key -}}
-        {{- if $fieldName -}}
-          {{- $normalizedKey := lower $fieldName -}}
-          {{- $fieldConfig := dict "_order" $index -}}
-          {{- range $key, $value := $field -}}
-            {{- if ne $key "key" -}}
-              {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
-            {{- end -}}
+    {{- range $index, $field := $rawConfig -}}
+      {{- $fieldName := $field.key -}}
+      {{- if $fieldName -}}
+        {{- $normalizedKey := lower $fieldName -}}
+        {{- $fieldConfig := dict "_order" $index -}}
+        {{- range $key, $value := $field -}}
+          {{- if ne $key "key" -}}
+            {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
           {{- end -}}
-          {{- $importConfig = merge $importConfig (dict $normalizedKey $fieldConfig) -}}
         {{- end -}}
-      {{- end -}}
-    {{- else -}}
-      {{- /* Fallback: map format (backward compatibility) */ -}}
-      {{- range $key, $value := $rawConfig -}}
-        {{- $normalizedKey := lower $key -}}
-        {{- $importConfig = merge $importConfig (dict $normalizedKey $value) -}}
+        {{- $importConfig = merge $importConfig (dict $normalizedKey $fieldConfig) -}}
       {{- end -}}
     {{- end -}}
   {{- end -}}
