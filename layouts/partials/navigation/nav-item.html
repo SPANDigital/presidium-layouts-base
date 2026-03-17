@@ -3,6 +3,7 @@
 {{ $roles := .NavPage.Params.roles | default "All Roles" }}
 {{/* rootUrl is the baseUrl but it defaults to "/" if no baseUrl is set */}}
 {{ $rootUrl := .RootUrl }}
+{{ $currentPage := .CurrentPage | default .NavPage }}
 
 {{/* Use title if no slug */}}
 {{ $slug := humanize .NavPage.Params.Title }} {{/* Handles any dashes in the title */}}
@@ -31,12 +32,9 @@
     {{ end }}
 {{end}}
 
-{{/* combines the parent slug with the current slug to ensure it's globally unique */}}
-{{ $pageSlug := (printf "%v-%v" ($parentSlug) $slug )}}
-
 {{/*  Hide the first item if the title is the same as the parent  */}}
 {{ $offset := 0 }}
-{{ if eq (index .NavPage.Data.Pages 0).Title .NavPage.Title }}
+{{ if and (gt (len .NavPage.Data.Pages) 0) (eq (index .NavPage.Data.Pages 0).Title .NavPage.Title) }}
     {{ $offset = 1 }}
 {{ end }}
 {{ $hasChildren := lt $offset (len .NavPage.Data.Pages)}}
@@ -48,14 +46,17 @@
 {{ $uid := .NavPage.File.UniqueID }}
 {{- $importInfo := partial "common/is-imported" .NavPage -}}
 {{- $isImported := $importInfo.isImported -}}
+{{ $articlePath := replaceRE "#.*$" "" $articleLink }}
+{{ $isCurrentItem := eq $articlePath $currentPage.RelPermalink }}
+{{ $isOpen := and $hasChildren (or $isCurrentItem (.NavPage.IsAncestor $currentPage)) }}
 
-<li class="menu-row {{ if .NavPage.IsPage }}child{{end}}" style="overflow: hidden;" data-roles="{{ $roles }}" {{ if .NavPage.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }}>
+<li class="menu-row {{ if .NavPage.IsPage }}child{{end}}{{ if $hasChildren }} {{ if $isOpen }}open{{ else }}closed{{ end }}{{ end }}" style="overflow: hidden;" data-roles="{{ $roles }}" {{ if .NavPage.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }}>
     <div class="link level-{{ .Level }}">
         <!-- data-target is used by the scrollspy on presidium-js to determine which section of the page the <a> corresponds to -->
         <a class="level-{{ .Level }} {{ if eq .Index 0 }}first-child{{end}}" data-slug="{{ $slug }}" data-target="#{{$uid}}" data-id="{{ $articleId }}" href="{{ $articleLink }}">
             {{ if $hasChildren }}
                 <div class="menu-expander" aria-controls="{{$uid}}">
-                    <span class="glyphicon glyphicon-chevron-right glyphicon-toggle"></span>
+                    <span class="glyphicon {{ if $isOpen }}glyphicon-chevron-down{{ else }}glyphicon-chevron-right{{ end }} glyphicon-toggle"></span>
                 </div>
             {{ end }}
             <div class="menu-title">
@@ -67,7 +68,7 @@
     </div>
 
     {{ if $hasChildren }}
-        <ul id="{{$uid}}" class="collapse">
+        <ul id="{{$uid}}" class="collapse{{ if $isOpen }} in active show{{ end }}">
             {{ $pages := (partial "common/pages" .NavPage )}}
             {{/* Sort by filename if specified in config */}}
             {{ $sortByFilePath := .NavPage.Params.sortByFilePath | default .NavPage.Site.Params.sortByFilePath }}
@@ -75,11 +76,11 @@
                 {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
                 {{/* Sort by file prefix */}}
                 {{ range $index, $subMenu := (sort (after $offset $pages) "File.Path" $sortOrder) }}
-                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
+                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
                 {{ end }}
             {{ else }}
                 {{ range $index, $subMenu := after $offset $pages }}
-                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
+                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
                 {{ end }}
             {{ end }}
         </ul>

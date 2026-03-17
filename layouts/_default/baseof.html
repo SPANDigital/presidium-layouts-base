@@ -69,7 +69,7 @@
             document.querySelector('#presidium-navigation').innerHTML = window.navigation;
           </script>
         {{ else }}
-          {{ partialCached "navigation/root" . 0 }}
+          {{ partial "navigation/root" . }}
         {{ end }}
       </div>
       <div id="resizer"></div>

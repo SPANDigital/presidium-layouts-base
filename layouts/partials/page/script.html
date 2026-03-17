@@ -27,7 +27,6 @@
     $menu.toggleClass('expanded', !isOpen).toggleClass('', isOpen);
   });
 
-  // Handle collapsing of nav-items
   const toggleMenu = ($menu, isOpen) => {
     const $ul = $menu.find('ul').first();
 
@@ -44,7 +43,6 @@
             .toggleClass('glyphicon-chevron-right', !isOpen);
   };
 
-  // Bootstrap collapse events
   $('li.menu-row').on('show.bs.collapse', (event) => {
     event.stopPropagation();
     const $menu = $(event.currentTarget);
@@ -73,39 +71,25 @@
     $ul.collapse('toggle');
   });
 
-  // Recursively open the current page's menu nav
-  let navItem = $(`a[href="${window.location.pathname}"]`).parent().closest('.menu-row');
-  while (navItem.length) {
-      toggleMenu(navItem, true);
-      navItem = navItem.parent().closest('.menu-row');
-  }
-
   function copyPermalink(link, articleLink, copyTitle) {
-      // Remove the leading slash from articleLink if present
       if (articleLink.startsWith('/')) {
-          articleLink = articleLink.substring(1); // Remove the leading slash
+          articleLink = articleLink.substring(1);
       }
-      // Copy the article link to the clipboard
       const fullURL = window.location.origin + '/' + articleLink;
       navigator.clipboard.writeText(fullURL);
 
-      // Show toast message
       const toast = document.querySelector('#copy-toast');
       if (toast) {
-          // set popup-copy-text
-          const popupCopyText = toast.querySelector('.popup-copy-text')
+          const popupCopyText = toast.querySelector('.popup-copy-text');
           popupCopyText.innerHTML = `Copied link to ${copyTitle}`;
-          // show toast
           toast.style.opacity = '1';
           toast.classList.add("show");
           setTimeout(function () {
               toast.style.opacity = '0';
               toast.classList.remove("show");
           }, 3000);
-          console.log(`Copied link to ${copyTitle}`);
       }
   }
-  // Assign the function to the global scope
   window.copyPermalink = copyPermalink;
 
   window.presidium?.tooltips?.load();
@@ -122,67 +106,9 @@
             'lineColor': '#666',
         },
     });
-    // Explicitly initialize all Mermaid diagrams
     mermaid.init(undefined, document.querySelectorAll('.mermaid'));
   });
-
-  // Ensure nav-items fit within the viewport without overlapping the header
-  document.addEventListener("DOMContentLoaded", function () {
-    const navbarHeader = document.querySelector(".navbar-header");
-    const navbarItems = document.querySelector(".navbar-items");
-
-    if (navbarHeader && navbarItems) {
-      // Calculate the dynamic height and apply it
-      const headerHeight = navbarHeader.offsetHeight;
-      navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
-    }
-
-    // Adjust height dynamically during window resize
-    window.addEventListener("resize", function () {
-      if (navbarHeader && navbarItems) {
-        const headerHeight = navbarHeader.offsetHeight;
-        navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
-      }
-    });
-  });
 </script>
-
-{{ if $.Site.Params.resizeMenu | default true }}
-<script type="module">
-    const desktopSize = window.matchMedia("(min-width: 992px)")
-    const resizer = document.querySelector("#resizer");
-    const sidebar = document.querySelector("#presidium-navigation");
-    const cachedSize = window.localStorage.getItem('sidenav');
-
-    if (cachedSize === null) {
-      window.localStorage.setItem('sidenav', '300px');
-      location.reload();
-    }
-
-    if(desktopSize.matches) {
-      resizer.style.display = 'block';
-
-      if (cachedSize) {
-        sidebar.style.flexBasis = cachedSize;
-      }
-    }
-
-    resizer.addEventListener("mousedown", (event) => {
-      event.preventDefault();
-      document.addEventListener("mousemove", resize, false);
-      document.addEventListener("mouseup", () => {
-        event.preventDefault();
-        document.removeEventListener("mousemove", resize, false);
-      }, false);
-    });
-
-    function resize(e) {
-      const size = `${e.x}px`;
-      window.localStorage.setItem('sidenav', size);
-      sidebar.style.flexBasis = size;
-    }
-</script>
-{{ end }}
 
 {{ if $.Site.Params.enableSublinks }}
 <script type="module">
