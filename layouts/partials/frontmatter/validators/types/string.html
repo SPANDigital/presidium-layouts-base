@@ -16,7 +16,12 @@
 
   {{/* Validate pattern (regex) */}}
   {{- if $rules.pattern -}}
-    {{- $matches := findRE $rules.pattern $value -}}
+    {{/* Strip JS-style delimiters if present: /pattern/flags → bare pattern for Go RE2 */}}
+    {{- $pattern := $rules.pattern -}}
+    {{- if strings.HasPrefix $pattern "/" -}}
+      {{- $pattern = replaceRE "^/|/[gimsuy]*$" "" $pattern -}}
+    {{- end -}}
+    {{- $matches := findRE $pattern $value -}}
     {{- if not $matches -}}
       {{- $errors = $errors | append (printf "%s does not match required pattern" $fieldName) -}}
     {{- end -}}
