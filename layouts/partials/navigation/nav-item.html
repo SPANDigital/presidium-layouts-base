@@ -21,6 +21,9 @@
     {{ $parentSlug = .NavPage.Parent.Params.Slug}}
 {{ end }}
 
+{{/* combines the parent slug with the current slug to ensure it's globally unique */}}
+{{ $pageSlug := (printf "%v-%v" ($parentSlug) $slug )}}
+
 {{/* adds the slug to the link if the article has no children */}}
 {{ $articleLink := .NavPage.RelPermalink }}
 {{if and .NavPage.IsPage $slugifyUrl }}
@@ -34,7 +37,7 @@
 
 {{/*  Hide the first item if the title is the same as the parent  */}}
 {{ $offset := 0 }}
-{{ if and (gt (len .NavPage.Data.Pages) 0) (eq (index .NavPage.Data.Pages 0).Title .NavPage.Title) }}
+{{ if eq (index .NavPage.Data.Pages 0).Title .NavPage.Title }}
     {{ $offset = 1 }}
 {{ end }}
 {{ $hasChildren := lt $offset (len .NavPage.Data.Pages)}}

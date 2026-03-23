@@ -27,6 +27,7 @@
     $menu.toggleClass('expanded', !isOpen).toggleClass('', isOpen);
   });
 
+  // Handle collapsing of nav-items
   const toggleMenu = ($menu, isOpen) => {
     const $ul = $menu.find('ul').first();
 
@@ -43,6 +44,7 @@
             .toggleClass('glyphicon-chevron-right', !isOpen);
   };
 
+  // Bootstrap collapse events
   $('li.menu-row').on('show.bs.collapse', (event) => {
     event.stopPropagation();
     const $menu = $(event.currentTarget);
@@ -72,24 +74,31 @@
   });
 
   function copyPermalink(link, articleLink, copyTitle) {
+      // Remove the leading slash from articleLink if present
       if (articleLink.startsWith('/')) {
-          articleLink = articleLink.substring(1);
+          articleLink = articleLink.substring(1); // Remove the leading slash
       }
+      // Copy the article link to the clipboard
       const fullURL = window.location.origin + '/' + articleLink;
       navigator.clipboard.writeText(fullURL);
 
+      // Show toast message
       const toast = document.querySelector('#copy-toast');
       if (toast) {
+          // set popup-copy-text
           const popupCopyText = toast.querySelector('.popup-copy-text');
           popupCopyText.innerHTML = `Copied link to ${copyTitle}`;
+          // show toast
           toast.style.opacity = '1';
           toast.classList.add("show");
           setTimeout(function () {
               toast.style.opacity = '0';
               toast.classList.remove("show");
           }, 3000);
+          console.log(`Copied link to ${copyTitle}`);
       }
   }
+  // Assign the function to the global scope
   window.copyPermalink = copyPermalink;
 
   window.presidium?.tooltips?.load();
@@ -106,7 +115,28 @@
             'lineColor': '#666',
         },
     });
+    // Explicitly initialize all Mermaid diagrams
     mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+  });
+
+  // Ensure nav-items fit within the viewport without overlapping the header
+  document.addEventListener("DOMContentLoaded", function () {
+    const navbarHeader = document.querySelector(".navbar-header");
+    const navbarItems = document.querySelector(".navbar-items");
+
+    if (navbarHeader && navbarItems) {
+      // Calculate the dynamic height and apply it
+      const headerHeight = navbarHeader.offsetHeight;
+      navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
+    }
+
+    // Adjust height dynamically during window resize
+    window.addEventListener("resize", function () {
+      if (navbarHeader && navbarItems) {
+        const headerHeight = navbarHeader.offsetHeight;
+        navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
+      }
+    });
   });
 </script>
 
