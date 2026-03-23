@@ -17,6 +17,22 @@
         <link rel="stylesheet" href="{{ .RelPermalink }}">
       {{ end }}
     {{ end }}
+    <script>
+      try {
+        const savedWidth = window.localStorage.getItem('sidenav');
+        if (savedWidth) {
+          document.documentElement.style.setProperty('--presidium-sidenav-width', savedWidth);
+        }
+      } catch (error) {
+      }
+    </script>
+    <style>
+      @media (min-width: 992px) {
+        #presidium-navigation {
+          flex-basis: var(--presidium-sidenav-width, 300px);
+        }
+      }
+    </style>
 
     {{ if $.Site.Params.enterprise_enabled }}
       {{ $enterpriseScript := $.Site.Params.enterprise_script | default "/presidium-enterprise.js" }}

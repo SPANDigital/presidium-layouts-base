@@ -110,6 +110,66 @@
   });
 </script>
 
+{{ if $.Site.Params.resizeMenu | default true }}
+<script type="module">
+  const desktopSize = window.matchMedia('(min-width: 992px)');
+  const resizer = document.querySelector('#resizer');
+  const sidebar = document.querySelector('#presidium-navigation');
+  const minWidth = 300;
+  const maxWidth = 600;
+  let isResizing = false;
+
+  const clampWidth = (value) => {
+    return Math.min(maxWidth, Math.max(minWidth, value));
+  };
+
+  const applyWidth = (value) => {
+    const width = `${clampWidth(value)}px`;
+    document.documentElement.style.setProperty('--presidium-sidenav-width', width);
+    try {
+      window.localStorage.setItem('sidenav', width);
+    } catch (error) {
+    }
+  };
+
+  const syncResizeMode = () => {
+    if (!resizer || !sidebar) return;
+    resizer.style.display = desktopSize.matches ? 'block' : 'none';
+  };
+
+  const stopResizing = () => {
+    isResizing = false;
+    document.removeEventListener('mousemove', onMouseMove, false);
+    document.removeEventListener('mouseup', stopResizing, false);
+  };
+
+  const onMouseMove = (event) => {
+    if (!isResizing) return;
+    applyWidth(event.clientX);
+  };
+
+  syncResizeMode();
+
+  const cachedSize = window.localStorage.getItem('sidenav');
+  if (desktopSize.matches && cachedSize) {
+    const parsedSize = Number.parseInt(cachedSize, 10);
+    if (!Number.isNaN(parsedSize)) {
+      applyWidth(parsedSize);
+    }
+  }
+
+  desktopSize.addEventListener('change', syncResizeMode);
+
+  resizer?.addEventListener('mousedown', (event) => {
+    if (!desktopSize.matches) return;
+    event.preventDefault();
+    isResizing = true;
+    document.addEventListener('mousemove', onMouseMove, false);
+    document.addEventListener('mouseup', stopResizing, false);
+  });
+</script>
+{{ end }}
+
 {{ if $.Site.Params.enableSublinks }}
 <script type="module">
   (function addHeadingLinks(){
