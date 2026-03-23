@@ -48,9 +48,9 @@
 {{- $isImported := $importInfo.isImported -}}
 {{ $articlePath := replaceRE "#.*$" "" $articleLink }}
 {{ $isCurrentItem := eq $articlePath $currentPage.RelPermalink }}
-{{ $isOpen := and $hasChildren (or $isCurrentItem (.NavPage.IsAncestor $currentPage)) }}
+{{ $isOpen := or $isCurrentItem (and $hasChildren (.NavPage.IsAncestor $currentPage)) }}
 
-<li class="menu-row {{ if .NavPage.IsPage }}child{{end}}{{ if $hasChildren }} {{ if $isOpen }}open{{ else }}closed{{ end }}{{ end }}" style="overflow: hidden;" data-roles="{{ $roles }}" {{ if .NavPage.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }}>
+<li class="menu-row {{ if .NavPage.IsPage }}child{{end}}{{ if $isOpen }} open{{ else if $hasChildren }} closed{{ end }}" style="overflow: hidden;" data-roles="{{ $roles }}" {{ if .NavPage.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }}>
     <div class="link level-{{ .Level }}">
         <!-- data-target is used by the scrollspy on presidium-js to determine which section of the page the <a> corresponds to -->
         <a class="level-{{ .Level }} {{ if eq .Index 0 }}first-child{{end}}" data-slug="{{ $slug }}" data-target="#{{$uid}}" data-id="{{ $articleId }}" href="{{ $articleLink }}">
