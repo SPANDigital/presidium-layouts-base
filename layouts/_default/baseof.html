@@ -27,7 +27,7 @@
           }
         }
       } catch (error) {
-        // localStorage may be unavailable, so skip width restoration silently.
+        console.error('Failed to restore sidenav width from localStorage.', error);
       }
     </script>
     <style>
