@@ -71,13 +71,6 @@
     $ul.collapse('toggle');
   });
 
-  // Recursively open the current page's menu nav
-  let navItem = $(`a[href="${window.location.pathname}"]`).parent().closest('.menu-row');
-  while (navItem.length) {
-      toggleMenu(navItem, true);
-      navItem = navItem.parent().closest('.menu-row');
-  }
-
   function copyPermalink(link, articleLink, copyTitle) {
       if (articleLink.startsWith('/')) {
           articleLink = articleLink.substring(1);
