@@ -21,9 +21,13 @@
       try {
         const savedWidth = window.localStorage.getItem('sidenav');
         if (savedWidth) {
-          document.documentElement.style.setProperty('--presidium-sidenav-width', savedWidth);
+          const parsedWidth = Number.parseInt(savedWidth, 10);
+          if (!Number.isNaN(parsedWidth) && parsedWidth >= 300 && parsedWidth <= 600) {
+            document.documentElement.style.setProperty('--presidium-sidenav-width', `${parsedWidth}px`);
+          }
         }
       } catch (error) {
+        // localStorage may be unavailable, so skip width restoration silently.
       }
     </script>
     <style>

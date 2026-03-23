@@ -159,6 +159,7 @@
     try {
       window.localStorage.setItem('sidenav', width);
     } catch (error) {
+      // localStorage may be unavailable, so skip persisting the resized width.
     }
   };
 
