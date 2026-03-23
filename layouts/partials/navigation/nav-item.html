@@ -58,7 +58,7 @@
         <!-- data-target is used by the scrollspy on presidium-js to determine which section of the page the <a> corresponds to -->
         <a class="level-{{ .Level }} {{ if eq .Index 0 }}first-child{{end}}" data-slug="{{ $slug }}" data-target="#{{$uid}}" data-id="{{ $articleId }}" href="{{ $articleLink }}">
             {{ if $hasChildren }}
-                <div class="menu-expander" aria-controls="{{$uid}}">
+                <div class="menu-expander" aria-controls="{{$uid}}" aria-expanded="{{ if $isOpen }}true{{ else }}false{{ end }}">
                     <span class="glyphicon {{ if $isOpen }}glyphicon-chevron-down{{ else }}glyphicon-chevron-right{{ end }} glyphicon-toggle"></span>
                 </div>
             {{ end }}

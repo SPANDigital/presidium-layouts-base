@@ -42,6 +42,7 @@
     const $trigger = $menu.find('div.menu-expander > .glyphicon').first();
     $trigger.toggleClass('glyphicon-chevron-down', isOpen)
             .toggleClass('glyphicon-chevron-right', !isOpen);
+    $menu.find('div.menu-expander').first().attr('aria-expanded', isOpen ? 'true' : 'false');
   };
 
   // Bootstrap collapse events
@@ -181,7 +182,12 @@
 
   syncResizeMode();
 
-  const cachedSize = window.localStorage.getItem('sidenav');
+  let cachedSize = null;
+  try {
+    cachedSize = window.localStorage.getItem('sidenav');
+  } catch (error) {
+    // localStorage may be unavailable, so fall back to the default sidenav width.
+  }
   if (desktopSize.matches && cachedSize) {
     const parsedSize = Number.parseInt(cachedSize, 10);
     if (!Number.isNaN(parsedSize)) {
