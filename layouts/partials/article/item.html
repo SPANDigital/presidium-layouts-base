@@ -43,7 +43,6 @@ Optimized for performance with minimal DOM manipulation and efficient conditiona
                 <span class="anchor" id="{{ $slug }}" data-id="{{ $articleId }}"></span>
 
                 {{/* Batch render all article components for optimal performance */}}
-                {{- partial "article/validation" . -}}
                 {{- partial "article/header" . -}}
                 {{- partial "article/title" . -}}
                 {{- partial "article/frontmatter" . -}}
