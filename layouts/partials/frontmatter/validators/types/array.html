@@ -12,7 +12,34 @@
 {{- if not (hasPrefix $valueType "[]") -}}
   {{- $errors = $errors | append (printf "%s must be an array" $fieldName) -}}
 {{- else -}}
-  {{/* TODO: Validate each item against the nested field schema */}}
+  {{/* Validate each item against the nested field schema if defined */}}
+  {{- if $rules.field -}}
+    {{- range $i, $item := $value -}}
+      {{- $itemFieldName := printf "%s[%d]" $fieldName $i -}}
+      {{/* Synthetic pageParams: key is full qualified name so isset works correctly */}}
+      {{- $itemPageParams := dict $itemFieldName $item -}}
+      {{- partial "frontmatter/validators/root.html" (dict
+          "value" $item
+          "rules" $rules.field
+          "fieldName" $itemFieldName
+          "pageParams" $itemPageParams
+          "context" $ctx) -}}
+      {{- $itemResult := $ctx.Scratch.Get "validation_result" -}}
+      {{- if not $itemResult.valid -}}
+        {{- range $error := $itemResult.errors -}}
+          {{- $errors = $errors | append $error -}}
+          {{/* When parent has error_message, also emit directly so item-specific context is preserved */}}
+          {{- if $rules.error_message -}}
+            {{- if not (hasPrefix $error $itemFieldName) -}}
+              {{- warnf "[Frontmatter Validation] %s: %s: %s" $ctx.File.Path $itemFieldName $error -}}
+            {{- else -}}
+              {{- warnf "[Frontmatter Validation] %s: %s" $ctx.File.Path $error -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
 {{- end -}}
 
 {{/* Store result in scratch for retrieval by root validator */}}

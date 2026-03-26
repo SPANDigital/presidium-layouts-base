@@ -32,7 +32,7 @@
     {{- end -}}
     {{- if not $validOption -}}
       {{- $optionsList := delimit $rules.options ", " -}}
-      {{- $message := printf "%s must be one of: %s" $fieldName $optionsList -}}
+      {{- $message := printf "%s: '%v' is not a valid value. Must be one of: %s" $fieldName $value $optionsList -}}
       {{- $errors = $errors | append $message -}}
       {{- $result = dict "valid" false "errors" $errors -}}
     {{- end -}}
