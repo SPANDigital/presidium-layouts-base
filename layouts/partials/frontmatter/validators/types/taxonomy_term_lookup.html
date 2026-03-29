@@ -1,5 +1,6 @@
 {{/* Taxonomy Term Lookup Validator - validates taxonomy term values */}}
-{{/* Accepts either string (single value) or array (multiple values) */}}
+{{/* Accepts only a single string value. */}}
+{{/* TODO: PRSDM-10548 - When FE supports multi-select, check multi_select: true and allow array values */}}
 {{/* Assumes: value exists (root validator already checked required/null) */}}
 
 {{- $value := .value -}}
@@ -8,28 +9,25 @@
 {{- $ctx := .context -}}
 {{- $errors := slice -}}
 
-{{/* Type check: must be string or array */}}
+{{/* multi_select defaults to false — single value only until PRSDM-10548 is implemented */}}
+{{/* TODO: PRSDM-10548 - use $multiSelect to conditionally allow array values when FE supports multi-select */}}
+{{- $multiSelect := $rules.multi_select | default false -}}
+
+{{/* Type check: must be a single string (arrays not supported until PRSDM-10548) */}}
 {{- $valueType := printf "%T" $value -}}
 {{- $isString := eq $valueType "string" -}}
 {{- $isArray := hasPrefix $valueType "[]" -}}
 
-{{- if not (or $isString $isArray) -}}
-  {{- $errors = $errors | append (printf "%s must be a string or array" $fieldName) -}}
+{{- if $isArray -}}
+  {{/* TODO: PRSDM-10548 - when multi_select: true and FE supports it, allow array values here */}}
+  {{- $errors = $errors | append (printf "%s must be a single value (multi-select is not yet supported)" $fieldName) -}}
+{{- else if not $isString -}}
+  {{- $errors = $errors | append (printf "%s must be a string" $fieldName) -}}
 {{- else -}}
-  {{/* Normalize to array for validation */}}
-  {{- $values := slice -}}
-  {{- if $isString -}}
-    {{- $values = slice $value -}}
-  {{- else -}}
-    {{- $values = $value -}}
-  {{- end -}}
-
   {{/* Validate against options if provided */}}
   {{- if $rules.options -}}
-    {{- range $val := $values -}}
-      {{- if not (in $rules.options $val) -}}
-        {{- $errors = $errors | append (printf "%s contains invalid value: %s" $fieldName $val) -}}
-      {{- end -}}
+    {{- if not (in $rules.options $value) -}}
+      {{- $errors = $errors | append (printf "%s contains invalid value: %s" $fieldName $value) -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
