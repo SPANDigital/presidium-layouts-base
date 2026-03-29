@@ -184,3 +184,4 @@ taxonomy_term_lookup:
   field: ""                           # [Optional] - Nested field name to extract from data objects
   pattern: ""                         # [Optional] - Not recommended as the input will be limited to the fixed options
   display_rows: 1                     # [Optional] - Not recommend as the input will be single line
+  multi_select: false                 # [Optional] - TODO: PRSDM-10548 - When FE supports multi-select, set to true to allow array values

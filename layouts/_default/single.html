@@ -39,21 +39,21 @@ EXAMPLE: territories autocomplete field
 {{ end }}
 
 {{ define "section" }}
-{{- if not .Site.Params.schemaGenerationMode -}}
-{{/* Frontmatter Validation */}}
-{{- partial "frontmatter/validate.html" . -}}
-{{- $validation := .Scratch.Get "frontmatter_validation" -}}
-{{- if not $validation.valid -}}
-  {{- range $error := $validation.errors -}}
-    {{- warnf "[Frontmatter Validation] %s: %s" $.File.Path $error -}}
-  {{- end -}}
-{{- end -}}
-<section data-section="{{ strings.TrimPrefix "/" $.Parent.Path }}">
-{{ block "content" . }}
-    {{ partial "page/single" . }}
-{{ end }}
-</section>
-{{- end -}}
+    {{- if not .Site.Params.schemaGenerationMode -}}
+        {{/* Frontmatter Validation */}}
+        {{- partial "frontmatter/validate.html" . -}}
+        {{- $validation := .Scratch.Get "frontmatter_validation" -}}
+        {{- if not $validation.valid -}}
+            {{- range $error := $validation.errors -}}
+                {{- warnf "[Frontmatter Validation] %s: %s" $.File.Path $error -}}
+            {{- end -}}
+        {{- end -}}
+        <section data-section="{{ strings.TrimPrefix "/" $.Parent.Path }}">
+            {{ block "content" . }}
+                {{ partial "page/single" . }}
+            {{ end }}
+        </section>
+    {{- end -}}
 {{ end }}
 
 {{ define "footer" }}
