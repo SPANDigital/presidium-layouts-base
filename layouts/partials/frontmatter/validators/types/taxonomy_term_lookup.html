@@ -12,6 +12,9 @@
 {{/* multi_select defaults to false — single value only until PRSDM-10548 is implemented */}}
 {{/* TODO: PRSDM-10548 - use $multiSelect to conditionally allow array values when FE supports multi-select */}}
 {{- $multiSelect := $rules.multi_select | default false -}}
+{{- if $multiSelect -}}
+  {{- $errors = $errors | append (printf "%s is configured with multi_select: true, but multi-select is not yet supported" $fieldName) -}}
+{{- end -}}
 
 {{/* Type check: must be a single string (arrays not supported until PRSDM-10548) */}}
 {{- $valueType := printf "%T" $value -}}
