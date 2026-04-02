@@ -41,6 +41,22 @@ EXAMPLE: territories autocomplete field
 
 {{ define "content" }}
     {{- if not .Site.Params.schemaGenerationMode -}}
+        {{/* Frontmatter Validation — only for real files, not Hugo virtual pages (e.g. taxonomy/category pages) */}}
+        {{- if $.File -}}
+            {{- partial "frontmatter/validate.html" . -}}
+            {{- $validation := .Scratch.Get "frontmatter_validation" -}}
+            {{- if not $validation.valid -}}
+                {{- $namespace := .Site.Params.data.namespace | default "presidium" -}}
+                {{- $schemaLocation := printf "data/%s/frontmatter-schema.yaml" $namespace -}}
+                {{- errorf "=====================================================================================================================================" -}}
+                {{- errorf "[Frontmatter Validation] Errors in the frontmatter of one or more articles are logged below." -}}
+                {{- errorf "[Frontmatter Validation] Review article frontmatter against the frontmatter schema located at %s." $schemaLocation -}}
+                {{- errorf "=====================================================================================================================================" -}}
+                {{- range $error := $validation.errors -}}
+                    {{- errorf "[Frontmatter Validation] %s: %s" $.File.Path $error -}}
+                {{- end -}}
+            {{- end -}}
+        {{- end -}}
         {{ partial "page/list" . }}
     {{- end -}}
 {{ end }}
