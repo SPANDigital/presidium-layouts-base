@@ -44,8 +44,14 @@ EXAMPLE: territories autocomplete field
         {{- partial "frontmatter/validate.html" . -}}
         {{- $validation := .Scratch.Get "frontmatter_validation" -}}
         {{- if not $validation.valid -}}
+            {{- $namespace := .Site.Params.data.namespace | default "presidium" -}}
+            {{- $schemaLocation := printf "data/%s/frontmatter-schema.yaml" $namespace -}}
+            {{- errorf "=====================================================================================================================================" -}}
+            {{- errorf "[Frontmatter Validation] Errors in the frontmatter of one or more articles are logged below." -}}
+            {{- errorf "[Frontmatter Validation] Review article frontmatter against the frontmatter schema located at %s." $schemaLocation -}}
+            {{- errorf "=====================================================================================================================================" -}}
             {{- range $error := $validation.errors -}}
-                {{- warnf "[Frontmatter Validation] %s: %s" $.File.Path $error -}}
+                {{- errorf "[Frontmatter Validation] %s: %s" $.File.Path $error -}}
             {{- end -}}
         {{- end -}}
         <section data-section="{{ strings.TrimPrefix "/" $.Parent.Path }}">
