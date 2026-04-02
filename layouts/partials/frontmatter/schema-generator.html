@@ -164,6 +164,16 @@ Sources are ordered by merge priority (highest first):
   {{- end -}}
 {{- end -}}
 
+{{/* --- 2.2.2 Include transitive go.mod modules in source discovery --- */}}
+{{/* Modules not explicitly imported in config.yml (e.g. presidium-layouts-base when */}}
+{{/* it's a transitive dep of presidium-layouts-blog) are added here so their mounted */}}
+{{/* assets/frontmatter-sources/{path}/params.yaml assets are still discovered. */}}
+{{- range $modulePath, $_ := $importPathsVersioned -}}
+  {{- if not (in $importPaths $modulePath) -}}
+    {{- $importPaths = $importPaths | append $modulePath -}}
+  {{- end -}}
+{{- end -}}
+
 {{/* --- 2.3 Build Ordered Sources List --- */}}
 {{- $sources := slice -}}
 {{- $priority := 0 -}}
