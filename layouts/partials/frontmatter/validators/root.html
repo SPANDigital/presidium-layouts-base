@@ -22,8 +22,10 @@
 {{- end -}}
 
 {{/* Step 2a: Check options (common field validation) */}}
+{{/* Only runs for string values — non-string values (e.g. arrays) are a type error and */}}
+{{/* are handled by the type-specific validator in Step 4 with a clearer message. */}}
 {{- if and $fieldExists (eq (len $errors) 0) -}}
-  {{- if and $rules.options (gt (len $rules.options) 0) -}}
+  {{- if and $rules.options (gt (len $rules.options) 0) (eq (printf "%T" $value) "string") -}}
     {{- $validOption := false -}}
     {{- range $rules.options -}}
       {{- if eq . $value -}}
@@ -54,6 +56,8 @@
     {{- $presetMapping := dict "email" "string" "date" "string" "datetime" "string" -}}
 
     {{/* Resolve preset types to their base types (type-agnostic routing) */}}
+    {{/* Preset patterns (date, datetime, email) are defined in types.yaml and baked into */}}
+    {{/* the generated schema — no runtime injection needed here. */}}
     {{- $resolvedType := $fieldType -}}
     {{- if isset $presetMapping $fieldType -}}
       {{- $resolvedType = index $presetMapping $fieldType -}}
