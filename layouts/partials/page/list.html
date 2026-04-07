@@ -41,8 +41,10 @@
 {{- $sortByFilePath := .Params.sortByFilePath | default .Site.Params.sortByFilePath -}}
 {{- if $sortByFilePath -}}
     {{- $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) -}}
+    {{/* Filter pages to only those with File (excludes taxonomy pages) */}}
+    {{- $pagesWithFile := where $pages ".File" "!=" nil -}}
     {{/* Sort by file prefix */}}
-    {{- range sort $pages "File.Path" $sortOrder -}}
+    {{- range sort $pagesWithFile "File.Path" $sortOrder -}}
         {{- $isRendering := true -}}
 
         {{- if $siteScopesEnabled -}}

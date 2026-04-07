@@ -1,0 +1,34 @@
+{{/* String Validator - validates string type and pattern */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Normalize time.Time to YYYY-MM-DD string (Hugo parses date-format frontmatter as time.Time) */}}
+{{- $valueType := printf "%T" $value -}}
+{{- if eq $valueType "time.Time" -}}
+  {{- $value = dateFormat "2006-01-02" $value -}}
+  {{- $valueType = "string" -}}
+{{- end -}}
+
+{{/* Type check: must be string */}}
+{{- if ne $valueType "string" -}}
+  {{- $errors = $errors | append (printf "%s must be a string" $fieldName) -}}
+{{- else -}}
+  {{/* Only validate constraints if type is correct */}}
+
+  {{/* Validate pattern (regex) */}}
+  {{- if $rules.pattern -}}
+    {{- $matches := findRE $rules.pattern $value -}}
+    {{- if not $matches -}}
+      {{- $errors = $errors | append (printf "%s does not match required pattern" $fieldName) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

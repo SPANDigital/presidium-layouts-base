@@ -111,3 +111,18 @@ outputs:
     - html      # -> output: index.html
     - embed     # -> output: embed.html
 ```
+
+## Frontmatter Validation
+
+Build-time validation of Hugo page frontmatter against a YAML schema. Features include:
+- Schema-driven field configuration with type system
+- Multi-source config attribution (tracks which module contributed each field)
+- Automatic schema generation from Hugo params
+
+**Documentation**:
+
+| Doc | Audience | Purpose |
+|-----|----------|---------|
+| [FRONTMATTER.md](FRONTMATTER.md) | All | Type system, validators, architecture |
+| [FRONTMATTER_CONFIGURATION.md](FRONTMATTER_CONFIGURATION.md) | Content developers | Field configuration guide with examples |
+| [FRONTMATTER_COORDINATION.md](FRONTMATTER_COORDINATION.md) | Module developers | Schema regeneration guidance |

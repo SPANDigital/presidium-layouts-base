@@ -1,0 +1,89 @@
+{{/* Root Validator - common validation lifecycle for all types */}}
+{{/* Analogous to Hugo's baseof.html - provides base functionality that all validators extend */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $pageParams := .pageParams -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+{{- $result := dict -}}
+
+{{/* Step 1: Check if field exists (use isset to handle empty arrays correctly) */}}
+{{- $fieldExists := isset $pageParams $fieldName -}}
+
+{{/* Step 2: Check required fields */}}
+{{- if $rules.required -}}
+  {{- if not $fieldExists -}}
+    {{- $message := printf "%s is required" $fieldName -}}
+    {{- $errors = $errors | append $message -}}
+    {{- $result = dict "valid" false "errors" $errors -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Step 2a: Check options (common field validation) */}}
+{{/* Only runs for string values — non-string values (e.g. arrays) are a type error and */}}
+{{/* are handled by the type-specific validator in Step 4 with a clearer message. */}}
+{{- if and $fieldExists (eq (len $errors) 0) -}}
+  {{- if and $rules.options (gt (len $rules.options) 0) (eq (printf "%T" $value) "string") -}}
+    {{- $validOption := false -}}
+    {{- range $rules.options -}}
+      {{- if eq . $value -}}
+        {{- $validOption = true -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if not $validOption -}}
+      {{- $optionsList := delimit $rules.options ", " -}}
+      {{- $message := printf "%s: '%v' is not a valid value. Must be one of: %s" $fieldName $value $optionsList -}}
+      {{- $errors = $errors | append $message -}}
+      {{- $result = dict "valid" false "errors" $errors -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Step 3: Skip validation if field not present and not required */}}
+{{- if and (not $fieldExists) (eq (len $errors) 0) -}}
+  {{- $result = dict "valid" true "errors" slice -}}
+{{- end -}}
+
+{{/* Steps 4-6: Only execute if we haven't already determined result */}}
+{{- if not $result.valid -}}
+  {{- if and (eq (len $errors) 0) $fieldExists -}}
+    {{/* Step 3: Determine validator path - resolve presets to base types */}}
+    {{- $fieldType := $rules.type -}}
+
+    {{/* Preset-to-base-type mapping (date/datetime/email are string presets) */}}
+    {{- $presetMapping := dict "email" "string" "date" "string" "datetime" "string" -}}
+
+    {{/* Resolve preset types to their base types (type-agnostic routing) */}}
+    {{/* Preset patterns (date, datetime, email) are defined in types.yaml and baked into */}}
+    {{/* the generated schema — no runtime injection needed here. */}}
+    {{- $resolvedType := $fieldType -}}
+    {{- if isset $presetMapping $fieldType -}}
+      {{- $resolvedType = index $presetMapping $fieldType -}}
+    {{- end -}}
+
+    {{/* Route to base type validator */}}
+    {{- $validatorPath := printf "frontmatter/validators/types/%s.html" $resolvedType -}}
+
+    {{/* Step 4: Delegate to type-specific validator */}}
+    {{- partial $validatorPath (dict "value" $value "rules" $rules "fieldName" $fieldName "context" $ctx) -}}
+    {{- $validationResult := $ctx.Scratch.Get "type_validation_result" -}}
+
+    {{/* Step 5: Format errors using error_message override if provided */}}
+    {{- if not $validationResult.valid -}}
+      {{- if $rules.error_message -}}
+        {{/* Use custom error message to override type validator errors */}}
+        {{- $errors = $errors | append $rules.error_message -}}
+      {{- else -}}
+        {{/* Use errors from type validator */}}
+        {{- $errors = $validationResult.errors -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- $result = dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by orchestrator */}}
+{{- $ctx.Scratch.Set "validation_result" $result -}}

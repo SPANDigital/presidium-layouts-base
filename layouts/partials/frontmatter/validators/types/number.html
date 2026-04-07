@@ -1,0 +1,23 @@
+{{/* Number Type Validator - validates number type only */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Type check - numbers can be int, uint, or float in Hugo */}}
+{{- $valueType := printf "%T" $value -}}
+{{- $isInt := or (eq $valueType "int") (eq $valueType "int64") -}}
+{{- $isUint := or (eq $valueType "uint") (eq $valueType "uint64") -}}
+{{- $isFloat := or (eq $valueType "float64") (eq $valueType "float32") -}}
+{{- $isNumber := or $isInt $isUint $isFloat -}}
+
+{{- if not $isNumber -}}
+  {{- $errors = $errors | append (printf "%s must be a number" $fieldName) -}}
+{{- end -}}
+
+{{/* Store result in scratch */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

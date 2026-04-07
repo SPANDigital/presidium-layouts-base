@@ -1,0 +1,53 @@
+{{/* Object Validator - validates object type */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Type check: must be map/dict */}}
+{{- $valueType := printf "%T" $value -}}
+{{/* Accept map[...], maps.Params, and hmaps.Params (Hugo's internal param map type) */}}
+{{- $isMap := or (hasPrefix $valueType "map[") (hasSuffix $valueType "maps.Params") -}}
+{{- if not $isMap -}}
+  {{- $errors = $errors | append (printf "%s must be an object" $fieldName) -}}
+{{- else -}}
+  {{/* Validate each nested field against its schema */}}
+  {{- range $nestedFieldName, $nestedRules := $rules.fields -}}
+    {{- $nestedValue := index $value $nestedFieldName -}}
+    {{- $nestedFieldPath := printf "%s.%s" $fieldName $nestedFieldName -}}
+    {{/* Only include key in pageParams when field exists in parent object.
+         Hugo's isset returns true for map keys with nil values, so we must
+         omit the key entirely when the field is absent. */}}
+    {{- $nestedPageParams := dict -}}
+    {{- if isset $value $nestedFieldName -}}
+      {{- $nestedPageParams = dict $nestedFieldPath $nestedValue -}}
+    {{- end -}}
+    {{- partial "frontmatter/validators/root.html" (dict
+        "value" $nestedValue
+        "rules" $nestedRules
+        "fieldName" $nestedFieldPath
+        "pageParams" $nestedPageParams
+        "context" $ctx) -}}
+    {{- $nestedResult := $ctx.Scratch.Get "validation_result" -}}
+    {{- if not $nestedResult.valid -}}
+      {{- range $error := $nestedResult.errors -}}
+        {{- $errors = $errors | append $error -}}
+        {{/* When parent has error_message, also emit directly so field-specific context is preserved */}}
+        {{- if $rules.error_message -}}
+          {{- if not (hasPrefix $error $nestedFieldPath) -}}
+            {{- warnf "[Frontmatter Validation] %s: %s: %s" $ctx.File.Path $nestedFieldPath $error -}}
+          {{- else -}}
+            {{- warnf "[Frontmatter Validation] %s: %s" $ctx.File.Path $error -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}
