@@ -44,9 +44,16 @@ outputformats:
 outputs:
   home:
     - Navigation
-    - Compendium
+    - SearchMap
     - Pdf
     - FrontmatterSchema
+  page:
+    - HTML
+    - Embed
+    - Markdown
+  section:
+    - HTML
+    - Embed
 params:
   _merge: shallow
   data:
@@ -54,7 +61,7 @@ params:
   hugoVersion:
     enabled: true
     min: "0.147.7"
-    max: "0.155.0"
+    max: "0.158.0"
     extended: true
   attributes:
     website: 2.15.0

@@ -42,6 +42,7 @@
     const $trigger = $menu.find('div.menu-expander > .glyphicon').first();
     $trigger.toggleClass('glyphicon-chevron-down', isOpen)
             .toggleClass('glyphicon-chevron-right', !isOpen);
+    $menu.find('div.menu-expander').first().attr('aria-expanded', isOpen ? 'true' : 'false');
   };
 
   // Bootstrap collapse events
@@ -73,13 +74,6 @@
     $ul.collapse('toggle');
   });
 
-  // Recursively open the current page's menu nav
-  let navItem = $(`a[href="${window.location.pathname}"]`).parent().closest('.menu-row');
-  while (navItem.length) {
-      toggleMenu(navItem, true);
-      navItem = navItem.parent().closest('.menu-row');
-  }
-
   function copyPermalink(link, articleLink, copyTitle) {
       // Remove the leading slash from articleLink if present
       if (articleLink.startsWith('/')) {
@@ -93,7 +87,7 @@
       const toast = document.querySelector('#copy-toast');
       if (toast) {
           // set popup-copy-text
-          const popupCopyText = toast.querySelector('.popup-copy-text')
+          const popupCopyText = toast.querySelector('.popup-copy-text');
           popupCopyText.innerHTML = `Copied link to ${copyTitle}`;
           // show toast
           toast.style.opacity = '1';
@@ -149,38 +143,67 @@
 
 {{ if $.Site.Params.resizeMenu | default true }}
 <script type="module">
-    const desktopSize = window.matchMedia("(min-width: 992px)")
-    const resizer = document.querySelector("#resizer");
-    const sidebar = document.querySelector("#presidium-navigation");
-    const cachedSize = window.localStorage.getItem('sidenav');
+  const desktopSize = window.matchMedia('(min-width: 992px)');
+  const resizer = document.querySelector('#resizer');
+  const sidebar = document.querySelector('#presidium-navigation');
+  const minWidth = 300;
+  const maxWidth = 600;
+  let isResizing = false;
 
-    if (cachedSize === null) {
-      window.localStorage.setItem('sidenav', '300px');
-      location.reload();
+  const clampWidth = (value) => {
+    return Math.min(maxWidth, Math.max(minWidth, value));
+  };
+
+  const applyWidth = (value) => {
+    const width = `${clampWidth(value)}px`;
+    document.documentElement.style.setProperty('--presidium-sidenav-width', width);
+    try {
+      window.localStorage.setItem('sidenav', width);
+    } catch (error) {
+      // localStorage may be unavailable, so skip persisting the resized width.
     }
+  };
 
-    if(desktopSize.matches) {
-      resizer.style.display = 'block';
+  const syncResizeMode = () => {
+    if (!resizer || !sidebar) return;
+    resizer.style.display = desktopSize.matches ? 'block' : 'none';
+  };
 
-      if (cachedSize) {
-        sidebar.style.flexBasis = cachedSize;
-      }
+  const stopResizing = () => {
+    isResizing = false;
+    document.removeEventListener('mousemove', onMouseMove, false);
+    document.removeEventListener('mouseup', stopResizing, false);
+  };
+
+  const onMouseMove = (event) => {
+    if (!isResizing) return;
+    applyWidth(event.clientX);
+  };
+
+  syncResizeMode();
+
+  let cachedSize = null;
+  try {
+    cachedSize = window.localStorage.getItem('sidenav');
+  } catch (error) {
+    // localStorage may be unavailable, so fall back to the default sidenav width.
+  }
+  if (desktopSize.matches && cachedSize) {
+    const parsedSize = Number.parseInt(cachedSize, 10);
+    if (!Number.isNaN(parsedSize)) {
+      applyWidth(parsedSize);
     }
+  }
 
-    resizer.addEventListener("mousedown", (event) => {
-      event.preventDefault();
-      document.addEventListener("mousemove", resize, false);
-      document.addEventListener("mouseup", () => {
-        event.preventDefault();
-        document.removeEventListener("mousemove", resize, false);
-      }, false);
-    });
+  desktopSize.addEventListener('change', syncResizeMode);
 
-    function resize(e) {
-      const size = `${e.x}px`;
-      window.localStorage.setItem('sidenav', size);
-      sidebar.style.flexBasis = size;
-    }
+  resizer?.addEventListener('mousedown', (event) => {
+    if (!desktopSize.matches) return;
+    event.preventDefault();
+    isResizing = true;
+    document.addEventListener('mousemove', onMouseMove, false);
+    document.addEventListener('mouseup', stopResizing, false);
+  });
 </script>
 {{ end }}
 
