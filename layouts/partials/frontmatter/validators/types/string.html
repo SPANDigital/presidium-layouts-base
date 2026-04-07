@@ -7,8 +7,14 @@
 {{- $ctx := .context -}}
 {{- $errors := slice -}}
 
-{{/* Type check: must be string */}}
+{{/* Normalize time.Time to YYYY-MM-DD string (Hugo parses date-format frontmatter as time.Time) */}}
 {{- $valueType := printf "%T" $value -}}
+{{- if eq $valueType "time.Time" -}}
+  {{- $value = dateFormat "2006-01-02" $value -}}
+  {{- $valueType = "string" -}}
+{{- end -}}
+
+{{/* Type check: must be string */}}
 {{- if ne $valueType "string" -}}
   {{- $errors = $errors | append (printf "%s must be a string" $fieldName) -}}
 {{- else -}}
