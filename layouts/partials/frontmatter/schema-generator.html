@@ -1,0 +1,579 @@
+{{/*
+=============================================================================
+Schema Generator Partial
+=============================================================================
+Generates complete frontmatter schema by merging Hugo config with flat
+type definitions from types.yaml. No inheritance - direct type lookup.
+
+CRITICAL: Recursively processes nested structures (array.field, object.fields)
+to generate complete, self-contained schemas for external consumers.
+
+Input: . (page context with .Site.Params.frontmatter config)
+Output: Complete schema dict with all fields and their attributes
+
+Usage: {{ $schema := partial "frontmatter/schema-generator.html" . }}
+
+Validation:
+- Mandatory attributes (type declarations) must be provided in user config
+- Optional attributes use defaults from type definition
+- Nested structures are recursively processed with full defaults applied
+- Build fails with errorf if mandatory attributes are missing
+
+Architecture:
+- Level 1: Hugo automatically deep-merges params from base → client → modules
+- Level 2: This generator recursively applies type defaults at every nesting level
+
+Implementation:
+- Uses frontmatter/processField.html partial for recursive field processing
+=============================================================================
+*/}}
+
+{{- $completeSchema := dict -}}
+
+{{/* Get merged frontmatter config from Hugo (base → client → module) */}}
+{{- $mergedConfigRaw := .Site.Params.frontmatter -}}
+
+{{/*
+=============================================================================
+List to Map Conversion with Order Preservation
+=============================================================================
+Converts list-format frontmatter config to map format while preserving order.
+Each field gets an _order attribute based on its position in the list.
+
+Input (list format):
+  frontmatter:
+    - key: title
+      type: string
+    - key: author
+      type: email
+
+Output (map format with _order):
+  frontmatter:
+    title:
+      type: string
+      _order: 0
+    author:
+      type: email
+      _order: 1
+=============================================================================
+*/}}
+{{- $mergedConfig := dict -}}
+{{- range $index, $field := $mergedConfigRaw -}}
+  {{- $fieldName := $field.key -}}
+  {{- if $fieldName -}}
+    {{- $fieldConfig := dict "_order" $index -}}
+    {{- range $key, $value := $field -}}
+      {{- if ne $key "key" -}}
+        {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $mergedConfig = merge $mergedConfig (dict $fieldName $fieldConfig) -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Load flat type definitions from data directory */}}
+{{- $dataTypes := .Site.Data.schemas.frontmatter.types -}}
+
+{{/*
+=============================================================================
+Source Discovery for N-Source Attribution
+=============================================================================
+Discovers all configuration sources that may contribute to frontmatter fields.
+Sources are ordered by merge priority (highest first):
+  0: Project self (config.yml → params.frontmatter)
+  1: Import[0] (if provides frontmatter config)
+  2: Import[1] (if provides frontmatter config)
+  ... etc
+=============================================================================
+*/}}
+
+{{/* --- 2.1 Parse go.mod for Project Self-Identification --- */}}
+{{- $projectPath := "" -}}
+{{- $goModPath := "go.mod" -}}
+{{- if fileExists $goModPath -}}
+  {{- $goModContent := os.ReadFile $goModPath -}}
+  {{- $lines := split $goModContent "\n" -}}
+  {{- range $lines -}}
+    {{- if hasPrefix . "module " -}}
+      {{/* strings.TrimPrefix expects PREFIX STRING order */}}
+      {{- $projectPath = strings.TrimPrefix "module " . | strings.TrimSpace -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Fallback if go.mod missing or malformed */}}
+{{- if not $projectPath -}}
+  {{- $projectPath = printf "[local]/%s" (path.Base site.WorkingDir) -}}
+{{- end -}}
+
+{{/* --- 2.2 Parse project config for Module Imports --- */}}
+{{- $importPaths := slice -}}
+{{- $importPathsVersioned := dict -}}
+{{- $configPath := "" -}}
+{{- $configFormat := "" -}}
+{{/* Check for config files in order of preference */}}
+{{- if fileExists "config.yml" -}}
+  {{- $configPath = "config.yml" -}}
+  {{- $configFormat = "yaml" -}}
+{{- else if fileExists "config.yaml" -}}
+  {{- $configPath = "config.yaml" -}}
+  {{- $configFormat = "yaml" -}}
+{{- else if fileExists "hugo.yaml" -}}
+  {{- $configPath = "hugo.yaml" -}}
+  {{- $configFormat = "yaml" -}}
+{{- else if fileExists "hugo.toml" -}}
+  {{- $configPath = "hugo.toml" -}}
+  {{- $configFormat = "toml" -}}
+{{- end -}}
+{{/* Default to yaml if format not detected */}}
+{{- if not $configFormat -}}
+  {{- $configFormat = "yaml" -}}
+{{- end -}}
+{{- if $configPath -}}
+  {{- $configContent := os.ReadFile $configPath -}}
+  {{/* Create resource with .yaml extension to force YAML parsing */}}
+  {{- $configResource := resources.FromString "temp-config.yaml" $configContent -}}
+  {{- $configData := $configResource | transform.Unmarshal -}}
+  {{- with $configData.module -}}
+    {{- with .imports -}}
+      {{- range . -}}
+        {{- $importPaths = $importPaths | append .path -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* --- 2.2.1 Get versioned module paths from go.mod --- */}}
+{{- if fileExists "go.mod" -}}
+  {{- $goModContent := os.ReadFile "go.mod" -}}
+  {{- $lines := split $goModContent "\n" -}}
+  {{- range $lines -}}
+    {{- $line := strings.TrimSpace . -}}
+    {{- if and (hasPrefix $line "github.com/") (not (hasPrefix $line "module ")) -}}
+      {{- /* Extract versioned module path from go.mod lines like: */}}
+      {{- /* github.com/spandigital/presidium-layouts-base v0.13.0-configurable-frontmatter-5 */}}
+      {{- $parts := split $line " " -}}
+      {{- if ge (len $parts) 2 -}}
+        {{- $modulePath := index $parts 0 -}}
+        {{- $moduleVersion := index $parts 1 -}}
+        {{- $versionedPath := printf "%s@%s" $modulePath $moduleVersion -}}
+        {{- /* Store mapping: base path -> versioned path */}}
+        {{- $importPathsVersioned = merge $importPathsVersioned (dict $modulePath $versionedPath) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* --- 2.2.2 Include transitive go.mod modules in source discovery --- */}}
+{{/* Modules not explicitly imported in config.yml (e.g. presidium-layouts-base when */}}
+{{/* it's a transitive dep of presidium-layouts-blog) are added here so their mounted */}}
+{{/* assets/frontmatter-sources/{path}/params.yaml assets are still discovered. */}}
+{{- range $modulePath, $_ := $importPathsVersioned -}}
+  {{- if not (in $importPaths $modulePath) -}}
+    {{- $importPaths = $importPaths | append $modulePath -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* --- 2.2.3 In schema generation mode, also read dependencies.config.yml imports --- */}}
+{{/* When running via `make frontmatter`, Hugo uses dependencies.config.yml which may  */}}
+{{/* explicitly import modules (e.g. presidium-layouts-base) not listed in config.yml  */}}
+{{/* or go.mod. Reading it here ensures those modules' frontmatter fields are included. */}}
+{{- if and $.Site.Params.schemaGenerationMode (fileExists "dependencies.config.yml") -}}
+  {{- $depsContent := os.ReadFile "dependencies.config.yml" -}}
+  {{- $depsResource := resources.FromString "temp-deps-config.yaml" $depsContent -}}
+  {{- $depsData := $depsResource | transform.Unmarshal -}}
+  {{- with $depsData.module -}}
+    {{- with .imports -}}
+      {{- range . -}}
+        {{- if and .path (not (in $importPaths .path)) -}}
+          {{- $importPaths = $importPaths | append .path -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* --- 2.3 Build Ordered Sources List --- */}}
+{{- $sources := slice -}}
+{{- $priority := 0 -}}
+
+{{/* Source 0: Project self (from project config params.frontmatter) */}}
+{{- $projectConfig := dict -}}
+{{- $projectConfigFile := "" -}}
+
+{{/* First, check for frontmatter config in config.yml params.frontmatter */}}
+{{- if $configPath -}}
+  {{- $configContent := os.ReadFile $configPath -}}
+  {{- $configResource := resources.FromString "temp-params.yaml" $configContent -}}
+  {{- $configData := $configResource | transform.Unmarshal -}}
+  {{- with $configData.params -}}
+    {{- $rawConfig := .frontmatter | default dict -}}
+    {{- if gt (len $rawConfig) 0 -}}
+      {{- $projectConfigFile = $configPath -}}
+      {{- /* Convert list format to map format with _order attribute */ -}}
+      {{- range $index, $field := $rawConfig -}}
+        {{- $fieldName := $field.key -}}
+        {{- if $fieldName -}}
+          {{- $normalizedKey := lower $fieldName -}}
+          {{- $fieldConfig := dict "_order" $index -}}
+          {{- range $key, $value := $field -}}
+            {{- if ne $key "key" -}}
+              {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
+            {{- end -}}
+          {{- end -}}
+          {{- $projectConfig = merge $projectConfig (dict $normalizedKey $fieldConfig) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* If not found in config.yml, check Hugo's config directory structure */}}
+{{- if eq (len $projectConfig) 0 -}}
+  {{- $configDirPaths := slice
+      "config/_default/presidium/params.yaml"
+      "config/_default/params.yaml"
+      "config/presidium/params.yaml"
+      "config/params.yaml"
+  -}}
+  {{- range $configDirPath := $configDirPaths -}}
+    {{- if and (eq (len $projectConfig) 0) (fileExists $configDirPath) -}}
+      {{- $configContent := os.ReadFile $configDirPath -}}
+      {{- $configResource := resources.FromString "temp-configdir-params.yaml" $configContent -}}
+      {{- $configData := $configResource | transform.Unmarshal -}}
+      {{- $rawConfig := $configData.frontmatter | default dict -}}
+      {{- if gt (len $rawConfig) 0 -}}
+        {{- $projectConfigFile = $configDirPath -}}
+        {{- /* Convert list format to map format with _order attribute */ -}}
+        {{- range $index, $field := $rawConfig -}}
+          {{- $fieldName := $field.key -}}
+          {{- if $fieldName -}}
+            {{- $normalizedKey := lower $fieldName -}}
+            {{- $fieldConfig := dict "_order" $index -}}
+            {{- range $key, $value := $field -}}
+              {{- if ne $key "key" -}}
+                {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
+              {{- end -}}
+            {{- end -}}
+            {{- $projectConfig = merge $projectConfig (dict $normalizedKey $fieldConfig) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+      {{- break -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Fallback to config.yml if no config file was found */}}
+{{- if not $projectConfigFile -}}
+  {{- $projectConfigFile = "config.yml" -}}
+{{- end -}}
+
+{{- $sources = $sources | append (dict
+    "path" $projectPath
+    "configFile" $projectConfigFile
+    "config" $projectConfig
+    "priority" $priority
+) -}}
+{{- $priority = add $priority 1 -}}
+
+{{/* Sources 1..N: Imported modules (from mounted assets) */}}
+{{- range $importPath := $importPaths -}}
+  {{- /* Try versioned path first, fall back to base path if not found */ -}}
+  {{- $versionedPath := index $importPathsVersioned $importPath -}}
+  {{- $resolvedPath := $importPath -}}
+  {{- $assetPath := printf "frontmatter-sources/%s/params.yaml" $resolvedPath -}}
+
+  {{- /* Try versioned path if available */ -}}
+  {{- if $versionedPath -}}
+    {{- $versionedAssetPath := printf "frontmatter-sources/%s/params.yaml" $versionedPath -}}
+    {{- if resources.Get $versionedAssetPath -}}
+      {{- $resolvedPath = $versionedPath -}}
+      {{- $assetPath = $versionedAssetPath -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $importConfig := dict -}}
+
+  {{- with resources.Get $assetPath -}}
+    {{- $parsed := . | transform.Unmarshal -}}
+    {{- $rawConfig := $parsed.frontmatter | default dict -}}
+    {{- /* Convert list format to map format with _order attribute */ -}}
+    {{- range $index, $field := $rawConfig -}}
+      {{- $fieldName := $field.key -}}
+      {{- if $fieldName -}}
+        {{- $normalizedKey := lower $fieldName -}}
+        {{- $fieldConfig := dict "_order" $index -}}
+        {{- range $key, $value := $field -}}
+          {{- if ne $key "key" -}}
+            {{- $fieldConfig = merge $fieldConfig (dict $key $value) -}}
+          {{- end -}}
+        {{- end -}}
+        {{- $importConfig = merge $importConfig (dict $normalizedKey $fieldConfig) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* Only add source if module provides frontmatter config (empty dict is truthy, use len) */}}
+  {{- if gt (len $importConfig) 0 -}}
+    {{- $sources = $sources | append (dict
+        "path" $importPath
+        "configFile" "config/_default/frontmatter/params.yaml"
+        "config" $importConfig
+        "priority" $priority
+    ) -}}
+  {{- end -}}
+  {{- $priority = add $priority 1 -}}
+{{- end -}}
+
+{{/*
+=============================================================================
+Merge All Sources into Final Config with Global Ordering
+=============================================================================
+Hugo's Site.Params.frontmatter doesn't merge lists from multiple levels.
+We need to manually merge configs from all sources.
+
+Ordering strategy:
+- Lower priority sources (i.e. layouts-base) come first in the global order
+- Higher priority sources (i.e. modules) can override layouts-base field configs AND positions
+- When a field exists in both, module config AND position override layouts-base's
+- layouts-base-only fields keep their layouts-base position
+- Global _order values are assigned sequentially across all sources
+
+Example with module (priority 1) and layouts-base (priority 0):
+  layouts-base fields (title:0, author:1, description:2) → initial global _order 0, 1, 2
+  Module has description at position 4 → description moves to modules's position
+  Final: title:0, author:1, ... , description:6 (after module fields with _order 2,3,4,5)
+=============================================================================
+*/}}
+{{- $mergedConfig = dict -}}
+{{- $globalOrder := 0 -}}
+
+{{/* Track which fields are overridden by module (to skip in layouts-base pass) */}}
+{{- $projectFieldKeys := dict -}}
+
+{{/* First pass: identify all fields defined in layouts-base (priority 0) */}}
+{{- range $source := $sources -}}
+  {{- if eq $source.priority 0 -}}
+    {{- range $fieldKey, $fieldConfig := $source.config -}}
+      {{- $projectFieldKeys = merge $projectFieldKeys (dict $fieldKey true) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Process sources in descending priority order (layouts-base first, module last) */}}
+{{- $sortedSources := sort $sources "priority" "desc" -}}
+{{- range $source := $sortedSources -}}
+  {{/* Sort fields within this source by their local _order */}}
+  {{- $fieldsWithOrder := slice -}}
+  {{- range $fieldKey, $fieldConfig := $source.config -}}
+    {{- $localOrder := $fieldConfig._order | default 0 -}}
+    {{- $fieldsWithOrder = $fieldsWithOrder | append (dict "key" $fieldKey "config" $fieldConfig "localOrder" $localOrder) -}}
+  {{- end -}}
+  {{- $sortedFields := sort $fieldsWithOrder "localOrder" "asc" -}}
+
+  {{/* Add fields */}}
+  {{- range $field := $sortedFields -}}
+    {{- $isProjectSource := eq $source.priority 0 -}}
+    {{- $isOverriddenByProject := index $projectFieldKeys $field.key -}}
+
+    {{- if $isProjectSource -}}
+      {{/* Project source: always add/update with new global order */}}
+      {{- $updatedConfig := merge $field.config (dict "_order" $globalOrder) -}}
+      {{- $mergedConfig = merge $mergedConfig (dict $field.key $updatedConfig) -}}
+      {{- $globalOrder = add $globalOrder 1 -}}
+    {{- else if not $isOverriddenByProject -}}
+      {{/* layouts-base source AND not overridden by module: add with global order */}}
+      {{- $updatedConfig := merge $field.config (dict "_order" $globalOrder) -}}
+      {{- $mergedConfig = merge $mergedConfig (dict $field.key $updatedConfig) -}}
+      {{- $globalOrder = add $globalOrder 1 -}}
+    {{- end -}}
+    {{/* Skip layouts-base fields that are overridden by module - they'll be added in module pass */}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Iterate through each configured field */}}
+{{- range $fieldKey, $fieldConfig := $mergedConfig -}}
+  {{- $fieldSchema := partial "frontmatter/processField"
+      (dict "fieldConfig" $fieldConfig
+            "dataTypes" $dataTypes
+            "fieldKey" $fieldKey) -}}
+
+  {{/* Attribution: detect contributing sources */}}
+  {{- $configSources := partial "frontmatter/detect-config-sources"
+      (dict "fieldName" $fieldKey
+            "mergedFieldConfig" $fieldConfig
+            "sources" $sources) -}}
+
+  {{/* Add _config_location to field schema */}}
+  {{- if $configSources -}}
+    {{- $fieldSchema = merge $fieldSchema (dict "_config_location" $configSources) -}}
+  {{- end -}}
+
+  {{/* Preserve global _order from mergedConfig (assigned during source merging) */}}
+  {{- if isset $fieldConfig "_order" -}}
+    {{- $fieldSchema = merge $fieldSchema (dict "_order" $fieldConfig._order) -}}
+  {{- end -}}
+
+  {{- $completeSchema = merge $completeSchema (dict $fieldKey $fieldSchema) -}}
+{{- end -}}
+
+{{/*
+=============================================================================
+Taxonomy Term Lookup: Auto-populate field options from data/taxonomies
+=============================================================================
+For fields with type: taxonomy_term_lookup, automatically populates options array
+from two sources (combined, deduplicated, sorted):
+
+SOURCE 1 - Data Files (site.Data):
+  - Searches all data/ files for collections matching field name
+  - Extracts based on 'field' parameter:
+    * WITH field: Extracts nested field value (e.g., technologies.field: binomial)
+    * WITHOUT field: Extracts root element keys
+  - Processes multiple data files (techstack.yaml, toolchain.yaml, etc.)
+
+SOURCE 2 - Content Taxonomies (site.Taxonomies):
+  - Extracts unique terms from content frontmatter
+  - Preserves original casing from frontmatter values
+
+See data/schemas/frontmatter/types.yaml for usage examples.
+=============================================================================
+*/}}
+{{- $enrichedSchema := dict -}}
+{{- range $fieldKey, $fieldSchema := $completeSchema -}}
+  {{- $fieldType := $fieldSchema.type | default "string" -}}
+  {{- if and (eq $fieldType "taxonomy_term_lookup") (not $fieldSchema.options) -}}
+    {{- $options := slice -}}
+
+    {{/*
+    SOURCE 1: DATA FILE EXTRACTION
+    Search all site.Data.* files for collections matching the taxonomy_term_lookup field name.
+
+    Example flow for field "technologies":
+      1. Iterate: site.Data.techstack, site.Data.toolchain, site.Data.employees, ...
+      2. For each data file, look for collection matching field name: techstack.technologies
+      3. If found AND it's a map: extract values based on 'field' parameter
+      4. Append to options: [python, node.js, c++, ...] or nested values
+
+    NESTED VALUE EXTRACTION (via 'field' parameter):
+    The 'field' parameter controls what values are extracted from data objects:
+
+    WITHOUT field parameter (default behavior):
+      - Extracts root element keys (object keys in the collection)
+      - Example config: employees.type: autocomplete
+      - Data: employees: {Adam Jorgensen: {...}, John Harris: {...}}
+      - Result: ["Adam Jorgensen", "John Harris", ...]
+
+    WITH field parameter:
+      - Extracts nested field value from each object
+      - Example config: employees.type: autocomplete + employees.field: official_email
+      - Data: employees: {Adam Jorgensen: {official_email: "adam@spandigital.com"}, ...}
+      - Result: ["adam@spandigital.com", "john.r.harris@spandigital.com", ...]
+
+    Use cases:
+      - Root keys: technologies → ["python", "node.js", "c++"]
+      - Nested binomial: technologies.field: binomial → ["python:python", "nodejs:nodejs"]
+      - Nested emails: employees.field: official_email → ["adam@spandigital.com", ...]
+    */}}
+    {{- range $dataFileName, $dataFile := $.Site.Data -}}
+      {{- if reflect.IsMap $dataFile -}}
+        {{- $dataCollection := index $dataFile $fieldKey -}}
+        {{- if $dataCollection -}}
+          {{- if reflect.IsMap $dataCollection -}}
+            {{- /* Check if field parameter specified for nested value extraction */ -}}
+            {{- $valueField := $fieldSchema.field -}}
+            {{- range $key, $value := $dataCollection -}}
+              {{- if $valueField -}}
+                {{- /* WITH field parameter: Extract nested field value from object */ -}}
+                {{- if reflect.IsMap $value -}}
+                  {{- $nestedValue := index $value $valueField -}}
+                  {{- if $nestedValue -}}
+                    {{- $options = $options | append $nestedValue -}}
+                  {{- end -}}
+                {{- end -}}
+              {{- else -}}
+                {{- /* WITHOUT field parameter: Extract root element key */ -}}
+                {{- $options = $options | append $key -}}
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/*
+    SOURCE 2: CONTENT TAXONOMY EXTRACTION
+    Extract unique terms from Hugo taxonomies populated by content frontmatter.
+    IMPORTANT: Preserve original case from frontmatter.
+
+    Hugo Problem: Taxonomy keys are automatically lowercased
+      content/page.md → territories: [ZA, USA, Mexico]
+      → site.Taxonomies.territories → {za: [...], usa: [...], mexico: [...]}
+
+    Solution: Extract original values from page frontmatter instead of taxonomy keys
+      1. Iterate through pages in each taxonomy term
+      2. Read original frontmatter value from page.Params
+      3. Collect unique values preserving original case
+
+    Example flow for field "territories":
+      content/team-timezones.md → territories: [ZA, USA, Mexico]
+      → Read page.Params.territories → ["ZA", "USA", "Mexico"]
+      → autocomplete options: [ZA, USA, Mexico] (case preserved)
+    */}}
+    {{- $fieldKeyLower := lower $fieldKey -}}
+    {{- $taxonomy := index $.Site.Taxonomies $fieldKeyLower -}}
+    {{- if $taxonomy -}}
+      {{- range $termKey, $termPages := $taxonomy -}}
+        {{- /* Extract original case from first page's frontmatter */ -}}
+        {{- range first 1 $termPages -}}
+          {{- $frontmatterValue := index .Params $fieldKeyLower -}}
+          {{- if $frontmatterValue -}}
+            {{- /* Handle both single value and array of values */ -}}
+            {{- if reflect.IsSlice $frontmatterValue -}}
+              {{- range $frontmatterValue -}}
+                {{- if eq (lower .) $termKey -}}
+                  {{- $options = $options | append . -}}
+                {{- end -}}
+              {{- end -}}
+            {{- else -}}
+              {{- if eq (lower $frontmatterValue) $termKey -}}
+                {{- $options = $options | append $frontmatterValue -}}
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/*
+    DEDUPLICATION AND SCHEMA UPDATE
+    Combine options from both sources and remove duplicates.
+
+    Example: technologies field gets options from both techstack and toolchain:
+      - techstack.yaml has: python, node.js, react
+      - toolchain.yaml has: python, figma, git
+      - Combined: [python, node.js, react, python, figma, git]
+      - Deduplicated: [python, node.js, react, figma, git]
+
+    Then merge the populated options into the field schema for output.
+    */}}
+    {{- if $options -}}
+      {{- $uniqueOptions := slice -}}
+      {{- range $options -}}
+        {{- if not (in $uniqueOptions .) -}}
+          {{- $uniqueOptions = $uniqueOptions | append . -}}
+        {{- end -}}
+      {{- end -}}
+      {{- $sortedOptions := sort $uniqueOptions -}}
+      {{- $updatedField := merge $fieldSchema (dict "options" $sortedOptions) -}}
+      {{- $enrichedSchema = merge $enrichedSchema (dict $fieldKey $updatedField) -}}
+    {{- else -}}
+      {{- $enrichedSchema = merge $enrichedSchema (dict $fieldKey $fieldSchema) -}}
+    {{- end -}}
+  {{- else -}}
+    {{- /* Not autocomplete or has options, keep original field */ -}}
+    {{- $enrichedSchema = merge $enrichedSchema (dict $fieldKey $fieldSchema) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $enrichedSchema -}}

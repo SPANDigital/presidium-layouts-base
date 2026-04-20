@@ -1,0 +1,29 @@
+{{- /*
+  Recursively normalize empty arrays to null to avoid Hugo YAML marshaller bug (issue #14596)
+
+  @param {any} . - The input value to normalize (can be a map, slice, or scalar)
+  @returns {any} - The normalized value with empty arrays replaced by null
+*/ -}}
+
+{{- $input := . -}}
+{{- $result := $input -}}
+
+{{- if reflect.IsMap $input -}}
+  {{- /* Process each key-value pair in the map */ -}}
+  {{- $result = dict -}}
+  {{- range $k, $v := $input -}}
+    {{- if and (reflect.IsSlice $v) (eq (len $v) 0) -}}
+      {{- /* Replace empty array with null */ -}}
+      {{- $result = merge $result (dict $k nil) -}}
+    {{- else if reflect.IsMap $v -}}
+      {{- /* Recursively process nested maps */ -}}
+      {{- $cleaned := partial "frontmatter/normalize-empty-arrays.html" $v -}}
+      {{- $result = merge $result (dict $k $cleaned) -}}
+    {{- else -}}
+      {{- /* Keep value as-is */ -}}
+      {{- $result = merge $result (dict $k $v) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $result -}}

@@ -1,0 +1,40 @@
+{{/* Taxonomy Term Lookup Validator - validates taxonomy term values */}}
+{{/* Accepts only a single string value. */}}
+{{/* TODO: PRSDM-10548 - When FE supports multi-select, check multi_select: true and allow array values */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* multi_select defaults to false — single value only until PRSDM-10548 is implemented */}}
+{{/* TODO: PRSDM-10548 - use $multiSelect to conditionally allow array values when FE supports multi-select */}}
+{{- $multiSelect := $rules.multi_select | default false -}}
+{{- if $multiSelect -}}
+  {{- $errors = $errors | append (printf "%s is configured with multi_select: true, but multi-select is not yet supported" $fieldName) -}}
+{{- end -}}
+
+{{/* Type check: must be a single string (arrays not supported until PRSDM-10548) */}}
+{{- $valueType := printf "%T" $value -}}
+{{- $isString := eq $valueType "string" -}}
+{{- $isArray := hasPrefix $valueType "[]" -}}
+
+{{- if $isArray -}}
+  {{/* TODO: PRSDM-10548 - when multi_select: true and FE supports it, allow array values here */}}
+  {{- $errors = $errors | append (printf "%s must be a single value (multi-select is not yet supported)" $fieldName) -}}
+{{- else if not $isString -}}
+  {{- $errors = $errors | append (printf "%s must be a string" $fieldName) -}}
+{{- else -}}
+  {{/* Validate against options if provided */}}
+  {{- if $rules.options -}}
+    {{- if not (in $rules.options $value) -}}
+      {{- $errors = $errors | append (printf "%s contains invalid value: %s" $fieldName $value) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

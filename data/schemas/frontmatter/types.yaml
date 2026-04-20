@@ -1,0 +1,187 @@
+# =============================================================================
+# FRONTMATTER TYPE DEFINITIONS
+# =============================================================================
+# Flat, self-contained type definitions for frontmatter field validation.
+# No inheritance - each type defines all its attributes with defaults.
+#
+# Categories:
+#   - Base types: string, number, boolean, array, object
+#   - Presets: date, datetime, email (string presets with pattern preconfigured)
+#
+# Legend:
+#   [Mandatory] - User must provide a value
+#   [Optional]  - Has default value, user can override
+#   [Preset]    - Explicitly set by the preset definition
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# BASE TYPES
+# -----------------------------------------------------------------------------
+
+# STRING TYPE
+# Text validation with optional pattern matching and constrained options.
+# -----------------------------------------------------------------------------
+string:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: ""                         # [Optional]
+  display_rows: 1                     # [Optional]
+
+# NUMBER TYPE
+# Numeric validation with optional constrained options.
+# -----------------------------------------------------------------------------
+number:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+
+# BOOLEAN TYPE
+# True/false validation.
+# -----------------------------------------------------------------------------
+boolean:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+
+# ARRAY TYPE
+# Collection of items defined by `field` attribute.
+# -----------------------------------------------------------------------------
+array:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  field: object                       # [Mandatory]
+
+
+# OBJECT TYPE
+# Nested structure with named fields defined by `fields` attribute.
+# -----------------------------------------------------------------------------
+object:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  fields: object                      # [Mandatory] - Key-value mapping of nested fields
+
+# -----------------------------------------------------------------------------
+# PRESETS (type presets with pattern preconfigured)
+# -----------------------------------------------------------------------------
+
+# DATE PRESET
+# ISO 8601 date format (YYYY-MM-DD).
+# Inherits all string attributes with defaults.
+# -----------------------------------------------------------------------------
+date:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: '^\d{4}-\d{2}-\d{2}$'      # [Preset]
+  display_rows: 1                     # [Optional]
+
+# DATETIME PRESET
+# ISO 8601 datetime format (YYYY-MM-DDTHH:MM:SS with timezone).
+# Inherits all string attributes with defaults.
+# -----------------------------------------------------------------------------
+datetime:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$'  # [Preset]
+  display_rows: 1                     # [Optional]
+
+# EMAIL PRESET
+# Standard email address format.
+# Inherits all string attributes with defaults.
+# -----------------------------------------------------------------------------
+email:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional]
+  pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'  # [Preset]
+  display_rows: 1                     # [Optional]
+
+# TAXONOMY_TERM_LOOKUP PRESET
+# Auto-populates field options from data files and/or content taxonomies.
+#
+# PREREQUISITE:
+# Must define matching taxonomy in config.yml:
+#   taxonomies:
+#     technology: technologies
+#
+# USAGE EXAMPLES:
+#
+#   Example 1 - WITH field parameter (nested value extraction):
+#     config.yml:
+#       taxonomies.technology: technologies
+#       params.frontmatter.technologies:
+#         type: taxonomy_term_lookup
+#         field: binomial
+#     data/techstack.yaml:
+#       technologies:
+#         python: {binomial: "python:python"}
+#     data/toolchain.yaml:
+#       technologies:
+#         figma: {binomial: "figma:figma"}
+#     Result: options: [figma:figma, python:python, ...]
+#     Note: Extracts 'binomial' values from ALL data files with matching collections,
+#           deduplicates, and sorts alphabetically.
+#
+#   Example 2 - WITHOUT field parameter (root key extraction):
+#     config.yml:
+#       taxonomies.technology: technologies
+#       params.frontmatter.technologies:
+#         type: taxonomy_term_lookup
+#     data/techstack.yaml:
+#       technologies:
+#         python: {binomial: "python:python"}
+#     data/toolchain.yaml:
+#       technologies:
+#         figma: {binomial: "figma:figma"}
+#     Result: options: [figma, python, ...]
+#     Note: Extracts root keys from ALL data files with matching collections,
+#           deduplicates, and sorts alphabetically.
+#
+#   Example 3 - Content taxonomy only (no data files):
+#     config.yml:
+#       taxonomies.territory: territories
+#       params.frontmatter.territories:
+#         type: taxonomy_term_lookup
+#     content/page-a.md:
+#       territories: [Mexico, USA]
+#     content/page-b.md:
+#       territories: [South Africa]
+#     Result: options: [Mexico, South Africa, USA]
+#     Note: Original casing from frontmatter is preserved, deduplicated, and sorted.
+#
+# TECHNICAL NOTES:
+# - Inherits all string type attributes
+# - Options only auto-populate if not manually specified
+# - Field name must match the data collection name exactly (case-sensitive)
+# - Taxonomy lookups are case-insensitive but preserve original case from frontmatter
+# - Nested field extraction skips entries where nested field is null/empty
+# - Results are sorted alphabetically after deduplication
+# - Taxonomy extraction requires content to be processed (use schemaGenerationMode flag)
+# -----------------------------------------------------------------------------
+taxonomy_term_lookup:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  options: []                         # [Optional] - Auto-populated during schema generation if empty
+  field: ""                           # [Optional] - Nested field name to extract from data objects
+  pattern: ""                         # [Optional] - Not recommended as the input will be limited to the fixed options
+  display_rows: 1                     # [Optional] - Not recommend as the input will be single line
+  multi_select: false                 # [Optional] - TODO: PRSDM-10548 - When FE supports multi-select, set to true to allow array values

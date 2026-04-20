@@ -1,0 +1,18 @@
+{{/* Boolean Validator - validates boolean type */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Type check: must be boolean */}}
+{{- $valueType := printf "%T" $value -}}
+{{- if ne $valueType "bool" -}}
+  {{- $errors = $errors | append (printf "%s must be a boolean" $fieldName) -}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}

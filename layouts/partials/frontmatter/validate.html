@@ -1,0 +1,44 @@
+{{/* Validation Orchestrator - coordinates validation of all frontmatter fields */}}
+{{/* Usage: {{ partial "frontmatter/validate.html" . }} */}}
+{{/* Returns: dict with "errors" (array) and "valid" (boolean) */}}
+
+{{/* Step 1: Load schema */}}
+{{- partial "frontmatter/load-schema.html" . -}}
+{{- $schema := .Scratch.Get "frontmatter_schema" -}}
+
+{{/* Step 2: Get page frontmatter */}}
+{{- $pageParams := .Params -}}
+
+{{/* Step 3: Initialize error collection */}}
+{{- $allErrors := slice -}}
+
+{{/* Step 4: Validate each field in schema */}}
+{{- range $fieldName, $rules := $schema -}}
+  {{/* Get field value from page params */}}
+  {{- $value := index $pageParams $fieldName -}}
+
+  {{/* Call root validator - stores result in scratch */}}
+  {{- partial "frontmatter/validators/root.html" (dict
+      "value" $value
+      "rules" $rules
+      "fieldName" $fieldName
+      "pageParams" $pageParams
+      "context" $) -}}
+
+  {{/* Get validation result from scratch */}}
+  {{- $result := $.Scratch.Get "validation_result" -}}
+
+  {{/* Collect errors if validation failed */}}
+  {{- if not $result.valid -}}
+    {{- range $error := $result.errors -}}
+      {{- $allErrors = $allErrors | append $error -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Step 5: Store validation result in scratch */}}
+{{- $validationResult := dict
+    "errors" $allErrors
+    "valid" (eq (len $allErrors) 0) -}}
+
+{{- .Scratch.Set "frontmatter_validation" $validationResult -}}
