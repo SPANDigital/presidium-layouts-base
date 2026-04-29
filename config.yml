@@ -60,7 +60,7 @@ params:
     namespace: "presidium"  # Data directory namespace for generated files (schema, etc.)
   hugoVersion:
     enabled: true
-    min: "0.147.7"
+    min: "0.156.0"
     max: "0.158.0"
     extended: true
   attributes:
