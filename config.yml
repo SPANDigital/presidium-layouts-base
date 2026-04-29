@@ -41,6 +41,11 @@ outputformats:
     mediaType: application/yaml
     isPlainText: true
     notAlternative: true
+  searchmap:
+    mediaType: "application/json"
+    baseName: "searchmap"
+    isPlainText: true
+    notAlternative: true
 outputs:
   home:
     - Navigation
