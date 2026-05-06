@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GO_VERSION: 1.18
-      HUGO_VERSION: 0.133.1
+      HUGO_VERSION: 0.156.0
       MODULE_NAME: "${{ github.server_url }}/${{ github.repository }}"
 
     # Steps represent a sequence of tasks that will be executed as part of the job

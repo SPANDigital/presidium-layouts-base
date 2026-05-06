@@ -72,7 +72,7 @@ Output (map format with _order):
 {{- end -}}
 
 {{/* Load flat type definitions from data directory */}}
-{{- $dataTypes := .Site.Data.schemas.frontmatter.types -}}
+{{- $dataTypes := hugo.Data.schemas.frontmatter.types -}}
 
 {{/*
 =============================================================================
@@ -475,7 +475,7 @@ See data/schemas/frontmatter/types.yaml for usage examples.
       - Nested binomial: technologies.field: binomial → ["python:python", "nodejs:nodejs"]
       - Nested emails: employees.field: official_email → ["adam@spandigital.com", ...]
     */}}
-    {{- range $dataFileName, $dataFile := $.Site.Data -}}
+    {{- range $dataFileName, $dataFile := hugo.Data -}}
       {{- if reflect.IsMap $dataFile -}}
         {{- $dataCollection := index $dataFile $fieldKey -}}
         {{- if $dataCollection -}}

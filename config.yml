@@ -41,6 +41,11 @@ outputformats:
     mediaType: application/yaml
     isPlainText: true
     notAlternative: true
+  searchmap:
+    mediaType: "application/json"
+    baseName: "searchmap"
+    isPlainText: true
+    notAlternative: true
 outputs:
   home:
     - Navigation
@@ -60,8 +65,8 @@ params:
     namespace: "presidium"  # Data directory namespace for generated files (schema, etc.)
   hugoVersion:
     enabled: true
-    min: "0.147.7"
-    max: "0.158.0"
+    min: "0.156.0"
+    max: "0.161.0"
     extended: true
   attributes:
     website: 2.15.0
