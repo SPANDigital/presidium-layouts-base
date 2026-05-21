@@ -1,6 +1,11 @@
 {{ $items := slice }}
 
-{{ range (union .Site.RegularPages .Site.Sections) }}
+{{/* Range only top-level sections (Parent.IsHome).
+     item.html recurses into .Data.Pages to reach all descendants.
+     Ranging union .Site.RegularPages .Site.Sections caused every leaf article
+     to be visited twice: once directly and once via its parent section's recursion.
+     Fix: PRSDM-8792 */}}
+{{ range where .Site.Sections ".Parent.IsHome" true }}
     {{ range $searchmapItem := (partial "searchmap/item" (dict "Page" . "Level" 1)) }}
         {{ $items = $items | append $searchmapItem }}
     {{ end }}

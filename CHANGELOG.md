@@ -12,3 +12,7 @@
 ## 2025-01-27
 ### Fix
 - Update presidium.js version for local and open source usage. @Zalaras https://spandigital.atlassian.net/browse/PRSDM-7167
+
+## 2026-05-21
+### Fix
+- Resolve duplicate URLs in searchmap.json. Additive only - kind: "branch" | "leaf. @christopherbrunsdon https://spandigital.atlassian.net/browse/PRSDM-9079
