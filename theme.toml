@@ -3,12 +3,12 @@
 
 name = "presidium-layouts-base"
 license = "MIT"
-licenselink = "https://github.com/yourname/yourtheme/blob/main/LICENSE"
+licenselink = "https://github.com/SPANDigital/presidium-layouts-base/blob/main/LICENSE"
 description = ""
 homepage = "http://example.com/"
 tags = []
 features = []
-min_version = "0.41.0"
+min_version = "0.133.0"
 
 [author]
   name = ""

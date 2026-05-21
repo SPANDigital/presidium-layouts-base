@@ -1,22 +1,35 @@
 {{- $roles := .Params.roles | default "All Roles" -}}
 {{- $uid := "" -}}
-{{- $articleId := lower .Params.id -}}
+{{- $articleId := .Params.id -}}
 {{- with .File }}
     {{- $uid = .UniqueID -}}
     {{- if not $articleId -}}
-        {{ $articleId = lower .Path }}
+        {{ $articleId = .Path }}
     {{- end -}}
 {{- end -}}
 {{- $pageLink := .Page.RelPermalink -}}
 {{- $slug := (partial "common/slug" .) -}}
 {{- $noContent := (eq (len .Content) 0) -}}
 {{- $type := cond $noContent "page" "article" -}}
+{{- $importInfo := partial "common/is-imported" . -}}
+{{- $isImported := $importInfo.isImported -}}
+{{- $githubUrl := $importInfo.githubUrl -}}
 
-<div class="{{ $type }} index" data-roles="{{ $roles }}" id="{{ $uid }}" data-link="{{ $pageLink }}" permalink="{{ .Page.RelPermalink }}" data-no-content="{{ $noContent }}" >
+<div class="{{ $type }} index"
+     data-roles="{{ $roles }}"
+     id="{{ $uid }}"
+     data-link="{{ $pageLink }}"
+     permalink="{{ .Page.RelPermalink }}"
+     data-no-content="{{ $noContent }}"
+     {{ if $.Site.Params.enterprise_enabled }}
+       data-imported="{{ $isImported }}"
+       {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }}
+     {{ end }}>
     <div class="presidium-article-wrapper">
         <span class="anchor" id="{{ $slug }}" data-id="{{ $articleId }}"></span>
+        {{- partial "article/frontmatter" . -}}
         {{ if (ne (len .Content) 0) -}}
-            <article class="article-actions" data-align="center-top">{{ .Content }}</article>
+            <article class="article-actions" data-align="center-top" title="{{ .Title }}" aria-label="{{ .Title }}">{{ .Content }}</article>
             <hr />
         {{- end }}
     </div>
@@ -28,8 +41,10 @@
 {{- $sortByFilePath := .Params.sortByFilePath | default .Site.Params.sortByFilePath -}}
 {{- if $sortByFilePath -}}
     {{- $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) -}}
+    {{/* Filter pages to only those with File (excludes taxonomy pages) */}}
+    {{- $pagesWithFile := where $pages ".File" "!=" nil -}}
     {{/* Sort by file prefix */}}
-    {{- range sort $pages "File.Path" $sortOrder -}}
+    {{- range sort $pagesWithFile "File.Path" $sortOrder -}}
         {{- $isRendering := true -}}
 
         {{- if $siteScopesEnabled -}}

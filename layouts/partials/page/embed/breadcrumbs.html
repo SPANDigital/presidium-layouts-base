@@ -1,0 +1,6 @@
+<div aria-label="breadcrumb" class="breadcrumb">
+    {{- range $index, $ancestor := .Ancestors.Reverse -}}
+    <li class="breadcrumb-item"><span class="ancestor-title">{{ $ancestor.LinkTitle }}</span></li>
+    {{- end }}
+    <li class="breadcrumb-item active"><span>{{ .LinkTitle }}</li>
+</div>

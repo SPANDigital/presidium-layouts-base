@@ -1,0 +1,3 @@
+{{ $dirs := split .File.Dir "/" }}
+{{ $parentDir := index $dirs (sub (len $dirs) 2) }}
+{{ return anchorize $parentDir }}

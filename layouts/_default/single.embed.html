@@ -1,0 +1,36 @@
+{{ define "scripts" }}
+    {{ partial "common/dummy" . }}
+{{ end }}
+
+{{ define "toolbar" }}
+    {{ partial "common/dummy" . }}
+{{ end }}
+
+{{ define "left-sidebar" }}
+    {{ partial "common/dummy" . }}
+{{ end }}
+
+{{ define "breadcrumbs" }}
+    {{ partial "page/embed/breadcrumbs" . }}
+{{ end }}
+
+{{ define "header" }}
+    {{ .Scratch.Set "scope" "single" }}
+    {{ partial "page/header" . }}
+{{ end }}
+
+{{ define "section" }}
+    <section data-section="{{ strings.TrimPrefix "/" .Parent.Path }}">
+        {{ block "content" . }}
+            <div
+              data-key="{{ $.Site.Params.enterprise_key }}"
+              data-title="{{ $.Site.Title }}"
+              data-type="embed"
+              id="presidium-enterprise"
+              class="presidium-enterprise"
+              style="display: none"
+            ></div>
+            {{ partial "article/root" . }}
+        {{ end }}
+    </section>
+{{ end }}

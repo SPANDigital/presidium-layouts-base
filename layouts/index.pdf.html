@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ site.Title }}</title>
+  {{ $style := resources.Get "presidium.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
+  {{ $styleSrc := strings.TrimPrefix "/" $style.RelPermalink}}
+  <link rel="stylesheet" href="{{ $styleSrc }}">
+  <link rel="stylesheet" href="">
+</head>
+
+<body bp="full-width">
+<div id="presidium-container" class="container-fluid">
+  <div class="row">
+    <div id="presidium-content">
+      <!-- <hr /> -->
+      <section>
+        {{ range $index, $menu := .Site.Menus.main.ByWeight }}
+        <div class="{{ if not (eq $index 0) }}new-page{{end}}">
+          {{ $identifier := anchorize $menu.Identifier }}
+          {{ with $.Site.GetPage $identifier }}
+          {{ partial "pdf/article" (dict "context" . "depth" 1 ) }}
+          {{ end }}
+        </div>
+        {{ end }}
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+
+<script>
+  var baseURL = "{{ .Site.BaseURL  }}"
+</script>
+<script src="links.js"></script>
+<script>
+  // Open all details tags
+  var collection = document.getElementsByTagName("details");
+  for (var i = 0; i < collection.length; i++) {
+    collection[i].open = true;
+  }
+</script>
+<script>
+  window.onload = function () {
+    var sideBySideContent = document.getElementsByClassName("side-by-side");
+    for(var i = 0; i < sideBySideContent.length; i++){
+
+      var prevSibling = sideBySideContent[i].previousElementSibling;
+
+      if (prevSibling != null) {
+        continue;
+      }
+
+      var articleTitle = sideBySideContent[i].parentElement.parentElement.parentElement.parentElement.firstElementChild;
+
+      var leftColumn = sideBySideContent[i].firstElementChild;
+      leftColumn.insertBefore(articleTitle, leftColumn.firstChild);
+    }
+  };
+</script>
+</html>

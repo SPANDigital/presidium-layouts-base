@@ -11,8 +11,7 @@
 {{ end }}
 
 {{ define "breadcrumbs" }}
-    {{ .Scratch.Set "output-format" "snippet" }}
-    {{ partial "page/breadcrumbs" . }}
+    {{ partial "page/embed/breadcrumbs" . }}
 {{ end }}
 
 {{ define "header" }}
@@ -21,5 +20,13 @@
 {{ end }}
 
 {{ define "content" }}
+    <div
+      data-key="{{ $.Site.Params.enterprise_key }}"
+      data-title="{{ $.Site.Title }}"
+      data-type="embed"
+      id="presidium-enterprise"
+      class="presidium-enterprise"
+      style="display: none"
+    ></div>
     {{ partial "page/list" . }}
 {{ end }}

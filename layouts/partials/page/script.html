@@ -15,8 +15,8 @@
 </script>
 {{ end }}
 
-<script defer src="{{ "assets/scripts/jquery.js" | absURL }}"></script>
-<script defer src="{{ "assets/scripts/bootstrap.js" | absURL }}"></script>
+<script defer src="{{ "assets/scripts/jquery.min.js" | absURL }}"></script>
+<script defer src="{{ "assets/scripts/bootstrap.min.js" | absURL }}"></script>
 <script defer src="{{ "assets/scripts/mermaid.js" | absURL }}"></script>
 
 <script type="module">
@@ -27,13 +27,25 @@
     $menu.toggleClass('expanded', !isOpen).toggleClass('', isOpen);
   });
 
+  // Handle collapsing of nav-items
   const toggleMenu = ($menu, isOpen) => {
-    $menu.toggleClass('open', isOpen).toggleClass('closed', !isOpen);
+    const $ul = $menu.find('ul').first();
+
+    if (isOpen) {
+        $menu.addClass('open').removeClass('closed');
+        $ul.addClass('in active show');
+    } else {
+        $menu.removeClass('open').addClass('closed');
+        $ul.removeClass('in active');
+    }
+
     const $trigger = $menu.find('div.menu-expander > .glyphicon').first();
-    $trigger.toggleClass('glyphicon-chevron-down', isOpen).toggleClass('glyphicon-chevron-right', !isOpen);
-    $menu.find('ul').first().toggleClass('in active', isOpen);
+    $trigger.toggleClass('glyphicon-chevron-down', isOpen)
+            .toggleClass('glyphicon-chevron-right', !isOpen);
+    $menu.find('div.menu-expander').first().attr('aria-expanded', isOpen ? 'true' : 'false');
   };
 
+  // Bootstrap collapse events
   $('li.menu-row').on('show.bs.collapse', (event) => {
     event.stopPropagation();
     const $menu = $(event.currentTarget);
@@ -62,13 +74,6 @@
     $ul.collapse('toggle');
   });
 
-  // Recursively open the current page's menu nav
-  let navItem = $(`a[href="${window.location.pathname}"]`).parent().closest('.menu-row');
-  while (navItem.length) {
-      toggleMenu(navItem, true);
-      navItem = navItem.parent().closest('.menu-row');
-  }
-
   function copyPermalink(link, articleLink, copyTitle) {
       // Remove the leading slash from articleLink if present
       if (articleLink.startsWith('/')) {
@@ -82,7 +87,7 @@
       const toast = document.querySelector('#copy-toast');
       if (toast) {
           // set popup-copy-text
-          const popupCopyText = toast.querySelector('.popup-copy-text')
+          const popupCopyText = toast.querySelector('.popup-copy-text');
           popupCopyText.innerHTML = `Copied link to ${copyTitle}`;
           // show toast
           toast.style.opacity = '1';
@@ -100,52 +105,105 @@
   window.presidium?.tooltips?.load();
   window.presidium?.modal?.init();
 
-  mermaid.initialize({
-      startOnLoad: true,
-      theme: 'base',
-      themeVariables: {
-          'primaryColor': '#00827E',
-          'primaryBorderColor': '#2C6764',
-          'secondaryColor': '#FFFFFF',
-          'lineColor': '#666',
-      },
+  document.addEventListener('DOMContentLoaded', () => {
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+            'primaryColor': '#00827E',
+            'primaryBorderColor': '#2C6764',
+            'secondaryColor': '#FFFFFF',
+            'lineColor': '#666',
+        },
+    });
+    // Explicitly initialize all Mermaid diagrams
+    mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+  });
+
+  // Ensure nav-items fit within the viewport without overlapping the header
+  document.addEventListener("DOMContentLoaded", function () {
+    const navbarHeader = document.querySelector(".navbar-header");
+    const navbarItems = document.querySelector(".navbar-items");
+
+    if (navbarHeader && navbarItems) {
+      // Calculate the dynamic height and apply it
+      const headerHeight = navbarHeader.offsetHeight;
+      navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
+    }
+
+    // Adjust height dynamically during window resize
+    window.addEventListener("resize", function () {
+      if (navbarHeader && navbarItems) {
+        const headerHeight = navbarHeader.offsetHeight;
+        navbarItems.style.maxHeight = `calc(100vh - ${headerHeight}px)`;
+      }
+    });
   });
 </script>
 
 {{ if $.Site.Params.resizeMenu | default true }}
 <script type="module">
-    const desktopSize = window.matchMedia("(min-width: 992px)")
-    const resizer = document.querySelector("#resizer");
-    const sidebar = document.querySelector("#presidium-navigation");
-    const cachedSize = window.localStorage.getItem('sidenav');
+  const desktopSize = window.matchMedia('(min-width: 992px)');
+  const resizer = document.querySelector('#resizer');
+  const sidebar = document.querySelector('#presidium-navigation');
+  const minWidth = 300;
+  const maxWidth = 600;
+  let isResizing = false;
 
-    if (cachedSize === null) {
-      window.localStorage.setItem('sidenav', '300px');
-      location.reload();
+  const clampWidth = (value) => {
+    return Math.min(maxWidth, Math.max(minWidth, value));
+  };
+
+  const applyWidth = (value) => {
+    const width = `${clampWidth(value)}px`;
+    document.documentElement.style.setProperty('--presidium-sidenav-width', width);
+    try {
+      window.localStorage.setItem('sidenav', width);
+    } catch (error) {
+      // localStorage may be unavailable, so skip persisting the resized width.
     }
+  };
 
-    if(desktopSize.matches) {
-      resizer.style.display = 'block';
+  const syncResizeMode = () => {
+    if (!resizer || !sidebar) return;
+    resizer.style.display = desktopSize.matches ? 'block' : 'none';
+  };
 
-      if (cachedSize) {
-        sidebar.style.flexBasis = cachedSize;
-      }
+  const stopResizing = () => {
+    isResizing = false;
+    document.removeEventListener('mousemove', onMouseMove, false);
+    document.removeEventListener('mouseup', stopResizing, false);
+  };
+
+  const onMouseMove = (event) => {
+    if (!isResizing) return;
+    applyWidth(event.clientX);
+  };
+
+  syncResizeMode();
+
+  let cachedSize = null;
+  try {
+    cachedSize = window.localStorage.getItem('sidenav');
+  } catch (error) {
+    // localStorage may be unavailable, so fall back to the default sidenav width.
+  }
+  if (desktopSize.matches && cachedSize) {
+    const parsedSize = Number.parseInt(cachedSize, 10);
+    if (!Number.isNaN(parsedSize)) {
+      applyWidth(parsedSize);
     }
+  }
 
-    resizer.addEventListener("mousedown", (event) => {
-      event.preventDefault();
-      document.addEventListener("mousemove", resize, false);
-      document.addEventListener("mouseup", () => {
-        event.preventDefault();
-        document.removeEventListener("mousemove", resize, false);
-      }, false);
-    });
+  desktopSize.addEventListener('change', syncResizeMode);
 
-    function resize(e) {
-      const size = `${e.x}px`;
-      window.localStorage.setItem('sidenav', size);
-      sidebar.style.flexBasis = size;
-    }
+  resizer?.addEventListener('mousedown', (event) => {
+    if (!desktopSize.matches) return;
+    event.preventDefault();
+    isResizing = true;
+    document.addEventListener('mousemove', onMouseMove, false);
+    document.addEventListener('mouseup', stopResizing, false);
+  });
 </script>
 {{ end }}
 

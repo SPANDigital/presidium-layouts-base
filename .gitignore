@@ -33,3 +33,6 @@ public/
 
 # build artifacts
 .hugo_build.lock
+
+# Generated schema (do not edit manually - regenerate from config)
+data/presidium/frontmatter-schema.yaml

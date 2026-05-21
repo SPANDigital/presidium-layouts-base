@@ -1,0 +1,13 @@
+{{ $src := .Destination }}
+{{ $found := false }}
+{{ with .Page.Resources.GetMatch $src }}
+    {{ $src = .Permalink}}
+    {{ $found = true }}
+{{ end }}
+{{ if not $found }}
+    {{ with .Page.Parent.Resources.GetMatch $src }}
+        {{ $src = .Permalink}}
+        {{ $found = true }}
+    {{ end }}
+{{ end }}
+<img src="{{ $src | safeURL }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}"{{ end }} />

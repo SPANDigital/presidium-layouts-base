@@ -1,0 +1,18 @@
+{{ $url := urls.Parse .Site.BaseURL }}
+{{ $rootUrl := path.Clean $url.Path }}
+{{ $navImg := "images/logo.png" | relURL }}
+{{ if .Site.Params.logo }}
+  {{ $navImg = path.Join $rootUrl .Site.Params.logo }}
+{{ end }}
+
+<div class="module-title-bar-logo">
+  <a href="{{ $rootUrl }}" aria-label="{{ .Site.Title }} home">
+    <img src="{{ $navImg }}" alt="{{ .Site.Title }} logo" class="brand" />
+  </a>
+</div>
+
+<h4 class="brand-name">{{ .Site.Title }}</h4>
+
+{{ with .Site.Params.quality_category }}
+  <span class="quality-category-labels">{{ . | lower }}</span>
+{{ end }}
