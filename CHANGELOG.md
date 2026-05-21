@@ -31,4 +31,4 @@
 
 ## 2026-05-21
 ### Fix
-- Resolve duplicate URLs in searchmap.json. Additive only - kind: "branch" | "leaf. @christopherbrunsdon https://spandigital.atlassian.net/browse/PRSDM-9079
+- Resolve duplicate URLs in searchmap.json. Additive only - kind: "branch" | "leaf". @christopherbrunsdon https://spandigital.atlassian.net/browse/PRSDM-9079
