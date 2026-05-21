@@ -12,7 +12,7 @@
 
 {{ with .Page}}
     {{ if not .File }}
-        {{/* Skip pages with no backing file (e.g. taxonomy pages). PRSDM-8792 */}}
+        {{/* Skip pages with no backing file (e.g. taxonomy pages). */}}
         {{ warnf "[searchmap] Skipping page with nil .File: Title=%q Permalink=%q" .Title .Permalink }}
     {{ else }}
         {{ $slug := humanize .Params.Title }}
@@ -21,17 +21,13 @@
         {{ if .Params.Slug }}
             {{ $slug = .Params.Slug}}
         {{ end }}
-        {{/* Use .IsSection (true for every _index.md) rather than .Data.Pages to detect branch nodes.
-             .Data.Pages is empty for sections with no children (e.g. a standalone overview/_index.md),
-             causing the template to misclassify them as leaf articles and emit a bare /#slug URL.
-             Fix: PRSDM-8792 */}}
+        {{/* Use .IsSection (true for every _index.md) rather than .Data.Pages to detect branch nodes. */}}
         {{ if .IsSection }}
             {{ $link = .RelPermalink }}
         {{ else }}
             {{ $parentPermalink := .Parent.RelPermalink }}
             {{ if not $parentPermalink }}
-                {{/* Parent section has no built permalink — likely draft: true on the _index.md.
-                     Skip this article rather than emit a broken fragment-only URL. PRSDM-10844 */}}
+                {{/* Parent section has no built permalink - Skip this article rather than emit a broken fragment-only URL. */}}
                 {{ warnf "[searchmap] Skipping %q — parent section has no permalink (draft?)" .File.Path }}
             {{ else }}
                 {{ $link = (printf "%v#%v" $parentPermalink $slug) }}
