@@ -28,3 +28,7 @@
 ## 2025-09-26
 ### Fix
 - Update presidium.js version with left menu navigation fixes. @DustinFischer https://spandigital.atlassian.net/browse/PRSDM-8871
+
+## 2026-05-21
+### Fix
+- Resolve duplicate URLs in searchmap.json. Additive only - kind: "branch" | "leaf". @christopherbrunsdon https://spandigital.atlassian.net/browse/PRSDM-9079

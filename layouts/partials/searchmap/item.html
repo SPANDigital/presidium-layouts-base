@@ -11,28 +11,38 @@
 {{ end }}
 
 {{ with .Page}}
-    {{ if .File }}
-    {{ $slug := humanize .Params.Title }}
-    {{ $slug = anchorize $slug }}
-    {{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
-    {{ if .Params.Slug }}
-        {{ $slug = .Params.Slug}}
-    {{ end }}
-    {{ if .Data.Pages }}
-        {{ $link = .RelPermalink }}
-    {{ end }}
-    {{if not .Data.Pages }}
-        {{ $link = (printf "%v#%v" .Parent.RelPermalink $slug ) }}
-    {{end}}
-    {{ $scope := slice }}
-    {{ if .Params.Scope }}
-        {{ $scope = $scope | append .Params.Scope }}
-    {{ end }}
-    {{ $tags := apply .Params.tags "cast.ToString" "."}}
-    {{ $summary := (index (split .Content "</p>") 0) | plainify | htmlUnescape }}
-    {{ $items = $items | append (dict "id" .File.Path "title" .Title "slug" $slug "url" $link "section" ($section | default "") "category" ($category | default "") "tags" ($tags | default slice) "roles" (slice (.Params.Roles | default "All Roles")) "scope" $scope "author" (.Params.Author | default "None") "content" .Plain "originalContent" .RawContent "updated" .Lastmod "summary" $summary  )}}
+    {{ if not .File }}
+        {{/* Skip pages with no backing file (e.g. taxonomy pages). */}}
+        {{ warnf "[searchmap] Skipping page with nil .File: Title=%q Permalink=%q" .Title .Permalink }}
     {{ else }}
-    {{ warnf "[searchmap] Skipping page with nil .File: Title=%q, Permalink=%q" .Title .Permalink }}
+        {{ $slug := humanize .Params.Title }}
+        {{ $slug = anchorize $slug }}
+        {{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
+        {{ if .Params.Slug }}
+            {{ $slug = .Params.Slug}}
+        {{ end }}
+        {{/* Use .IsSection (true for every _index.md) rather than .Data.Pages to detect branch nodes. */}}
+        {{ if .IsSection }}
+            {{ $link = .RelPermalink }}
+        {{ else }}
+            {{ $parentPermalink := .Parent.RelPermalink }}
+            {{ if not $parentPermalink }}
+                {{/* Parent section has no built permalink - Skip this article rather than emit a broken fragment-only URL. */}}
+                {{ warnf "[searchmap] Skipping %q — parent section has no permalink (draft?)" .File.Path }}
+            {{ else }}
+                {{ $link = (printf "%v#%v" $parentPermalink $slug) }}
+            {{ end }}
+        {{ end }}
+        {{ if $link }}
+            {{ $scope := slice }}
+            {{ if .Params.Scope }}
+                {{ $scope = $scope | append .Params.Scope }}
+            {{ end }}
+            {{ $tags := apply .Params.tags "cast.ToString" "."}}
+            {{ $summary := (index (split .Content "</p>") 0) | plainify | htmlUnescape }}
+            {{ $kind := cond .IsSection "branch" "leaf" }}
+            {{ $items = $items | append (dict "id" .File.Path "title" .Title "slug" $slug "url" $link "kind" $kind "section" ($section | default "") "category" ($category | default "") "tags" ($tags | default slice) "roles" (slice (.Params.Roles | default "All Roles")) "scope" $scope "author" (.Params.Author | default "None") "content" .Plain "originalContent" .RawContent "updated" .Lastmod "summary" $summary  )}}
+        {{ end }}
     {{ end }}
     {{ range .Data.Pages }}
         {{ range (partial "searchmap/item" (dict "Page" . "Level" $childLevel "Section" $section "Category" $category ) ) }}
