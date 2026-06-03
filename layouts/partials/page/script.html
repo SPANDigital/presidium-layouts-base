@@ -39,9 +39,6 @@
         $ul.removeClass('in active');
     }
 
-    const $trigger = $menu.find('div.menu-expander > .glyphicon').first();
-    $trigger.toggleClass('glyphicon-chevron-down', isOpen)
-            .toggleClass('glyphicon-chevron-right', !isOpen);
     $menu.find('div.menu-expander').first().attr('aria-expanded', isOpen ? 'true' : 'false');
   };
 

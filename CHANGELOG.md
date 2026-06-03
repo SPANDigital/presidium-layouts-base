@@ -32,3 +32,7 @@
 ## 2026-05-21
 ### Fix
 - Resolve duplicate URLs in searchmap.json. Additive only - kind: "branch" | "leaf". @christopherbrunsdon https://spandigital.atlassian.net/browse/PRSDM-9079
+
+## 2026-06-03
+### Feature
+- Replace Bootstrap glyphicon chevron/info/external icons with inline Lucide SVGs. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11023
