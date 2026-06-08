@@ -9,6 +9,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {{ hugo.Generator }}
     <link rel="icon" href="{{ .Site.Params.favicon | absURL }}" type="image/x-icon">
+    <!-- Preload the enterprise logos -->
+    <link rel="preload" as="image" href="/assets/images/logo.svg" fetchpriority="high">
+    <link rel="preload" as="image" href="/assets/images/logo-small.svg" fetchpriority="high">
     {{ $basePath := $.Site.Params.basePath  | default "/" }}
     {{ $style := resources.Get "presidium.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
     <link rel="stylesheet" href="{{ $style.RelPermalink }}">
