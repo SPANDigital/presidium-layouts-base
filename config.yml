@@ -59,13 +59,7 @@ outputs:
   section:
     - HTML
     - Embed
-permalinks:
-  - pattern: /:sectionslugs/
-    target:
-      kind: section
-  - pattern: /:sectionslugs/:slug/
-    target:
-      kind: page
+
 params:
   _merge: shallow
   data:
@@ -82,3 +76,10 @@ params:
   enterprise-header-logo: images/default-enterprise-header-logo.png # this logo is used in the enterprise header across all docsets in the deployment.
   enterprise-header-logo-mobile: images/default-enterprise-header-logo-mobile.png # this logo is used in the enterprise header across all docsets in the deployment for mobile devices.
 
+permalinks:
+  - pattern: /:sectionslugs/
+    target:
+      kind: section
+  - pattern: /:sectionslugs/:slug/
+    target:
+      kind: page
