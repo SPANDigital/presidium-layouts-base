@@ -75,8 +75,6 @@ params:
     min: "0.161.0"
     max: "0.163.0"
     extended: true
-  attributes:
-    website: 2.15.0
   # not yet implemented
   docset-logo: images/logo.png # recommend minimum size of 250px x 250px. Is used on the landing page.
   left-nav-logo: images/logo.png # if the left nav logo is different from the main logo, specify it here.
