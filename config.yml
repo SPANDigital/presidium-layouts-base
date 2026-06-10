@@ -59,14 +59,21 @@ outputs:
   section:
     - HTML
     - Embed
+permalinks:
+  - pattern: /:sectionslugs/
+    target:
+      kind: section
+  - pattern: /:sectionslugs/:slug/
+    target:
+      kind: page
 params:
   _merge: shallow
   data:
-    namespace: "presidium"  # Data directory namespace for generated files (schema, etc.)
+    namespace: "presidium" # Data directory namespace for generated files (schema, etc.)
   hugoVersion:
     enabled: true
-    min: "0.156.0"
-    max: "0.161.0"
+    min: "0.161.0"
+    max: "0.163.0"
     extended: true
   attributes:
     website: 2.15.0
