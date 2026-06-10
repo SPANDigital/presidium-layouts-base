@@ -59,17 +59,16 @@ outputs:
   section:
     - HTML
     - Embed
+
 params:
   _merge: shallow
   data:
-    namespace: "presidium"  # Data directory namespace for generated files (schema, etc.)
+    namespace: "presidium" # Data directory namespace for generated files (schema, etc.)
   hugoVersion:
     enabled: true
-    min: "0.156.0"
-    max: "0.161.0"
+    min: "0.161.0"
+    max: "0.163.0"
     extended: true
-  attributes:
-    website: 2.15.0
   # not yet implemented
   docset-logo: images/logo.png # recommend minimum size of 250px x 250px. Is used on the landing page.
   left-nav-logo: images/logo.png # if the left nav logo is different from the main logo, specify it here.
@@ -77,3 +76,10 @@ params:
   enterprise-header-logo: images/default-enterprise-header-logo.png # this logo is used in the enterprise header across all docsets in the deployment.
   enterprise-header-logo-mobile: images/default-enterprise-header-logo-mobile.png # this logo is used in the enterprise header across all docsets in the deployment for mobile devices.
 
+permalinks:
+  - pattern: /:sectionslugs/
+    target:
+      kind: section
+  - pattern: /:sectionslugs/:slug/
+    target:
+      kind: page
