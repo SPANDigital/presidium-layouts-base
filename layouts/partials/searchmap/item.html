@@ -41,7 +41,7 @@
             {{ $tags := apply .Params.tags "cast.ToString" "."}}
             {{ $summary := (index (split .Content "</p>") 0) | plainify | htmlUnescape }}
             {{ $kind := cond .IsSection "branch" "leaf" }}
-            {{ $items = $items | append (dict "id" .File.Path "title" .Title "slug" $slug "url" $link "kind" $kind "section" ($section | default "") "category" ($category | default "") "tags" ($tags | default slice) "roles" (slice (.Params.Roles | default "All Roles")) "scope" $scope "author" (.Params.Author | default "None") "content" .Plain "originalContent" .RawContent "updated" .Lastmod "summary" $summary  )}}
+            {{ $items = $items | append (dict "id" .File.Path "title" .Title "slug" $slug "url" $link "kind" $kind "section" ($section | default "") "category" ($category | default "") "tags" ($tags | default slice) "roles" (slice (.Params.Roles | default "All Roles")) "scope" $scope "author" (.Params.Author | default "None") "content" .Plain "originalContent" .RawContent "updated" .Lastmod "summary" $summary "evergreen" (.Params.evergreen | default false)  )}}
         {{ end }}
     {{ end }}
     {{ range .Data.Pages }}
