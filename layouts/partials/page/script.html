@@ -17,7 +17,7 @@
 
 <script defer src="{{ "assets/scripts/jquery.min.js" | absURL }}"></script>
 <script defer src="{{ "assets/scripts/bootstrap.min.js" | absURL }}"></script>
-<script defer src="{{ "assets/scripts/mermaid.js" | absURL }}"></script>
+<script defer fetchpriority="low" src="{{ "assets/scripts/mermaid.js" | absURL }}"></script>
 
 <script type="module">
   $('.toolbar-wrapper > button.toggle').on('click', (event) => {

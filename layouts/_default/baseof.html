@@ -46,7 +46,7 @@
       {{ $enterpriseStyling := $.Site.Params.enterprise_styling | default "/presidium-enterprise.css" }}
       
       <link data-test="{{$basePath}}" rel="stylesheet" href="{{ path.Join $basePath $enterpriseStyling }}">
-      <link data-test="{{$basePath}}" rel="preload" href="{{ path.Join $basePath $enterpriseScript }}" as="script">
+      <link data-test="{{$basePath}}" rel="preload" href="{{ path.Join $basePath $enterpriseScript }}" as="script" fetchpriority="high">
       <script data-test="{{$basePath}}"> window.baseURL = '{{$basePath}}'; </script>
     {{ end }}
 
