@@ -36,3 +36,7 @@
 ## 2026-06-03
 ### Feature
 - Replace Bootstrap glyphicon chevron/info/external icons with inline Lucide SVGs. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11023
+
+## 2026-06-17
+### Feature
+- Increase Presidium app load priority and de-prioritise Mermaid load priority. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11134
