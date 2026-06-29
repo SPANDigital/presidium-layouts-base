@@ -40,3 +40,7 @@
 ## 2026-06-17
 ### Feature
 - Increase Presidium app load priority and de-prioritise Mermaid load priority. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11134
+
+## 2026-06-26
+### Fix
+- Updated menu icon to SVG. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-10689
