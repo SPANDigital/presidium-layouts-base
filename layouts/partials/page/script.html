@@ -1,4 +1,5 @@
 {{ $basePath := $.Site.Params.basePath  | default "/" }}
+{{ $hasMermaid := .HasShortcode "diagram" }}
 <script defer src="{{ path.Join $basePath "/presidium.js" }}"></script>
 {{ if $.Site.Params.enterprise_enabled }}
 <script defer src="{{ path.Join $basePath $.Site.Params.enterprise_script  }}"></script>
@@ -17,7 +18,25 @@
 
 <script defer src="{{ "assets/scripts/jquery.min.js" | absURL }}"></script>
 <script defer src="{{ "assets/scripts/bootstrap.min.js" | absURL }}"></script>
+{{ if $hasMermaid }}
 <script defer fetchpriority="low" src="{{ "assets/scripts/mermaid.js" | absURL }}"></script>
+<script type="module">
+  document.addEventListener('DOMContentLoaded', () => {
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+            'primaryColor': '#00827E',
+            'primaryBorderColor': '#2C6764',
+            'secondaryColor': '#FFFFFF',
+            'lineColor': '#666',
+        },
+    });
+    // Explicitly initialize all Mermaid diagrams
+    mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+  });
+</script>
+{{ end }}
 
 <script type="module">
   $('.toolbar-wrapper > button.toggle').on('click', (event) => {
@@ -101,21 +120,6 @@
 
   window.presidium?.tooltips?.load();
   window.presidium?.modal?.init();
-
-  document.addEventListener('DOMContentLoaded', () => {
-    mermaid.initialize({
-        startOnLoad: true,
-        theme: 'base',
-        themeVariables: {
-            'primaryColor': '#00827E',
-            'primaryBorderColor': '#2C6764',
-            'secondaryColor': '#FFFFFF',
-            'lineColor': '#666',
-        },
-    });
-    // Explicitly initialize all Mermaid diagrams
-    mermaid.init(undefined, document.querySelectorAll('.mermaid'));
-  });
 
   // Ensure nav-items fit within the viewport without overlapping the header
   document.addEventListener("DOMContentLoaded", function () {
