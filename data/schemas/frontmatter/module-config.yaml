@@ -1,0 +1,38 @@
+# =============================================================================
+# MODULE-LEVEL CONFIG KEYS
+# Reserved keys that appear in the module frontmatter config alongside field
+# definitions, but are not themselves field type definitions. Kept in a
+# separate file from types.yaml so schema-generator.html's type-name lookup
+# (hugo.Data.schemas.frontmatter.types) never sees these keys — a field
+# declared with a reserved key as its `type` hits the "unknown type" error
+# instead of silently resolving to one of these entries.
+# =============================================================================
+
+# INLINE EDIT FIELDS
+# Declares up to 2 frontmatter fields as inline-editable from the Article Bar
+# without opening the article editor (Article Bar Inline Frontmatter Editing).
+# Constraints (validated by presidium-js-enterprise's validateInlineEditFields,
+# not yet wired into a production config-loading path):
+#   - Maximum 2 entries per module.
+#   - `type` supports only `enum`.
+#   - `options` must be non-empty; each option's `label` is the canonical
+#     display text — no external slug mapping.
+#
+# USAGE EXAMPLE:
+#   inlineEditFields:
+#     - key: artifactStatus
+#       label: Artifact Status
+#       type: enum
+#       options:
+#         - value: proposed
+#           label: Proposed
+#         - value: accepted
+#           label: Accepted
+# -----------------------------------------------------------------------------
+inlineEditFields:
+  - key: string                       # [Mandatory] - Frontmatter field key the control edits
+    label: string                     # [Mandatory] - Display label shown in the Article Bar
+    type: enum                        # [Mandatory] - Only `enum` is supported
+    options:                          # [Mandatory] - Non-empty list of allowed values
+      - value: string                 # [Mandatory] - Value written to the frontmatter
+        label: string                 # [Mandatory] - Canonical display text for the value
