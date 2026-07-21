@@ -4,12 +4,7 @@
 {{ $childLevel := add .Level 1 }}
 {{ $children := slice }}
 {{ $link := "unset" }}
-{{ if .NavPage.Data.Pages }}
-    {{ $link = .NavPage.RelPermalink }}
-{{ end }}
-{{if not .NavPage.Data.Pages }}
-    {{ $link = (printf "%v#%v" .NavPage.Parent.RelPermalink .NavPage.Params.Slug ) }}
-{{end}}
+{{ $link = (partial "url/permalink" (dict "page" .NavPage)) }}
 {{ $type := "article"}}
 {{ if .NavPage.Data.Pages }}
     {{ if eq .Level 1 }}

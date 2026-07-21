@@ -1,0 +1,49 @@
+{{/*
+    url/permalink — canonical link for a page.
+
+    Uses Hugo's .Kind (https://gohugo.io/methods/page/kind/) to decide whether
+    the link is for a section or an article, and returns:
+
+      section              ->  <page RelPermalink>            (heading — no #anchor)
+      article, list view   ->  <parent RelPermalink>#<slug>   (fragment within its section)
+      article, single view ->  <page RelPermalink>            (standalone — full path, no #anchor)
+
+    A section (.Kind "section", e.g. an _index.md) is a real page with its own
+    URL, so it never gets an anchor. An article (.Kind "page") is normally
+    rendered as a fragment inside its parent section (list view) and so links to
+    "<parent>#<slug>"; when the same article is shown on its own (single view)
+    it links to its own full permalink instead.
+
+    Params (dict):
+      page    (Page, required)  the page to build a link for.
+      slug    (string)          fragment slug for a list-view article.
+                                Defaults to (partial "common/slug" page).
+      single  (bool, def false) true when the article is rendered standalone
+                                (single view) — link to its own RelPermalink
+                                rather than a parent #fragment. Ignored for
+                                sections (they never get an anchor).
+      warn    (bool, def false) when true and a list-view article's parent has
+                                no built RelPermalink, warn and return "" instead
+                                of emitting a broken fragment-only URL.
+
+    Returns: string — the link, or "" when warn is set and the parent
+    permalink is missing.
+*/}}
+{{- $page := .page -}}
+{{- $single := .single | default false -}}
+{{- $slug := .slug | default (partial "common/slug" $page) -}}
+
+{{- $link := $page.RelPermalink -}}
+{{- if and (eq $page.Kind "page") (not $single) -}}
+    {{/* Article shown in a section (list view) -> anchor into the parent section. */}}
+    {{- $parentPermalink := $page.Parent.RelPermalink -}}
+    {{- if $parentPermalink -}}
+        {{- $link = printf "%v#%v" $parentPermalink $slug -}}
+    {{- else if .warn -}}
+        {{- warnf "[url/permalink] Skipping %q — parent section has no permalink (draft?)" $page.File.Path -}}
+        {{- $link = "" -}}
+    {{- else -}}
+        {{- $link = printf "%v#%v" $parentPermalink $slug -}}
+    {{- end -}}
+{{- end -}}
+{{- return $link -}}

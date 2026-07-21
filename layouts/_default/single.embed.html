@@ -30,7 +30,7 @@
               class="presidium-enterprise"
               style="display: none"
             ></div>
-            {{ partial "article/root" . }}
+            {{ partial "article/root" (dict "page" . "single" true) }}
         {{ end }}
     </section>
 {{ end }}

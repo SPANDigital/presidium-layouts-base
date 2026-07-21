@@ -20,20 +20,7 @@
 {{ if eq $page "" }}
     {{ $title }}
 {{ else }}
-    {{/* Use title if no slug */}}
-    {{ $slug := humanize $page.Params.Title }} {{/* Handles any dashes in the title */}}
-    {{ $slug = anchorize $slug }}
-    {{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
-    
-    {{ if $page.Params.Slug }}
-        {{ $slug = $page.Params.Slug}}
-    {{ end }}
-
-    {{ $isChild := not $page.Data.Pages}}
-    {{ $articleLink := $page.RelPermalink }}
-    {{if $isChild }}
-        {{ $articleLink = (printf "%v#%v" $page.Parent.RelPermalink $slug ) }}
-    {{end}}
+    {{ $articleLink := (partial "url/permalink" (dict "page" $page)) }}
 
     {{ if $page }}
         <a class="tooltips-term" href="{{ $articleLink }}" >
