@@ -5,13 +5,8 @@
 {{ $rootUrl := .RootUrl }}
 {{ $currentPage := .CurrentPage | default .NavPage }}
 
-{{/* Use title if no slug */}}
-{{ $slug := humanize .NavPage.Params.Title }} {{/* Handles any dashes in the title */}}
-{{ $slug = anchorize $slug }}
-{{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
-{{ if .NavPage.Params.Slug }}
-    {{ $slug = .NavPage.Params.Slug}}
-{{ end }}
+{{/* Slug priority: front-matter slug -> title -> file name (see common/slug). */}}
+{{ $slug := partial "common/slug" .NavPage }}
 
 {{/* Parent slug */}}
 {{ $parentSlug := ((humanize .NavPage.Parent.Params.Title) | default "root") }}
@@ -24,16 +19,11 @@
 {{/* combines the parent slug with the current slug to ensure it's globally unique */}}
 {{ $pageSlug := (printf "%v-%v" ($parentSlug) $slug )}}
 
-{{/* adds the slug to the link if the article has no children */}}
-{{ $articleLink := .NavPage.RelPermalink }}
-{{if and .NavPage.IsPage $slugifyUrl }}
-    {{/* Check if this is a true child section vs standalone page */}}
-    {{/* A standalone page should have its own content and not just be a content fragment */}}
-    {{ $isStandalonePage := and (ne (len .NavPage.Content) 0) (.NavPage.File) }}
-    {{ if not $isStandalonePage }}
-        {{ $articleLink = (printf "%v#%v" .NavPage.Parent.RelPermalink $slug ) }}
-    {{ end }}
-{{end}}
+{{/* The left nav links articles using the list-view URL format: a #fragment within the
+     parent section page. Sections never anchor. Only when the whole site runs in
+     non-slugified mode (slugifyUrl=false) do articles link to their own full path. */}}
+{{ $single := not $slugifyUrl }}
+{{ $articleLink := (partial "url/permalink" (dict "page" .NavPage "slug" $slug "single" $single)) }}
 
 {{/*  Hide the first item if the title is the same as the parent  */}}
 {{ $offset := 0 }}
@@ -49,8 +39,12 @@
 {{ $uid := .NavPage.File.UniqueID }}
 {{- $importInfo := partial "common/is-imported" .NavPage -}}
 {{- $isImported := $importInfo.isImported -}}
-{{ $articlePath := replaceRE "#.*$" "" $articleLink }}
-{{ $isCurrentItem := eq $articlePath $currentPage.RelPermalink }}
+{{/* "Current" = this item's own page is the one being viewed. Compare its own
+     RelPermalink, NOT its nav href: in a slugified section every article's href is
+     "<section>#slug", which strips to the section URL and would mark every article
+     active whenever that section is open. The in-view article is highlighted by the
+     scroll-spy (presidium-js) instead. */}}
+{{ $isCurrentItem := eq .NavPage.RelPermalink $currentPage.RelPermalink }}
 {{ $isOpen := or $isCurrentItem (and $hasChildren (.NavPage.IsAncestor $currentPage)) }}
 
 <li class="menu-row {{ if .NavPage.IsPage }}child{{end}}{{ if $isOpen }} open{{ else if $hasChildren }} closed{{ end }}" style="overflow: hidden;" data-roles="{{ $roles }}" {{ if .NavPage.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }}>

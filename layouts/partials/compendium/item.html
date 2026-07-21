@@ -11,18 +11,7 @@
 {{ end }}
 
 {{ with .Page}}
-{{ $slug := humanize .Params.Title }}
-{{ $slug = anchorize $slug }}
-{{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
-{{ if .Params.Slug }}
-    {{ $slug = .Params.Slug}}
-{{ end }}
-{{ if .Data.Pages }}
-        {{ $link = .RelPermalink }}
-    {{ end }}
-    {{if not .Data.Pages }}
-        {{ $link = (printf "%v#%v" .Parent.RelPermalink $slug ) }}
-    {{end}}
+    {{ $link = (partial "url/permalink" (dict "page" .)) }}
     {{ $scope := slice }}
     {{ if .Params.Scope }}
         {{ $scope = $scope | append .Params.Scope }}
