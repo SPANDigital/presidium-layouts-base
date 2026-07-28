@@ -44,3 +44,7 @@
 ## 2026-06-26
 ### Fix
 - Updated menu icon to SVG. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-10689
+
+## 2026-07-28
+### Feature
+- Apply dark mode class on page load. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11352
