@@ -61,6 +61,13 @@
 </head>
 
 <body id="presidium" {{ partial "page/attributes" . }}>
+    <script>
+      try {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.body.classList.add('dark');
+        }
+      } catch (e) {}
+    </script>
     {{ if $.Site.Params.enterprise_enabled }}
     {{ block "toolbar" . }}
       <div class="toolbar-wrapper">
@@ -134,10 +141,4 @@
     {{ end }}
 
 </body>
-<script>
-  const theme = localStorage.getItem('theme');
-  if (theme === 'dark') {
-    document.body.classList.add('dark');
-  }
-</script>
 </html>
