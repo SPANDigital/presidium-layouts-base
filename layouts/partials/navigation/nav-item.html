@@ -1,5 +1,5 @@
 {{ $childLevel := add .Level 1 }}
-{{ $slugifyUrl := and .SlugifyUrl }}
+{{ $useSectionViewUrlFormat := and .UseSectionViewUrlFormat }}
 {{ $roles := .NavPage.Params.roles | default "All Roles" }}
 {{/* rootUrl is the baseUrl but it defaults to "/" if no baseUrl is set */}}
 {{ $rootUrl := .RootUrl }}
@@ -19,10 +19,10 @@
 {{/* combines the parent slug with the current slug to ensure it's globally unique */}}
 {{ $pageSlug := (printf "%v-%v" ($parentSlug) $slug )}}
 
-{{/* The left nav links articles using the list-view URL format: a #fragment within the
-     parent section page. Sections never anchor. Only when the whole site runs in
-     non-slugified mode (slugifyUrl=false) do articles link to their own full path. */}}
-{{ $single := not $slugifyUrl }}
+{{/* The left nav links articles using the section-view URL format: a #fragment within the
+     parent section page. Sections never anchor. Only when useSectionViewUrlFormat=false does
+     an article link to its own full standalone path. */}}
+{{ $single := not $useSectionViewUrlFormat }}
 {{ $articleLink := (partial "url/permalink" (dict "page" .NavPage "slug" $slug "single" $single)) }}
 
 {{/*  Hide the first item if the title is the same as the parent  */}}
@@ -73,11 +73,11 @@
                 {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
                 {{/* Sort by file prefix */}}
                 {{ range $index, $subMenu := (sort (after $offset $pages) "File.Path" $sortOrder) }}
-                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
+                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "UseSectionViewUrlFormat" $useSectionViewUrlFormat ) }}
                 {{ end }}
             {{ else }}
                 {{ range $index, $subMenu := after $offset $pages }}
-                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
+                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "UseSectionViewUrlFormat" $useSectionViewUrlFormat ) }}
                 {{ end }}
             {{ end }}
         </ul>
