@@ -14,6 +14,15 @@
     <link rel="preload" as="image" href="/assets/images/logo-small.svg" fetchpriority="high">
     {{ $basePath := $.Site.Params.basePath  | default "/" }}
     {{ $style := resources.Get "presidium.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
+    <script>
+      try {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (error) {
+        // localStorage may be unavailable, so skip restoring the theme preference.
+      }
+    </script>
     <link rel="stylesheet" href="{{ $style.RelPermalink }}">
     {{ if resources.Get "index.scss" }}
       {{ with resources.Get "index.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
