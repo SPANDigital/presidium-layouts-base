@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Presidium: Regenerate PARTIALS.md",
+      "type": "shell",
+      "command": "python3",
+      "args": ["${workspaceFolder}/../gen_catalog.py"],
+      "detail": "Rescan layouts/ and rewrite the partials catalog (the 'class definitions' for this theme).",
+      "problemMatcher": []
+    }
+  ]
+}
