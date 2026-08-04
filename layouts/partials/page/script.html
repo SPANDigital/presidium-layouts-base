@@ -1,5 +1,4 @@
 {{ $basePath := $.Site.Params.basePath  | default "/" }}
-{{ $hasMermaid := .HasShortcode "diagram" }}
 <script defer src="{{ path.Join $basePath "/presidium.js" }}"></script>
 {{ if $.Site.Params.enterprise_enabled }}
 <script defer src="{{ path.Join $basePath $.Site.Params.enterprise_script  }}"></script>
@@ -18,25 +17,33 @@
 
 <script defer src="{{ "assets/scripts/jquery.min.js" | absURL }}"></script>
 <script defer src="{{ "assets/scripts/bootstrap.min.js" | absURL }}"></script>
-{{ if $hasMermaid }}
-<script defer fetchpriority="low" src="{{ "assets/scripts/mermaid.js" | absURL }}"></script>
 <script type="module">
   document.addEventListener('DOMContentLoaded', () => {
-    mermaid.initialize({
-        startOnLoad: true,
-        theme: 'base',
-        themeVariables: {
-            'primaryColor': '#00827E',
-            'primaryBorderColor': '#2C6764',
-            'secondaryColor': '#FFFFFF',
-            'lineColor': '#666',
-        },
-    });
-    // Explicitly initialize all Mermaid diagrams
-    mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+    // Detect diagrams in the rendered DOM rather than this page's own source,
+    // since section pages recursively transclude descendant pages' content
+    // (see article/nested.html) and may show diagrams they don't themselves author.
+    if (!document.querySelector('.mermaid')) return;
+
+    const mermaidScript = document.createElement('script');
+    mermaidScript.src = '{{ "assets/scripts/mermaid.js" | absURL }}';
+    mermaidScript.setAttribute('fetchpriority', 'low');
+    mermaidScript.onload = () => {
+      mermaid.initialize({
+          startOnLoad: true,
+          theme: 'base',
+          themeVariables: {
+              'primaryColor': '#00827E',
+              'primaryBorderColor': '#2C6764',
+              'secondaryColor': '#FFFFFF',
+              'lineColor': '#666',
+          },
+      });
+      // Explicitly initialize all Mermaid diagrams
+      mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+    };
+    document.head.appendChild(mermaidScript);
   });
 </script>
-{{ end }}
 
 <script type="module">
   $('.toolbar-wrapper > button.toggle').on('click', (event) => {
