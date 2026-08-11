@@ -79,11 +79,11 @@
                 {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
                 {{/* Sort by file prefix */}}
                 {{ range $index, $subMenu := (sort (after $offset $pages) "File.Path" $sortOrder) }}
-                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
+                    {{ if or ($subMenu.Eq $currentPage) ($subMenu.IsAncestor $currentPage) (eq $subMenu.Parent.RelPermalink $currentPage.RelPermalink) (eq $subMenu.RelPermalink $currentPage.RelPermalink) }}{{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}{{ else }}{{ partialCached "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" (site.GetPage "/404" | default site.Home) "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) $subMenu.RelPermalink }}{{ end }}
                 {{ end }}
             {{ else }}
                 {{ range $index, $subMenu := after $offset $pages }}
-                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
+                    {{ if or ($subMenu.Eq $currentPage) ($subMenu.IsAncestor $currentPage) (eq $subMenu.Parent.RelPermalink $currentPage.RelPermalink) (eq $subMenu.RelPermalink $currentPage.RelPermalink) }}{{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}{{ else }}{{ partialCached "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" (site.GetPage "/404" | default site.Home) "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) $subMenu.RelPermalink }}{{ end }}
                 {{ end }}
             {{ end }}
         </ul>
