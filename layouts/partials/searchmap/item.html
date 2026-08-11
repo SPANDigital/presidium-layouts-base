@@ -15,24 +15,11 @@
         {{/* Skip pages with no backing file (e.g. taxonomy pages). */}}
         {{ warnf "[searchmap] Skipping page with nil .File: Title=%q Permalink=%q" .Title .Permalink }}
     {{ else }}
-        {{ $slug := humanize .Params.Title }}
-        {{ $slug = anchorize $slug }}
-        {{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
-        {{ if .Params.Slug }}
-            {{ $slug = .Params.Slug}}
-        {{ end }}
-        {{/* Use .IsSection (true for every _index.md) rather than .Data.Pages to detect branch nodes. */}}
-        {{ if .IsSection }}
-            {{ $link = .RelPermalink }}
-        {{ else }}
-            {{ $parentPermalink := .Parent.RelPermalink }}
-            {{ if not $parentPermalink }}
-                {{/* Parent section has no built permalink - Skip this article rather than emit a broken fragment-only URL. */}}
-                {{ warnf "[searchmap] Skipping %q — parent section has no permalink (draft?)" .File.Path }}
-            {{ else }}
-                {{ $link = (printf "%v#%v" $parentPermalink $slug) }}
-            {{ end }}
-        {{ end }}
+        {{ $slug := partial "common/slug" . }}
+        {{/* Section (.Kind "section") -> own permalink; article -> parent#slug.
+             warn=true skips (returns "") rather than emitting a broken fragment-only URL when a
+             leaf article's parent section has no built permalink (e.g. a draft parent). */}}
+        {{ $link = (partial "url/permalink" (dict "page" . "slug" $slug "warn" true)) }}
         {{ if $link }}
             {{ $scope := slice }}
             {{ if .Params.Scope }}

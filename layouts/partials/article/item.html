@@ -1,16 +1,27 @@
 {{/*
 Atomic article renderer - handles individual article display without recursion.
 Optimized for performance with minimal DOM manipulation and efficient conditional rendering.
-*/}}
 
+Accepts either a Page (list view), or a dict {page, single} where single=true
+marks standalone / single-view rendering — the article then links to its own
+full permalink instead of a parent #fragment.
+*/}}
+{{- $page := . -}}
+{{- $single := false -}}
+{{- if reflect.IsMap . -}}
+    {{- $page = .page -}}
+    {{- $single = .single | default false -}}
+{{- end -}}
+{{- with $page -}}
 {{- $params := .Params -}}
 {{- $roles := $params.roles | default "All Roles" -}}
 {{- $slug := (partial "common/slug" .) -}}
 {{- $nestedArticles := .Site.Params.includeNestedArticles | default true -}}
 
 {{/* Pre-compute article metadata for performance */}}
-{{- $articleLink := (printf "%v#%v" .Parent.Page.RelPermalink $slug) -}}
-{{- $.Scratch.Set "articleLink" $articleLink -}}
+{{/* In single view the article stands alone (full permalink); in a section list it is a #fragment. */}}
+{{- $articleLink := (partial "url/permalink" (dict "page" . "slug" $slug "single" $single)) -}}
+{{- .Scratch.Set "articleLink" $articleLink -}}
 
 {{- $hasDataPages := .Data.Pages -}}
 {{- $type := cond (not $hasDataPages) "child" "parent" -}}
@@ -35,7 +46,7 @@ Optimized for performance with minimal DOM manipulation and efficient conditiona
          data-link="{{ $articleLink }}"
          permalink="{{ .Page.RelPermalink }}"
          data-no-content="{{ $noContent }}"
-         {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }} {{ end }}
+         {{ if .Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }} {{ end }}
          title="{{ .Title }}">
 
         {{- if $shouldRenderWrapper -}}
@@ -55,8 +66,9 @@ Optimized for performance with minimal DOM manipulation and efficient conditiona
     {{/* Graceful degradation for pages without file context */}}
     <div class="article {{ $type }}"
          data-roles="{{ $roles }}"
-         {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }} {{ end }}
+         {{ if .Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }} {{ end }}
          title="{{ .Title }}">
         <!-- Article without file context -->
     </div>
+{{- end -}}
 {{- end -}}

@@ -7,7 +7,7 @@
     <div class="article-title article-actions" data-align="center-left">
         <h1 class="page-title offendingHeading"> {{ .Parent.Title }}</h1>
 
-        {{ partial "common/permalink" (dict "copyTitle" "section" "Page" .Parent "slug" $slug "permalink" $pageLink) }}
+        {{ partial "common/copylink" (dict "copyTitle" "section" "Page" .Parent "slug" $slug "permalink" $pageLink) }}
     </div>
 </div>
 <hr class="offendingHr" />

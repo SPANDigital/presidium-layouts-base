@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "budparr.language-hugo-vscode",
+    "akmittal.hugofy",
+    "stylelint.vscode-stylelint",
+    "esbenp.prettier-vscode"
+  ]
+}

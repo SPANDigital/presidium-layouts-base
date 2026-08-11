@@ -1,5 +1,15 @@
 {{/*
 Entry point for recursive article rendering system.
 Delegates to optimized nested renderer for performance and maintainability.
+
+Accepts either a Page (list view), or a dict {page, single} where single=true
+marks standalone / single-view rendering (the top article links to its own full
+permalink instead of a parent #fragment).
 */}}
-{{- partial "article/nested" . -}}
+{{- $page := . -}}
+{{- $single := false -}}
+{{- if reflect.IsMap . -}}
+    {{- $page = .page -}}
+    {{- $single = .single | default false -}}
+{{- end -}}
+{{- partial "article/nested" (dict "page" $page "single" $single) -}}

@@ -1,8 +1,24 @@
-{{/* Use title if no slug */}}
-{{ $slug := humanize .Params.Title }} {{/* Handles any dashes in the title */}}
-{{ $slug = anchorize $slug }}
-{{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
+{{/*
+    common/slug — canonical slug for a page.
+
+    Priority: front-matter slug -> title -> file name.
+      1. .Params.slug          explicit slug always wins
+      2. .Params.title         slugified title (Hugo does NOT derive a title
+                               from the file name, so this can be empty)
+      3. .File.ContentBaseName file name, as a last-resort fallback so a page
+                               without a title still gets a usable slug/anchor
+
+    Mirrors the site's `:slug` / `:sectionslugs` permalink tokens (which resolve
+    slug -> title) and adds the file-name fallback the tokens lack.
+*/}}
+{{ $slug := "" }}
 {{ if .Params.Slug }}
-    {{ $slug = .Params.Slug}}
+    {{ $slug = .Params.Slug }}
+{{ else if .Params.Title }}
+    {{ $slug = humanize .Params.Title }} {{/* Handles any dashes in the title */}}
+    {{ $slug = anchorize $slug }}
+    {{ $slug = replaceRE `(-{2,})` "-" $slug }} {{/* Replaces multiple dashes with one */}}
+{{ else if .File }}
+    {{ $slug = anchorize .File.ContentBaseName }}
 {{ end }}
 {{ return $slug }}

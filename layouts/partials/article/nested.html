@@ -5,10 +5,16 @@ Optimized for senior engineering teams with focus on:
 - Maintainability: Clear separation of concerns
 - Flexibility: Configurable sorting and filtering
 - Safety: Controlled recursion via template functions
+
+Input: dict {page, single}. single=true marks the top-level article as
+standalone / single view; nested descendants always render as list fragments.
 */}}
 
+{{ $page := .page }}
+{{ $single := .single | default false }}
+
 {{/* Cache frequently accessed values to reduce repeated lookups */}}
-{{ $site := .Site }}
+{{ $site := $page.Site }}
 {{ $nestedArticles := $site.Params.includeNestedArticles | default true }}
 {{ $globalSortByFilePath := $site.Params.sortByFilePath }}
 
@@ -18,12 +24,13 @@ Uses Hugo's internal template system for efficient recursion.
 */}}
 {{ define "renderArticleTree" }}
     {{- $page := .page -}}
+    {{- $single := .single -}}
     {{- $site := .site -}}
     {{- $nestedArticles := .nestedArticles -}}
     {{- $globalSortByFilePath := .globalSortByFilePath -}}
 
     {{/* Render current article using dedicated partial */}}
-    {{- partial "article/item" $page -}}
+    {{- partial "article/item" (dict "page" $page "single" $single) -}}
 
     {{/* Process children only if nesting enabled and children exist */}}
     {{- if and $nestedArticles $page.Data.Pages -}}
@@ -36,6 +43,7 @@ Uses Hugo's internal template system for efficient recursion.
             {{- range sort $page.Data.Pages "File.Path" $sortOrder -}}
                 {{- template "renderArticleTree" (dict
                     "page" .
+                    "single" false
                     "site" $site
                     "nestedArticles" $nestedArticles
                     "globalSortByFilePath" $globalSortByFilePath) -}}
@@ -45,6 +53,7 @@ Uses Hugo's internal template system for efficient recursion.
             {{- range $page.Data.Pages.ByWeight -}}
                 {{- template "renderArticleTree" (dict
                     "page" .
+                    "single" false
                     "site" $site
                     "nestedArticles" $nestedArticles
                     "globalSortByFilePath" $globalSortByFilePath) -}}
@@ -55,7 +64,8 @@ Uses Hugo's internal template system for efficient recursion.
 
 {{/* Initialize rendering with optimized context */}}
 {{- template "renderArticleTree" (dict
-    "page" .
+    "page" $page
+    "single" $single
     "site" $site
     "nestedArticles" $nestedArticles
     "globalSortByFilePath" $globalSortByFilePath) -}}

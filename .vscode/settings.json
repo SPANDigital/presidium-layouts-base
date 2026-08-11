@@ -1,0 +1,10 @@
+{
+  // Treat Hugo layout HTML as Go HTML templates.
+  "files.associations": { "**/layouts/**/*.html": "gohtml" },
+  // Keep Cmd/Ctrl+P and search focused on source, not build output.
+  "search.exclude": {
+    "**/public": true,
+    "**/resources/_gen": true,
+    "**/.git": true
+  }
+}
