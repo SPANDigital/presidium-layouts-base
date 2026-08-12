@@ -3,7 +3,7 @@
 {{ $roles := .NavPage.Params.roles | default "All Roles" }}
 {{/* rootUrl is the baseUrl but it defaults to "/" if no baseUrl is set */}}
 {{ $rootUrl := .RootUrl }}
-{{ $currentPage := .CurrentPage | default .NavPage }}
+{{ $currentPage := .CurrentPage | default .NavPage }}{{ $navCacheStandIn := site.GetPage "/404" }}
 
 {{/* Use title if no slug */}}
 {{ $slug := humanize .NavPage.Params.Title }} {{/* Handles any dashes in the title */}}
@@ -79,11 +79,11 @@
                 {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
                 {{/* Sort by file prefix */}}
                 {{ range $index, $subMenu := (sort (after $offset $pages) "File.Path" $sortOrder) }}
-                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
+                    {{ if or ($subMenu.Eq $currentPage) ($subMenu.IsAncestor $currentPage) (eq $subMenu.Parent.RelPermalink $currentPage.RelPermalink) (eq $subMenu.RelPermalink $currentPage.RelPermalink) (not $navCacheStandIn) }}{{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}{{ else }}{{ partialCached "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $navCacheStandIn "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) $subMenu.RelPermalink $childLevel $index }}{{ end }}
                 {{ end }}
             {{ else }}
                 {{ range $index, $subMenu := after $offset $pages }}
-                    {{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}
+                    {{ if or ($subMenu.Eq $currentPage) ($subMenu.IsAncestor $currentPage) (eq $subMenu.Parent.RelPermalink $currentPage.RelPermalink) (eq $subMenu.RelPermalink $currentPage.RelPermalink) (not $navCacheStandIn) }}{{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}{{ else }}{{ partialCached "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $navCacheStandIn "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) $subMenu.RelPermalink $childLevel $index }}{{ end }}
                 {{ end }}
             {{ end }}
         </ul>
