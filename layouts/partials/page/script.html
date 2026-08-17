@@ -105,13 +105,19 @@
       // Copy the article link to the clipboard
       const fullURL = window.location.origin + '/' + articleLink;
       navigator.clipboard.writeText(fullURL);
+      
+      const message = `Copied link to ${copyTitle}`;
+      if (window.presidiumToast) {
+          window.presidiumToast.success(message);
+          return;
+      }
 
       // Show toast message
       const toast = document.querySelector('#copy-toast');
       if (toast) {
           // set popup-copy-text
           const popupCopyText = toast.querySelector('.popup-copy-text');
-          popupCopyText.innerHTML = `Copied link to ${copyTitle}`;
+          popupCopyText.innerHTML = message;
           // show toast
           toast.style.opacity = '1';
           toast.classList.add("show");
@@ -119,7 +125,6 @@
               toast.style.opacity = '0';
               toast.classList.remove("show");
           }, 3000);
-          console.log(`Copied link to ${copyTitle}`);
       }
   }
   // Assign the function to the global scope
