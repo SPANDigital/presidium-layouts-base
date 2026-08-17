@@ -107,9 +107,14 @@
       navigator.clipboard.writeText(fullURL);
       
       const message = `Copied link to ${copyTitle}`;
-      if (window.presidiumToast) {
-          window.presidiumToast.success(message);
-          return;
+      const enterpriseToast = window.presidiumToast;
+      if (enterpriseToast && typeof enterpriseToast.success === 'function') {
+          try {
+              enterpriseToast.success(message);
+              return;
+          } catch (error) {
+              // fall through to the in-page toast
+          }
       }
 
       // Show toast message
