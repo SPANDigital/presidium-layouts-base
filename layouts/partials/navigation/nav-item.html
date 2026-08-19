@@ -3,7 +3,9 @@
 {{ $roles := .NavPage.Params.roles | default "All Roles" }}
 {{/* rootUrl is the baseUrl but it defaults to "/" if no baseUrl is set */}}
 {{ $rootUrl := .RootUrl }}
-{{ $currentPage := .CurrentPage | default .NavPage }}{{ $navCacheStandIn := site.GetPage "/404" }}
+{{/* Renders closed unconditionally: the open path is applied client-side in
+     _default/baseof.html. Keep it that way - subtrees are cached across the whole
+     build, so any per-page state here would leak between pages. */}}
 
 {{/* Use title if no slug */}}
 {{ $slug := humanize .NavPage.Params.Title }} {{/* Handles any dashes in the title */}}
@@ -49,16 +51,13 @@
 {{ $uid := .NavPage.File.UniqueID }}
 {{- $importInfo := partial "common/is-imported" .NavPage -}}
 {{- $isImported := $importInfo.isImported -}}
-{{ $articlePath := replaceRE "#.*$" "" $articleLink }}
-{{ $isCurrentItem := eq $articlePath $currentPage.RelPermalink }}
-{{ $isOpen := or $isCurrentItem (and $hasChildren (.NavPage.IsAncestor $currentPage)) }}
 
-<li class="menu-row {{ if .NavPage.IsPage }}child{{end}}{{ if $isOpen }} open{{ else if $hasChildren }} closed{{ end }}" style="overflow: hidden;" data-roles="{{ $roles }}" {{ if .NavPage.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }}>
+<li class="menu-row {{ if .NavPage.IsPage }}child{{end}}{{ if $hasChildren }} closed{{ end }}" style="overflow: hidden;" data-roles="{{ $roles }}" {{ if .NavPage.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ end }}>
     <div class="link level-{{ .Level }}">
         <!-- data-target is used by the scrollspy on presidium-js to determine which section of the page the <a> corresponds to -->
         <a class="level-{{ .Level }} {{ if eq .Index 0 }}first-child{{end}}" data-slug="{{ $slug }}" data-target="#{{$uid}}" data-id="{{ $articleId }}" href="{{ $articleLink }}">
             {{ if $hasChildren }}
-                <div class="menu-expander" aria-controls="{{$uid}}" aria-expanded="{{ if $isOpen }}true{{ else }}false{{ end }}">
+                <div class="menu-expander" aria-controls="{{$uid}}" aria-expanded="false">
                     <svg class="menu-expander-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                 </div>
             {{ end }}
@@ -71,7 +70,7 @@
     </div>
 
     {{ if $hasChildren }}
-        <ul id="{{$uid}}" class="collapse{{ if $isOpen }} in active show{{ end }}">
+        <ul id="{{$uid}}" class="collapse">
             {{ $pages := (partial "common/pages" .NavPage )}}
             {{/* Sort by filename if specified in config */}}
             {{ $sortByFilePath := .NavPage.Params.sortByFilePath | default .NavPage.Site.Params.sortByFilePath }}
@@ -79,11 +78,11 @@
                 {{ $sortOrder := (partial "common/sortorder" (dict "SortByFilePath" $sortByFilePath)) }}
                 {{/* Sort by file prefix */}}
                 {{ range $index, $subMenu := (sort (after $offset $pages) "File.Path" $sortOrder) }}
-                    {{ if or ($subMenu.Eq $currentPage) ($subMenu.IsAncestor $currentPage) (eq $subMenu.Parent.RelPermalink $currentPage.RelPermalink) (eq $subMenu.RelPermalink $currentPage.RelPermalink) (not $navCacheStandIn) }}{{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}{{ else }}{{ partialCached "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $navCacheStandIn "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) $subMenu.RelPermalink $childLevel $index }}{{ end }}
+                    {{ partialCached "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) $subMenu.RelPermalink $childLevel $index }}
                 {{ end }}
             {{ else }}
                 {{ range $index, $subMenu := after $offset $pages }}
-                    {{ if or ($subMenu.Eq $currentPage) ($subMenu.IsAncestor $currentPage) (eq $subMenu.Parent.RelPermalink $currentPage.RelPermalink) (eq $subMenu.RelPermalink $currentPage.RelPermalink) (not $navCacheStandIn) }}{{ partial "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $currentPage "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) }}{{ else }}{{ partialCached "navigation/nav-item" (dict "NavPage" $subMenu "CurrentPage" $navCacheStandIn "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) $subMenu.RelPermalink $childLevel $index }}{{ end }}
+                    {{ partialCached "navigation/nav-item" (dict "NavPage" $subMenu "Level" $childLevel "Index" $index "RootUrl" $rootUrl "SlugifyUrl" $slugifyUrl ) $subMenu.RelPermalink $childLevel $index }}
                 {{ end }}
             {{ end }}
         </ul>
