@@ -2,17 +2,6 @@
 <script defer src="{{ path.Join $basePath "/presidium.js" }}"></script>
 {{ if $.Site.Params.enterprise_enabled }}
 <script defer src="{{ path.Join $basePath $.Site.Params.enterprise_script  }}"></script>
-<script type="module">
-  const toolbarElement = document.querySelector('.presidium-enterprise');
-  const navigationElement = document.querySelector('#presidium-navigation');
-  if (toolbarElement) {
-      const toolbarHeight = toolbarElement.offsetHeight;
-      if (toolbarHeight) {
-          navigationElement.style.height = `calc(100vh - ${toolbarHeight}px)`;
-          navigationElement.style.top = `${toolbarHeight}px`;
-      }
-  }
-</script>
 {{ end }}
 
 <script defer src="{{ "assets/scripts/jquery.min.js" | absURL }}"></script>
