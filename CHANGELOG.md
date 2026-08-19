@@ -48,3 +48,7 @@
 ## 2026-07-28
 ### Feature
 - Apply dark mode class on page load. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11352
+
+## 2026-08-19
+### Refactor
+- Remove the inline side nav positioning script now that the sticky header offset is handled in CSS. @FabioSol https://spandigital.atlassian.net/browse/PRSDM-10751
