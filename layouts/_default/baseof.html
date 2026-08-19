@@ -101,6 +101,7 @@
         <script>
           (function () {
             var host = document.currentScript.parentNode;
+            if (!window.navigation) return;
             host.innerHTML = window.navigation;
 
             var current = host.getAttribute('data-current');
