@@ -49,6 +49,12 @@
 ### Feature
 - Apply dark mode class on page load. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11352
 
+
+## 2026-08-17
+### Fix
+- Route the heading permalink toast through the enterprise Isambard toaster so it no longer renders behind the navbar. @yandisakat https://spandigital.atlassian.net/browse/PRSDM-11481
+
 ## 2026-08-19
 ### Refactor
 - Remove the inline side nav positioning script now that the sticky header offset is handled in CSS. @FabioSol https://spandigital.atlassian.net/browse/PRSDM-10751
+
