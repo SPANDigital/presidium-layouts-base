@@ -1,7 +1,7 @@
 {{ $basePath := $.Site.Params.basePath  | default "/" }}
 <script defer src="{{ path.Join $basePath "/presidium.js" }}"></script>
 {{ if $.Site.Params.enterprise_enabled }}
-<script defer src="{{ path.Join $basePath $.Site.Params.enterprise_script  }}"></script>
+<script defer src="{{ path.Join $basePath ($.Site.Params.enterprise_script | default "/presidium-enterprise.js") }}"></script>
 <script type="module">
   const toolbarElement = document.querySelector('.presidium-enterprise');
   const navigationElement = document.querySelector('#presidium-navigation');
