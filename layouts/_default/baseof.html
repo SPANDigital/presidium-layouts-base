@@ -59,13 +59,14 @@
       <script data-test="{{$basePath}}"> window.baseURL = '{{$basePath}}'; </script>
     {{ end }}
 
-    {{ if $.Site.Params.lazyLoad }}
     {{ block "scripts" . }}
-      {{ $url := urls.Parse .Site.BaseURL }}
-      {{ $url = path.Clean $url.Path }}
-      {{ $navUrl := path.Join $url "/navigation.js"  }}
-      <script src="{{$navUrl}}"></script>
-    {{ end }}
+      {{/* Must stay render-blocking: window.navigation has to exist before the body is
+           parsed, or the sidebar is missing at first paint. */}}
+      {{ with .Site.Home.OutputFormats.Get "navigation" }}
+        <script src="{{ .RelPermalink }}"></script>
+      {{ else }}
+        {{ errorf "The navigation output format is not enabled for the home page, so navigation.js is never generated and the sidebar cannot render. Add Navigation to outputs.home in your site config." }}
+      {{ end }}
     {{ end }}
 </head>
 
@@ -93,14 +94,40 @@
 
     <div class="content-wrapper {{ partial "type/typeclass" . }}">
       {{ block "left-sidebar" . }}
-      <div id="presidium-navigation">
-        {{ if $.Site.Params.lazyLoad }}
-          <script>
-            document.querySelector('#presidium-navigation').innerHTML = window.navigation;
-          </script>
-        {{ else }}
-          {{ partial "navigation/root" . }}
-        {{ end }}
+      <div id="presidium-navigation" data-current="{{ .RelPermalink }}">
+        {{/* Runs synchronously during parse, and sets the classes directly rather than
+             going through Bootstrap collapse, so the sidebar is already in its final
+             state at first paint. Deferring either would flash a collapsed menu. */}}
+        <script>
+          (function () {
+            var host = document.currentScript.parentNode;
+            if (!window.navigation) return;
+            host.innerHTML = window.navigation;
+
+            var current = host.getAttribute('data-current');
+            var opened = [];
+
+            /* Fragment children share their parent's path, so more than one anchor
+               can match the current page. */
+            host.querySelectorAll('a[href]').forEach(function (a) {
+              if (a.getAttribute('href').replace(/#.*$/, '') !== current) return;
+              var li = a.closest('li.menu-row');
+              while (li) {
+                if (opened.indexOf(li) === -1) opened.push(li);
+                li = li.parentNode && li.parentNode.closest('li.menu-row');
+              }
+            });
+
+            opened.forEach(function (li) {
+              li.classList.add('open');
+              li.classList.remove('closed');
+              var ul = li.querySelector(':scope > ul.collapse');
+              if (ul) ul.classList.add('in', 'active', 'show');
+              var ex = li.querySelector(':scope > .link .menu-expander');
+              if (ex) ex.setAttribute('aria-expanded', 'true');
+            });
+          })();
+        </script>
       </div>
       <div id="resizer"></div>
       {{ end }}
