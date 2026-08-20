@@ -62,11 +62,15 @@
     {{ block "scripts" . }}
       {{/* Must stay render-blocking: window.navigation has to exist before the body is
            parsed, or the sidebar is missing at first paint. */}}
-      {{ with .Site.Home.OutputFormats.Get "navigation" }}
-        <script src="{{ .RelPermalink }}"></script>
-      {{ else }}
-        {{ errorf "The navigation output format is not enabled for the home page, so navigation.js is never generated and the sidebar cannot render. Add Navigation to outputs.home in your site config." }}
-      {{ end }}
+      {{/* Hugo replaces rather than merges a kind's output list, so schema generation's
+           outputs.home drops Navigation - and has no sidebar that would need it. */}}
+      {{- if not .Site.Params.schemaGenerationMode -}}
+        {{ with .Site.Home.OutputFormats.Get "navigation" }}
+          <script src="{{ .RelPermalink }}"></script>
+        {{ else }}
+          {{ errorf "The navigation output format is not enabled for the home page, so navigation.js is never generated and the sidebar cannot render. Add Navigation to outputs.home in your site config, and make sure the home page kind is not disabled." }}
+        {{ end }}
+      {{- end -}}
     {{ end }}
 </head>
 
