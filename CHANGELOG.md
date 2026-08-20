@@ -58,3 +58,7 @@
 ### Refactor
 - Remove the inline side nav positioning script now that the sticky header offset is handled in CSS. @FabioSol https://spandigital.atlassian.net/browse/PRSDM-10751
 
+
+## 2026-08-20
+### Fix
+- Skip the navigation script tag during frontmatter schema generation so `make frontmatter` builds no longer fail. @Zalaras
