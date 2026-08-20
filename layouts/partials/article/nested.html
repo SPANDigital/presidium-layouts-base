@@ -27,8 +27,10 @@ Uses Hugo's internal template system for efficient recursion.
 
     {{/* Process children only if nesting enabled and children exist */}}
     {{- if and $nestedArticles $page.Data.Pages -}}
-        {{/* Determine sorting strategy with local override capability */}}
-        {{- $sortByFilePath := $page.Parent.Params.sortByFilePath | default $globalSortByFilePath -}}
+        {{/* Determine sorting strategy with local override capability: the
+             page whose children are being sorted owns the override, matching
+             page/list.html and navigation/nav-item.html */}}
+        {{- $sortByFilePath := $page.Params.sortByFilePath | default $globalSortByFilePath -}}
 
         {{- if $sortByFilePath -}}
             {{/* File path based sorting with cached sort order */}}
