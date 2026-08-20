@@ -1,11 +1,12 @@
 {{- $roles := .Params.roles | default "All Roles" -}}
 {{- $uid := "" -}}
-{{- $articleId := .Params.Parent.id -}}
+{{/* Always the real git-tracked path — never a frontmatter override, which could
+     collide between two unrelated articles and route editing to the wrong file
+     (PRSDM-11557). Path is the only value guaranteed unique per article. */}}
+{{- $articleId := "" -}}
 {{- with .File -}}
     {{- $uid = .UniqueID -}}
-    {{- if not $articleId -}}
-        {{- $articleId = .Path -}}
-    {{- end -}}
+    {{- $articleId = .Path -}}
 {{- end -}}
 {{- $pageLink := .Page.Parent.RelPermalink -}}
 {{- $slug := (partial "common/slug" .Parent) -}}

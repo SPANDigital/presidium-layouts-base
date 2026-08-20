@@ -21,7 +21,10 @@ Optimized for performance with minimal DOM manipulation and efficient conditiona
 {{/* File-based article identification with null safety */}}
 {{- $file := .File -}}
 {{- if $file -}}
-    {{- $articleId := ($params.id | default $file.Path) -}}
+    {{/* Always the real git-tracked path — never a frontmatter override, which could
+         collide between two unrelated articles and route editing to the wrong file
+         (PRSDM-11557). Path is the only value guaranteed unique per article. */}}
+    {{- $articleId := $file.Path -}}
     {{- $contentLength := len .Content -}}
     {{- $noContent := eq $contentLength 0 -}}
     {{- $uid := $file.UniqueID -}}

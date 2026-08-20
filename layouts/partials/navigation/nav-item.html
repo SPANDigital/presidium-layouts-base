@@ -42,8 +42,10 @@
 {{ end }}
 {{ $hasChildren := lt $offset (len .NavPage.Data.Pages)}}
 
-{{/* Unique id for this article */}}
-{{ $articleId :=  .NavPage.Params.id | default  .NavPage.File.Path }}
+{{/* Unique id for this article — always the real git-tracked path — never a frontmatter
+     override, which could collide between two unrelated articles and route editing to the
+     wrong file (PRSDM-11557). Path is the only value guaranteed unique per article. */}}
+{{ $articleId := .NavPage.File.Path }}
 
 {{/* Unique id for file, used by scroll-spy and menu toggle  */}}
 {{ $uid := .NavPage.File.UniqueID }}
