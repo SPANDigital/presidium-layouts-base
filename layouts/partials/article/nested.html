@@ -10,7 +10,17 @@ Optimized for senior engineering teams with focus on:
 {{/* Cache frequently accessed values to reduce repeated lookups */}}
 {{ $site := .Site }}
 {{ $nestedArticles := $site.Params.includeNestedArticles | default true }}
-{{ $globalSortByFilePath := $site.Params.sortByFilePath }}
+
+{{/* Seed the inherited sort setting from the nearest ancestor that declares
+     sortByFilePath, falling back to the site param. isset (not default) so an
+     explicit `false` counts as a declaration. */}}
+{{ $inheritedSortByFilePath := $site.Params.sortByFilePath }}
+{{ range .Ancestors }}
+    {{ if isset .Params "sortbyfilepath" }}
+        {{ $inheritedSortByFilePath = .Params.sortByFilePath }}
+        {{ break }}
+    {{ end }}
+{{ end }}
 
 {{/*
 Optimized article rendering function with minimal context passing.
@@ -20,15 +30,21 @@ Uses Hugo's internal template system for efficient recursion.
     {{- $page := .page -}}
     {{- $site := .site -}}
     {{- $nestedArticles := .nestedArticles -}}
-    {{- $globalSortByFilePath := .globalSortByFilePath -}}
+    {{- $inheritedSortByFilePath := .inheritedSortByFilePath -}}
 
     {{/* Render current article using dedicated partial */}}
     {{- partial "article/item" $page -}}
 
     {{/* Process children only if nesting enabled and children exist */}}
     {{- if and $nestedArticles $page.Data.Pages -}}
-        {{/* Determine sorting strategy with local override capability */}}
-        {{- $sortByFilePath := $page.Parent.Params.sortByFilePath | default $globalSortByFilePath -}}
+        {{/* Conditional inheritance: a page's own sortByFilePath governs its
+             children when declared; otherwise the setting inherited from the
+             nearest declaring ancestor applies. The resolved value is passed
+             down so the whole subtree inherits it. */}}
+        {{- $sortByFilePath := $inheritedSortByFilePath -}}
+        {{- if isset $page.Params "sortbyfilepath" -}}
+            {{- $sortByFilePath = $page.Params.sortByFilePath -}}
+        {{- end -}}
 
         {{- if $sortByFilePath -}}
             {{/* File path based sorting with cached sort order */}}
@@ -38,7 +54,7 @@ Uses Hugo's internal template system for efficient recursion.
                     "page" .
                     "site" $site
                     "nestedArticles" $nestedArticles
-                    "globalSortByFilePath" $globalSortByFilePath) -}}
+                    "inheritedSortByFilePath" $sortByFilePath) -}}
             {{- end -}}
         {{- else -}}
             {{/* Weight-based sorting (Hugo default) */}}
@@ -47,7 +63,7 @@ Uses Hugo's internal template system for efficient recursion.
                     "page" .
                     "site" $site
                     "nestedArticles" $nestedArticles
-                    "globalSortByFilePath" $globalSortByFilePath) -}}
+                    "inheritedSortByFilePath" $sortByFilePath) -}}
             {{- end -}}
         {{- end -}}
     {{- end -}}
@@ -58,4 +74,4 @@ Uses Hugo's internal template system for efficient recursion.
     "page" .
     "site" $site
     "nestedArticles" $nestedArticles
-    "globalSortByFilePath" $globalSortByFilePath) -}}
+    "inheritedSortByFilePath" $inheritedSortByFilePath) -}}
