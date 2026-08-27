@@ -9,7 +9,12 @@ Optimized for senior engineering teams with focus on:
 
 {{/* Cache frequently accessed values to reduce repeated lookups */}}
 {{ $site := .Site }}
-{{ $nestedArticles := $site.Params.includeNestedArticles | default true }}
+{{/* isset (not default) so an explicit `includeNestedArticles: false` disables
+     nested rendering instead of being coerced back to true. */}}
+{{ $nestedArticles := true }}
+{{ if isset $site.Params "includenestedarticles" }}
+    {{ $nestedArticles = $site.Params.includeNestedArticles }}
+{{ end }}
 
 {{/* Seed the inherited sort setting from the nearest ancestor that declares
      sortByFilePath, falling back to the site param. isset (not default) so an
