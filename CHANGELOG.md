@@ -62,3 +62,7 @@
 ## 2026-08-20
 ### Fix
 - Skip the navigation script tag during frontmatter schema generation so `make frontmatter` builds no longer fail. @Zalaras
+
+## 2026-08-26
+### Feature
+- Add an opt-in `params.logo_dark` to swap the title bar logo when dark mode is active. @kelvinmanley
