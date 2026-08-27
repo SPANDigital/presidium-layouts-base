@@ -65,4 +65,4 @@
 
 ## 2026-08-26
 ### Feature
-- Add an opt-in `params.logo_dark` to swap the title bar logo when dark mode is active. @kelvinmanley
+- Add an opt-in `params.logo_dark` to swap the title bar logo when dark mode is active. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11356
