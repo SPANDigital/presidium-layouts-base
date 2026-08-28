@@ -4,10 +4,17 @@
 {{ if .Site.Params.logo }}
   {{ $navImg = path.Join $rootUrl .Site.Params.logo }}
 {{ end }}
+{{ $navImgDark := "" }}
+{{ with .Site.Params.logo_dark }}
+  {{ $navImgDark = path.Join $rootUrl . }}
+{{ end }}
 
 <div class="module-title-bar-logo">
   <a href="{{ $rootUrl }}" aria-label="{{ .Site.Title }} home">
-    <img src="{{ $navImg }}" alt="{{ .Site.Title }} logo" class="brand" />
+    <img src="{{ $navImg }}" alt="" class="brand{{ with $navImgDark }} brand-light{{ end }}" />
+    {{ with $navImgDark }}
+      <img src="{{ . }}" alt="" class="brand brand-dark" />
+    {{ end }}
   </a>
 </div>
 
