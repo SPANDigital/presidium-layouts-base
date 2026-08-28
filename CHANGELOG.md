@@ -62,3 +62,7 @@
 ## 2026-08-20
 ### Fix
 - Skip the navigation script tag during frontmatter schema generation so `make frontmatter` builds no longer fail. @Zalaras
+
+## 2026-08-27
+### Fix
+- Remove the divider rendered under a section's title and intro body so sections no longer show a light border above the article bar. @dev-pieter https://spandigital.atlassian.net/browse/PRSDM-11598

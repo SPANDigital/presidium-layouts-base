@@ -30,7 +30,6 @@
         {{- partial "article/frontmatter" . -}}
         {{ if (ne (len .Content) 0) -}}
             <article class="article-actions" data-align="center-top" title="{{ .Title }}" aria-label="{{ .Title }}">{{ .Content }}</article>
-            <hr />
         {{- end }}
     </div>
 </div>
