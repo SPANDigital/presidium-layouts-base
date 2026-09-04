@@ -70,3 +70,7 @@
 ## 2026-08-28
 ### Feature
 - Add an opt-in `params.logo_dark` to swap the title bar logo when dark mode is active. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11356
+
+## 2026-09-04
+### Feature
+- Expose the page's section chain so the WYSIWYG editor can render a breadcrumb. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11850

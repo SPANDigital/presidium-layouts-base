@@ -22,6 +22,7 @@
      data-no-content="true"
      {{ if $.Site.Params.enterprise_enabled }}
        data-imported="{{ $isImported }}"
+       data-ancestors="{{ partial "common/ancestors" . | jsonify }}"
        {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }}
      {{ end }}>
     <div class="presidium-article-wrapper">
