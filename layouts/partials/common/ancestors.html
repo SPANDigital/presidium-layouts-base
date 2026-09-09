@@ -1,0 +1,16 @@
+{{/*
+Section chain the current page sits under, outermost first, for a breadcrumb.
+Returns: slice of dicts with title and url
+
+The home page is dropped - the module already names itself in the title bar, so it
+would only ever be a redundant first crumb.
+*/}}
+{{- $ancestors := slice -}}
+
+{{- range .Ancestors.Reverse -}}
+  {{- if not .IsHome -}}
+    {{- $ancestors = $ancestors | append (dict "title" .LinkTitle "url" .RelPermalink) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $ancestors -}}
