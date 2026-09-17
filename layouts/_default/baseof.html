@@ -22,6 +22,10 @@
       } catch (error) {
         // localStorage may be unavailable, so skip restoring the theme preference.
       }
+      {{/* Add a class to hide the article when in edit mode. */}}
+      if (new URLSearchParams(window.location.search).get('edit') === 'true') {
+        document.documentElement.classList.add('hide-presidium-content');
+      }
     </script>
     <link rel="stylesheet" href="{{ $style.RelPermalink }}">
     {{ if resources.Get "index.scss" }}
@@ -47,6 +51,9 @@
         #presidium-navigation {
           flex-basis: var(--presidium-sidenav-width, 300px);
         }
+      }
+      html.hide-presidium-content #presidium-content {
+        display: none;
       }
     </style>
 
