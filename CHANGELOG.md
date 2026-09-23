@@ -74,3 +74,7 @@
 ## 2026-09-04
 ### Feature
 - Expose the page's section chain so the WYSIWYG editor can render a breadcrumb. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11850
+
+## 2026-09-17
+### Fix
+- Added functionality to prevent article content from being displayed before the editor is loaded @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11869
