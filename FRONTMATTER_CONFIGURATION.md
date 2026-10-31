@@ -496,6 +496,49 @@ frontmatter:
 
 ---
 
+### Type 9: Bundle File
+
+**Use for**: A file stored in the article's own folder (a Hugo leaf or branch bundle), such as a thumbnail image. The value is the file's path relative to that folder.
+
+**How it is used**: The WYSIWYG editor renders an upload control. On Save, the content builder writes the file into the article's folder and stores its name in the field. The theme decides what the field means, for example by looking the file up with `.Resources.GetMatch`.
+
+**Required Attributes**:
+```yaml
+field_name:
+  type: bundle_file                   # ✅ Required
+  error_message: "Custom error"       # ✅ Required
+  placeholder_message: "Help text"    # ✅ Required
+```
+
+**Optional Attributes**:
+```yaml
+  required: false                     # ⚙️ Optional (default: false)
+  accept: [.png, .jpg]                # ⚙️ Optional: allowed extensions (default: any image type the content builder accepts)
+  max_size: "10M"                     # ⚙️ Optional: upload limit (default: the content builder's wysiwyg.image_upload_max_size)
+  fallback_glob: "thumbnail.*"        # ⚙️ Optional: the file the theme uses when the value is empty, shown by the editor as the default
+  bundle_kinds: [leaf]                # ⚙️ Optional: leaf (index.md) and/or branch (_index.md) (default: [leaf])
+```
+
+**Example**:
+```yaml
+frontmatter:
+  - key: _thumbnail
+    type: bundle_file
+    display_name: Thumbnail
+    accept: [.png, .jpg, .jpeg, .webp]
+    fallback_glob: "thumbnail.*"
+    error_message: "The thumbnail must be a PNG, JPG or WebP file in the article's folder"
+    placeholder_message: "Upload a thumbnail"
+```
+
+**Rules**:
+- An empty value (`""`) means "not set". The editor never deletes a key, so clearing the field writes `""`.
+- Validation fails for a value with a `..` segment or a leading `/`, and for an extension that is not in `accept`. A value that names a missing file is valid; the theme falls back.
+- Articles whose kind is not in `bundle_kinds` show the field disabled in the editor. A single-file article (`my-article.md`) has no folder and can never hold a bundle file.
+- Fields that control rendering rather than describe the content, as `bundle_file` fields usually do, start with an underscore (for example `_thumbnail`).
+
+---
+
 ## Type Summary Table
 
 | Type | Use For | Required Attributes | Key Optional |
@@ -508,6 +551,7 @@ frontmatter:
 | date | Calendar dates | type, error_message, placeholder_message | required |
 | datetime | Timestamps | type, error_message, placeholder_message | required |
 | email | Email addresses | type, error_message, placeholder_message | required |
+| bundle_file | A file in the article's folder | type, error_message, placeholder_message | required, accept, max_size, fallback_glob, bundle_kinds |
 
 ---
 

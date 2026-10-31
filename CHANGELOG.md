@@ -78,3 +78,7 @@
 ## 2026-09-17
 ### Fix
 - Added functionality to prevent article content from being displayed before the editor is loaded @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11869
+
+## 2026-10-31
+### Feature
+- Add a `bundle_file` frontmatter field type for a file stored in the article's own folder, with build-time validation of its path and extension. @FabioSol https://spandigital.atlassian.net/browse/PRSDM-12471
