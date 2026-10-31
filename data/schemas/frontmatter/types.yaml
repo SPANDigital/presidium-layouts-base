@@ -7,6 +7,7 @@
 # Categories:
 #   - Base types: string, number, boolean, array, object
 #   - Presets: date, datetime, email (string presets with pattern preconfigured)
+#   - File types: bundle_file (a file stored in the article's own folder)
 #
 # Legend:
 #   [Mandatory] - User must provide a value
@@ -185,3 +186,44 @@ taxonomy_term_lookup:
   pattern: ""                         # [Optional] - Not recommended as the input will be limited to the fixed options
   display_rows: 1                     # [Optional] - Not recommend as the input will be single line
   multi_select: false                 # [Optional] - TODO: PRSDM-10548 - When FE supports multi-select, set to true to allow array values
+
+# -----------------------------------------------------------------------------
+# FILE TYPES
+# -----------------------------------------------------------------------------
+
+# BUNDLE_FILE TYPE
+# A file stored in the article's own folder (a Hugo leaf or branch bundle). The value
+# is the file's path relative to that folder, for example "cover.jpg". The editor
+# uploads the file into the folder and writes its name; the theme decides what the
+# field means (for example a thumbnail).
+#
+# An empty value ("") means "not set". Keys are never deleted by the editor, so an
+# empty value is how a field is cleared.
+#
+# Attributes:
+#   accept        - allowed file extensions, for example [.png, .jpg]. Empty means
+#                   any image type the content builder accepts.
+#   max_size      - maximum upload size, for example "10M". Empty means the content
+#                   builder's wysiwyg.image_upload_max_size.
+#   fallback_glob - the file the theme uses when the value is empty, for example
+#                   "thumbnail.*". Only tells the editor what to show as the default.
+#   bundle_kinds  - which articles the field applies to: leaf (index.md) and/or
+#                   branch (_index.md). Single-file articles can never hold files.
+#
+# Naming: bundle_file fields usually control rendering, so their keys start with an
+# underscore (for example _thumbnail), following the cross-repo convention for
+# utility frontmatter fields.
+#
+# Validation: the value must be a string with no ".." segment and no leading "/",
+# and its extension must be in accept when accept is set. A value that names a
+# missing file is not an error; the theme falls back.
+# -----------------------------------------------------------------------------
+bundle_file:
+  type: string                        # [Mandatory]
+  error_message: string               # [Mandatory]
+  placeholder_message: string         # [Mandatory]
+  required: false                     # [Optional]
+  accept: []                          # [Optional] - Allowed extensions, empty = any image type the builder allows
+  max_size: ""                        # [Optional] - Empty = the builder's wysiwyg.image_upload_max_size
+  fallback_glob: ""                   # [Optional] - File the theme uses when the value is empty
+  bundle_kinds: [leaf]                # [Optional] - leaf (index.md), branch (_index.md)
