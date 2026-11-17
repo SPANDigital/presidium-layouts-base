@@ -514,7 +514,7 @@ field_name:
 ```yaml
   required: false                     # ⚙️ Optional (default: false)
   accept: [.png, .jpg]                # ⚙️ Optional: allowed extensions (default: any image type the content builder accepts)
-  max_size: "10M"                     # ⚙️ Optional: upload limit (default: the content builder's wysiwyg.image_upload_max_size)
+  max_size: "10M"                     # ⚙️ Optional: upload limit (default and ceiling: the content builder's wysiwyg.image_upload_max_size)
   fallback_glob: "thumbnail.*"        # ⚙️ Optional: the file the theme uses when the value is empty, shown by the editor as the default
   bundle_kinds: [leaf]                # ⚙️ Optional: leaf (index.md) and/or branch (_index.md) (default: [leaf])
 ```

@@ -204,7 +204,8 @@ taxonomy_term_lookup:
 #   accept        - allowed file extensions, for example [.png, .jpg]. Empty means
 #                   any image type the content builder accepts.
 #   max_size      - maximum upload size, for example "10M". Empty means the content
-#                   builder's wysiwyg.image_upload_max_size.
+#                   builder's wysiwyg.image_upload_max_size, which is also the
+#                   ceiling: a larger value is capped at it.
 #   fallback_glob - the file the theme uses when the value is empty, for example
 #                   "thumbnail.*". Only tells the editor what to show as the default.
 #   bundle_kinds  - which articles the field applies to: leaf (index.md) and/or
@@ -224,6 +225,6 @@ bundle_file:
   placeholder_message: string         # [Mandatory]
   required: false                     # [Optional]
   accept: []                          # [Optional] - Allowed extensions, empty = any image type the builder allows
-  max_size: ""                        # [Optional] - Empty = the builder's wysiwyg.image_upload_max_size
+  max_size: ""                        # [Optional] - Empty = the builder's wysiwyg.image_upload_max_size, also the ceiling
   fallback_glob: ""                   # [Optional] - File the theme uses when the value is empty
   bundle_kinds: [leaf]                # [Optional] - leaf (index.md), branch (_index.md)
