@@ -1,0 +1,38 @@
+{{/* Bundle File Validator - validates a path to a file in the article's own folder */}}
+{{/* Assumes: value exists (root validator already checked required/null) */}}
+{{/* An empty string means "not set" and is valid. A path to a missing file is also */}}
+{{/* valid: the theme falls back, so it must not fail the build. */}}
+
+{{- $value := .value -}}
+{{- $rules := .rules -}}
+{{- $fieldName := .fieldName -}}
+{{- $ctx := .context -}}
+{{- $errors := slice -}}
+
+{{/* Type check: must be string */}}
+{{- if ne (printf "%T" $value) "string" -}}
+  {{- $errors = $errors | append (printf "%s must be a string" $fieldName) -}}
+{{- else if ne $value "" -}}
+  {{/* The path must stay inside the article's folder */}}
+  {{- if or (hasPrefix $value "/") (in (split $value "/") "..") -}}
+    {{- $errors = $errors | append (printf "%s must be a path inside the article's folder" $fieldName) -}}
+  {{- end -}}
+
+  {{/* The extension must be one of the accepted ones, when any are set */}}
+  {{- if and $rules.accept (gt (len $rules.accept) 0) -}}
+    {{- $ext := lower (path.Ext $value) -}}
+    {{- $accepted := false -}}
+    {{- range $rules.accept -}}
+      {{- if eq (lower .) $ext -}}
+        {{- $accepted = true -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if not $accepted -}}
+      {{- $errors = $errors | append (printf "%s: '%s' is not an accepted file type. Must be one of: %s" $fieldName $value (delimit $rules.accept ", ")) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Store result in scratch for retrieval by root validator */}}
+{{- $result := dict "valid" (eq (len $errors) 0) "errors" $errors -}}
+{{- $ctx.Scratch.Set "type_validation_result" $result -}}
