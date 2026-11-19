@@ -35,7 +35,7 @@ Optimized for performance with minimal DOM manipulation and efficient conditiona
          data-link="{{ $articleLink }}"
          permalink="{{ .Page.RelPermalink }}"
          data-no-content="{{ $noContent }}"
-         {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }} {{ end }}
+         {{ if $.Site.Params.enterprise_enabled }} data-imported="{{ $isImported }}" data-ancestors="{{ partial "common/ancestors" . | jsonify }}" {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }} {{ end }}
          title="{{ .Title }}">
 
         {{- if $shouldRenderWrapper -}}

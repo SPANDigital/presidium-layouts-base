@@ -49,6 +49,36 @@
 ### Feature
 - Apply dark mode class on page load. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11352
 
+
 ## 2026-08-17
 ### Fix
 - Route the heading permalink toast through the enterprise Isambard toaster so it no longer renders behind the navbar. @yandisakat https://spandigital.atlassian.net/browse/PRSDM-11481
+
+## 2026-08-19
+### Refactor
+- Remove the inline side nav positioning script now that the sticky header offset is handled in CSS. @FabioSol https://spandigital.atlassian.net/browse/PRSDM-10751
+
+
+## 2026-08-20
+### Fix
+- Skip the navigation script tag during frontmatter schema generation so `make frontmatter` builds no longer fail. @Zalaras
+
+## 2026-08-27
+### Fix
+- Remove the divider rendered under a section's title and intro body so sections no longer show a light border above the article bar. @dev-pieter https://spandigital.atlassian.net/browse/PRSDM-11598
+
+## 2026-08-28
+### Feature
+- Add an opt-in `params.logo_dark` to swap the title bar logo when dark mode is active. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11356
+
+## 2026-09-04
+### Feature
+- Expose the page's section chain so the WYSIWYG editor can render a breadcrumb. @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11850
+
+## 2026-09-17
+### Fix
+- Added functionality to prevent article content from being displayed before the editor is loaded @kelvinmanley https://spandigital.atlassian.net/browse/PRSDM-11869
+
+## 2026-10-31
+### Feature
+- Add a `bundle_file` frontmatter field type for a file stored in the article's own folder, with build-time validation of its path and extension. @FabioSol https://spandigital.atlassian.net/browse/PRSDM-12471

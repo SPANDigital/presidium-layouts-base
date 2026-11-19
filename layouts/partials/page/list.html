@@ -23,6 +23,7 @@
      data-no-content="{{ $noContent }}"
      {{ if $.Site.Params.enterprise_enabled }}
        data-imported="{{ $isImported }}"
+       data-ancestors="{{ partial "common/ancestors" . | jsonify }}"
        {{ if $githubUrl }} data-github-url="{{ $githubUrl }}" {{ end }}
      {{ end }}>
     <div class="presidium-article-wrapper">
@@ -30,7 +31,6 @@
         {{- partial "article/frontmatter" . -}}
         {{ if (ne (len .Content) 0) -}}
             <article class="article-actions" data-align="center-top" title="{{ .Title }}" aria-label="{{ .Title }}">{{ .Content }}</article>
-            <hr />
         {{- end }}
     </div>
 </div>
